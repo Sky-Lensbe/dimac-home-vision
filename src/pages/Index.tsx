@@ -84,7 +84,7 @@ const Index = () => {
               Aannemer in ruime regio Diest
             </span>
             <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[1.03] tracking-tight text-primary">
-              Renoveren of bouwen met overzicht — van eerste analyse tot afwerking.
+              Renoveren of bouwen met overzicht, van eerste analyse tot afwerking.
             </h1>
             <p className="mt-8 text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed">
               Een renovatie of bouwproject vraagt meer dan goede vakmensen alleen. Planning,
