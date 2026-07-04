@@ -1,9 +1,8 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, MapPin, Star, Hammer } from "lucide-react";
+import { ArrowRight, MapPin, Star, Hammer, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ImagePlaceholder } from "@/components/site/ImagePlaceholder";
 import { Section } from "@/components/site/Section";
-import { BulletList } from "@/components/site/BulletList";
 import { CTABlock } from "@/components/site/CTABlock";
 import { WorkflowSteps } from "@/components/site/WorkflowSteps";
 import { usePageMeta } from "@/hooks/use-page-meta";
@@ -15,11 +14,59 @@ import roof from "@/assets/project-roof.jpg";
 import total from "@/assets/project-total.jpg";
 import prep from "@/assets/preparation.jpg";
 
+const trustCards = [
+  { title: "Eén aanspreekpunt", text: "Voor uw volledige project, van eerste vraag tot oplevering." },
+  { title: "Duidelijke voorbereiding", text: "Zodat keuzes, timing en technieken vooraf beter op elkaar afgestemd zijn." },
+  { title: "Renovatie en nieuwbouw", text: "Voor projecten waar meerdere werken samen moeten kloppen." },
+  { title: "Lokaal actief", text: "In ruime regio Diest en omgeving." },
+];
+
+const positioningCards = [
+  { title: "Voorbereiding", text: "We bekijken wat technisch, praktisch en budgettair nodig is vóór de werken starten." },
+  { title: "Coördinatie", text: "We stemmen de verschillende werken op elkaar af, zodat planning, technieken en uitvoering niet naast elkaar lopen." },
+  { title: "Opvolging", text: "U heeft één aanspreekpunt dat het overzicht bewaakt en het project opvolgt tot de afwerking klopt." },
+];
+
+const woningscanPoints = [
+  { title: "Inzicht vóór u beslist", text: "U weet beter welke werken nodig zijn en welke keuzes impact hebben op elkaar." },
+  { title: "Minder verrassingen tijdens de werken", text: "Aandachtspunten worden vroeger zichtbaar, zodat ze niet pas tijdens de uitvoering opduiken." },
+  { title: "Technisch en praktisch advies", text: "U krijgt een duidelijker beeld van wat haalbaar, logisch en verstandig is voor uw woning." },
+  { title: "Een betere basis voor offerte en planning", text: "Hoe duidelijker de uitgangssituatie, hoe correcter de volgende stappen kunnen worden voorbereid." },
+  { title: "Scanbedrag wordt verrekend bij uitvoering", text: "Beslist u nadien om het project door Dimac te laten uitvoeren, dan wordt het bedrag van de woningscan verrekend." },
+];
+
+const objectionQuestions = [
+  "Wat moet eerst gebeuren?",
+  "Welke keuzes beïnvloeden elkaar?",
+  "Welke werken moeten technisch voorbereid zijn?",
+  "Waar zitten mogelijke risico's?",
+  "Wie bewaakt het overzicht?",
+  "Wat gebeurt er als planning, materialen of technieken niet goed op elkaar afgestemd zijn?",
+];
+
+const invisibleItems = [
+  "De aansluitingen",
+  "De technieken",
+  "De opbouw achter de muur",
+  "De waterdichting",
+  "De ventilatie",
+  "De afstemming tussen materialen",
+  "De volgorde van de werken",
+  "De details in de afwerking",
+];
+
+const trustThemes = [
+  { title: "Duidelijke communicatie", text: "U weet wie uw aanspreekpunt is en wat de volgende stap wordt." },
+  { title: "Eén partij die het overzicht bewaakt", text: "Niet elke aannemer apart aansturen, maar één traject met duidelijke opvolging." },
+  { title: "Technische voorbereiding", text: "Aandacht voor wat moet kloppen vóór de werken zichtbaar worden." },
+  { title: "Afwerking met oog voor detail", text: "Omdat kwaliteit vaak zichtbaar wordt in aansluitingen, overgangen en praktische afwerking." },
+];
+
 const Index = () => {
   usePageMeta({
-    title: "Aannemer in Diest | Totaalrenovatie & Woningscan | Dimac",
+    title: "Aannemer in regio Diest | Renovatie & nieuwbouw | Dimac",
     description:
-      "Dimac is uw aannemer in regio Diest voor totaalrenovaties en nieuwbouw. Start met een woningscan en krijg duidelijkheid vóór u verbouwt.",
+      "Dimac begeleidt uw renovatie- of bouwproject in regio Diest met één aanspreekpunt, duidelijke voorbereiding en correcte opvolging van de werken.",
   });
 
   const homeServices = services.filter((s) =>
@@ -28,121 +75,191 @@ const Index = () => {
 
   return (
     <>
-      {/* HERO */}
-      <section className="relative min-h-[100svh] flex items-end pt-32 pb-16 md:pb-24 overflow-hidden">
-        <div className="absolute inset-0">
-          <img
-            src={hero}
-            alt=""
-            className="h-full w-full object-cover"
-            width={1600}
-            height={1200}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-primary/75 via-primary/35 to-primary/10" />
-        </div>
-        <div className="container-wide relative">
-          <div className="max-w-3xl text-primary-foreground fade-up">
+      {/* SECTION 1 — HERO */}
+      <section className="relative pt-40 pb-20 md:pt-48 md:pb-28 overflow-hidden bg-background">
+        <div className="container-wide relative grid gap-16 lg:grid-cols-[1.15fr_1fr] items-center">
+          <div className="fade-up">
             <span className="inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-accent mb-8">
               <span className="h-px w-8 bg-accent" />
-              Aannemer in regio Diest
+              Aannemer in ruime regio Diest
             </span>
-            <h1 className="font-display text-4xl sm:text-5xl md:text-7xl leading-[1.02] tracking-tight">
-              Renoveren zonder giswerk en met één aanspreekpunt.
+            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[1.03] tracking-tight text-primary">
+              Renoveren of bouwen met overzicht — van eerste analyse tot afwerking.
             </h1>
-            <p className="mt-8 text-lg md:text-xl text-primary-foreground/85 max-w-2xl leading-relaxed">
-              Dimac begeleidt uw renovatie in ruime regio Diest van eerste analyse tot volledige uitvoering.
-              Eerst een beter inzicht krijgen in uw (toekomstige) woning? Bekijk de woningscan.
+            <p className="mt-8 text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed">
+              Een renovatie of bouwproject vraagt meer dan goede vakmensen alleen. Planning,
+              technieken, materialen, uitvoering en afwerking moeten op elkaar afgestemd zijn.
+            </p>
+            <p className="mt-5 text-lg text-muted-foreground max-w-2xl leading-relaxed">
+              Dimac begeleidt uw project met één aanspreekpunt, duidelijke voorbereiding en
+              correcte opvolging van de werken. Zo weet u beter waar u aan toe bent vóór de eerste
+              werken starten.
             </p>
             <div className="mt-10 flex flex-wrap gap-4">
               <Button asChild variant="solid" size="lg">
-                <Link to="/contact">Vraag een offerte aan <ArrowRight className="w-4 h-4" /></Link>
+                <Link to="/contact">Vraag een gesprek aan <ArrowRight className="w-4 h-4" /></Link>
               </Button>
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="border-primary-foreground/70 text-primary-foreground hover:bg-primary-foreground hover:text-primary hover:border-primary-foreground"
-              >
-                <Link to="/woningscan">Plan uw woningscan</Link>
+              <Button asChild variant="outline" size="lg">
+                <Link to="/woningscan">Ontdek de woningscan</Link>
               </Button>
             </div>
+            <p className="mt-6 text-sm text-muted-foreground flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-accent" />
+              Actief in Diest, Scherpenheuvel, Tessenderlo, Halen en ruime omgeving.
+            </p>
+          </div>
+          <div className="fade-up">
+            <ImagePlaceholder src={hero} label="Hero — renovatieproject" aspect="portrait" />
+          </div>
+        </div>
+      </section>
 
-            {/* Trust bar */}
-            <div className="mt-14 grid grid-cols-1 sm:grid-cols-3 gap-6 text-primary-foreground/85 max-w-2xl">
-              <div className="flex items-center gap-3 border-t border-primary-foreground/20 pt-5">
-                <Star className="w-4 h-4 text-accent fill-accent" strokeWidth={0} />
-                <span className="text-sm">5/5 klanttevredenheid<span className="block text-[11px] text-primary-foreground/50 uppercase tracking-widest mt-1">Placeholder</span></span>
+      {/* SECTION 2 — TRUST CARDS */}
+      <section className="pb-8 md:pb-16 bg-background">
+        <div className="container-wide">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {trustCards.map((c) => (
+              <div key={c.title} className="bg-background border border-border p-8">
+                <span className="block h-px w-8 bg-accent mb-6" />
+                <h3 className="font-display text-xl text-primary leading-snug mb-3">{c.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{c.text}</p>
               </div>
-              <div className="flex items-center gap-3 border-t border-primary-foreground/20 pt-5">
-                <MapPin className="w-4 h-4 text-accent" />
-                <span className="text-sm">Actief in regio Diest<span className="block text-[11px] text-primary-foreground/50 uppercase tracking-widest mt-1">& omgeving</span></span>
-              </div>
-              <div className="flex items-center gap-3 border-t border-primary-foreground/20 pt-5">
-                <Hammer className="w-4 h-4 text-accent" />
-                <span className="text-sm">20+ jaar ervaring<span className="block text-[11px] text-primary-foreground/50 uppercase tracking-widest mt-1">Placeholder</span></span>
-              </div>
+            ))}
+          </div>
+          <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl">
+            <div className="flex items-center gap-3 border-t border-border pt-5">
+              <Star className="w-4 h-4 text-accent fill-accent" strokeWidth={0} />
+              <span className="text-sm text-primary">5/5 klanttevredenheid<span className="block text-[10px] text-muted-foreground uppercase tracking-widest mt-1">Placeholder</span></span>
+            </div>
+            <div className="flex items-center gap-3 border-t border-border pt-5">
+              <MapPin className="w-4 h-4 text-accent" />
+              <span className="text-sm text-primary">Actief in regio Diest<span className="block text-[10px] text-muted-foreground uppercase tracking-widest mt-1">& omgeving</span></span>
+            </div>
+            <div className="flex items-center gap-3 border-t border-border pt-5">
+              <Hammer className="w-4 h-4 text-accent" />
+              <span className="text-sm text-primary">20+ jaar ervaring<span className="block text-[10px] text-muted-foreground uppercase tracking-widest mt-1">Placeholder</span></span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* TWEE INSTAPPADEN */}
+      {/* SECTION 3 — TWO ENTRY PATHS */}
       <Section eyebrow="Twee instappaden" title="Wat is voor u de juiste eerste stap?">
-        <div className="grid gap-px bg-border border border-border">
-          <div className="grid md:grid-cols-2 gap-px bg-border">
-            <div className="bg-background p-10 md:p-14 group hover:bg-surface transition-colors duration-500">
-              <span className="font-display text-accent text-2xl">01</span>
-              <h3 className="font-display text-2xl md:text-3xl mt-4 mb-4 text-primary leading-tight">
-                Ik wil meteen verbouwen
-              </h3>
-              <p className="text-muted-foreground leading-relaxed mb-8">
-                U weet wat u wil en zoekt een betrouwbare partner voor de uitvoering van uw project.
-              </p>
+        <p className="max-w-3xl text-lg text-muted-foreground leading-relaxed mb-14">
+          Niet elk project begint op hetzelfde punt. Sommige klanten weten al precies wat ze willen
+          laten uitvoeren. Anderen willen eerst duidelijkheid over de staat van hun woning, de
+          technische aandachtspunten en de logische volgorde van de werken.
+        </p>
+        <div className="grid gap-px bg-border border border-border md:grid-cols-2">
+          {[
+            {
+              n: "01",
+              title: "Ik wil mijn project laten uitvoeren",
+              text: "U weet wat u wil aanpakken en zoekt een betrouwbare aannemer die de werken correct voorbereidt, coördineert en uitvoert.",
+              extra: "Ideaal voor renovatie, nieuwbouw, badkamer, keuken, dakwerken, technieken of totaalprojecten.",
+              cta: "Bekijk onze diensten",
+              to: "/diensten",
+            },
+            {
+              n: "02",
+              title: "Ik wil eerst duidelijkheid voor ik beslis",
+              text: "U wil eerst weten wat technisch nodig is, welke keuzes belangrijk zijn en hoe u uw renovatie of bouwproject best aanpakt.",
+              extra: "Ideaal voor woningen waar nog veel vragen openstaan over budget, volgorde, haalbaarheid of technische staat.",
+              cta: "Ontdek de woningscan",
+              to: "/woningscan",
+            },
+          ].map((p) => (
+            <div key={p.n} className="bg-background p-10 md:p-14 hover:bg-surface transition-colors duration-500">
+              <span className="font-display text-accent text-2xl">{p.n}</span>
+              <h3 className="font-display text-2xl md:text-3xl mt-4 mb-4 text-primary leading-tight">{p.title}</h3>
+              <p className="text-muted-foreground leading-relaxed mb-4">{p.text}</p>
+              <p className="text-sm text-muted-foreground/80 leading-relaxed mb-8">{p.extra}</p>
               <Button asChild variant="ghost" className="px-0 h-auto text-accent hover:bg-transparent hover:text-primary">
-                <Link to="/diensten">Bekijk onze diensten <ArrowRight className="w-4 h-4" /></Link>
+                <Link to={p.to}>{p.cta} <ArrowRight className="w-4 h-4" /></Link>
               </Button>
             </div>
-            <div className="bg-background p-10 md:p-14 group hover:bg-surface transition-colors duration-500">
-              <span className="font-display text-accent text-2xl">02</span>
-              <h3 className="font-display text-2xl md:text-3xl mt-4 mb-4 text-primary leading-tight">
-                Ik wil eerst duidelijkheid
-              </h3>
-              <p className="text-muted-foreground leading-relaxed mb-8">
-                U wil eerst weten wat nodig is, wat het kost en hoe u uw renovatie het best aanpakt.
-              </p>
-              <Button asChild variant="ghost" className="px-0 h-auto text-accent hover:bg-transparent hover:text-primary">
-                <Link to="/woningscan">Ontdek de woningscan <ArrowRight className="w-4 h-4" /></Link>
-              </Button>
-            </div>
-          </div>
+          ))}
         </div>
       </Section>
 
-      {/* WONINGSCAN TEASER */}
-      <section className="py-20 md:py-32 bg-surface">
-        <div className="container-tight grid gap-14 lg:grid-cols-[1fr_1.1fr] items-center">
+      {/* SECTION 4 — PROBLEM RECOGNITION */}
+      <Section eyebrow="Waarom overzicht telt" title="Een project loopt zelden vast op één beslissing." bg="surface">
+        <div className="grid gap-14 lg:grid-cols-[1fr_1.2fr] items-start">
+          <p className="text-lg text-muted-foreground leading-relaxed">
+            Bij renoveren of bouwen hangt bijna alles aan elkaar vast. Daarom is het gevaarlijk om
+            elk onderdeel als een losse opdracht te bekijken. Een goed project begint met overzicht.
+            Niet met losse beslissingen.
+          </p>
+          <ul className="divide-y divide-border border-y border-border">
+            {[
+              "Een keuken vraagt correcte aansluitingen.",
+              "Een badkamer vraagt technische voorbereiding achter de muur.",
+              "Een dak beïnvloedt isolatie, comfort en energieverbruik.",
+              "Elektriciteit, sanitair en verwarming moeten afgestemd zijn op hoe u de woning wil gebruiken.",
+              "Afwerking kan pas kloppen wanneer de voorbereiding juist zat.",
+            ].map((line) => (
+              <li key={line} className="py-5 text-primary/90 leading-relaxed">
+                {line}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </Section>
+
+      {/* SECTION 5 — POSITIONING */}
+      <Section eyebrow="Positionering" title="Geen losse werken. Wel één logisch geheel.">
+        <p className="max-w-3xl text-lg text-muted-foreground leading-relaxed mb-14">
+          Dimac helpt u om renovatie- en bouwprojecten gestructureerd aan te pakken. Niet door elk
+          onderdeel apart te bekijken, maar door vooraf te begrijpen hoe alles samenkomt.
+        </p>
+        <div className="grid gap-6 md:grid-cols-3">
+          {positioningCards.map((c, i) => (
+            <div key={c.title} className="border border-border p-8 md:p-10 bg-background">
+              <span className="font-display text-accent text-sm">{String(i + 1).padStart(2, "0")}</span>
+              <h3 className="font-display text-2xl mt-4 mb-3 text-primary leading-tight">{c.title}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">{c.text}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-14">
+          <Button asChild variant="solid" size="lg">
+            <Link to="/contact">Bespreek uw project <ArrowRight className="w-4 h-4" /></Link>
+          </Button>
+        </div>
+      </Section>
+
+      {/* SECTION 6 — WONINGSCAN */}
+      <section className="py-24 md:py-36 bg-surface">
+        <div className="container-tight grid gap-14 lg:grid-cols-[1fr_1.1fr] items-start">
           <div>
             <ImagePlaceholder label="Detail voorbereiding & analyse" src={prep} aspect="portrait" />
           </div>
           <div>
             <span className="eyebrow mb-5">Woningscan</span>
             <h2 className="font-display text-3xl md:text-5xl leading-[1.05] text-primary mb-6">
-              Begin met een duidelijk plan
+              Twijfelt u over de juiste aanpak? Begin met inzicht.
             </h2>
-            <p className="text-lg text-muted-foreground leading-relaxed mb-8 max-w-xl">
-              Met onze woningscan krijgt u een helder beeld van uw volledige woning, de
-              aandachtspunten en de beste aanpak. Geen aannames, maar concreet advies waarop u kan
-              bouwen.
+            <p className="text-lg text-muted-foreground leading-relaxed mb-5 max-w-xl">
+              Niet elke woning vraagt meteen een offerte. Soms is eerst duidelijkheid nodig.
             </p>
-            <BulletList
-              items={[
-                "Inzicht vóór u beslist",
-                "Minder verrassingen tijdens de werken",
-                "Concreet advies op maat",
-                "Scanbedrag wordt verrekend bij uitvoering",
-              ]}
-              className="mb-10"
-            />
+            <p className="text-muted-foreground leading-relaxed mb-10 max-w-xl">
+              Met de woningscan krijgt u een helder beeld van de staat van uw woning, de technische
+              aandachtspunten en de logische volgorde van uw renovatie. Zo neemt u beslissingen op
+              basis van inzicht, niet op basis van losse vermoedens.
+            </p>
+            <ol className="space-y-6 mb-10">
+              {woningscanPoints.map((p, i) => (
+                <li key={p.title} className="flex gap-5 pb-6 border-b border-border last:border-0">
+                  <span className="font-display text-accent text-lg leading-none pt-1 min-w-[2rem]">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <div>
+                    <h4 className="font-display text-lg text-primary mb-1">{p.title}</h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{p.text}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
             <Button asChild variant="solid" size="lg">
               <Link to="/woningscan">Plan uw woningscan <ArrowRight className="w-4 h-4" /></Link>
             </Button>
@@ -150,10 +267,11 @@ const Index = () => {
         </div>
       </section>
 
-      {/* DIENSTEN */}
-      <Section eyebrow="Diensten" title="Van ruwbouw tot afwerking">
-        <p className="max-w-2xl text-lg text-muted-foreground leading-relaxed mb-14">
-          Dimac realiseert renovaties en nieuwbouwprojecten van A tot Z, met één aanspreekpunt en duidelijke opvolging.
+      {/* SECTION 7 — SERVICES */}
+      <Section eyebrow="Diensten" title="Voor renovatie- en bouwprojecten waar alles moet kloppen.">
+        <p className="max-w-3xl text-lg text-muted-foreground leading-relaxed mb-14">
+          Dimac voert zowel renovatie- als nieuwbouwprojecten uit. Van aparte werken tot
+          totaaltrajecten waarbij meerdere disciplines samenkomen.
         </p>
         <div className="grid gap-px bg-border border border-border md:grid-cols-2 lg:grid-cols-3">
           {homeServices.map((s, i) => (
@@ -178,40 +296,97 @@ const Index = () => {
         </div>
       </Section>
 
-      {/* WERKWIJZE */}
-      <Section eyebrow="Werkwijze" title="Zo verloopt een traject bij Dimac" bg="surface">
+      {/* SECTION 8 — BOFU OBJECTION */}
+      <Section eyebrow="Voor u tekent" title="U wil geen verrassingen halverwege de werken." bg="surface">
+        <div className="grid gap-14 lg:grid-cols-[1fr_1.2fr] items-start">
+          <div className="space-y-6 text-muted-foreground leading-relaxed max-w-md">
+            <p className="text-lg">
+              Bij een renovatie of bouwproject gaat het vaak om een grote investering. Dan wil u
+              vooraf weten waar u aan toe bent.
+            </p>
+            <p>
+              Dat zijn vragen die u beter stelt vóór de werken starten. Daarom werkt Dimac met een
+              duidelijke aanpak, één aanspreekpunt en een voorbereiding die verder gaat dan alleen
+              een prijs op papier.
+            </p>
+            <div className="pt-2">
+              <Button asChild variant="solid" size="lg">
+                <Link to="/contact">Vraag een gesprek aan <ArrowRight className="w-4 h-4" /></Link>
+              </Button>
+            </div>
+          </div>
+          <ul className="grid sm:grid-cols-2 gap-px bg-border border border-border">
+            {objectionQuestions.map((q) => (
+              <li key={q} className="bg-background p-6 flex gap-4 items-start">
+                <Check className="w-4 h-4 text-accent mt-1 shrink-0" />
+                <span className="text-primary leading-snug">{q}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </Section>
+
+      {/* SECTION 9 — WERKWIJZE */}
+      <Section eyebrow="Werkwijze" title="Zo krijgt uw project structuur.">
         <WorkflowSteps
           steps={[
-            { title: "Kennismaking of woningscan", text: "We bekijken uw woning en situatie, en luisteren naar uw plannen." },
-            { title: "Analyse en advies", text: "U krijgt duidelijke inzichten en concrete mogelijkheden." },
-            { title: "Offerte", text: "Een transparante prijs en duidelijke planning." },
-            { title: "Uitvoering", text: "Wij coördineren en realiseren uw project van A tot Z." },
-            { title: "Oplevering", text: "Alles wordt correct afgewerkt en opgeleverd." },
+            { title: "Kennismaking", text: "We luisteren naar uw plannen en bekijken waar u vandaag staat. Gaat het om een concrete uitvoering, een totaalproject of eerst nood aan duidelijkheid?" },
+            { title: "Analyse of woningscan", text: "We brengen de situatie, aandachtspunten en technische noden in kaart. Zo vermijden we dat belangrijke keuzes te laat genomen worden." },
+            { title: "Voorstel en offerte", text: "U krijgt een duidelijk voorstel met scope, aanpak en prijs. Geen losse beloftes, maar een concreet beeld van wat er moet gebeuren." },
+            { title: "Planning en voorbereiding", text: "Materialen, technieken, timing en uitvoering worden op elkaar afgestemd vóór de werken starten." },
+            { title: "Uitvoering en oplevering", text: "Dimac coördineert de werken, volgt op en werkt toe naar een correcte oplevering." },
           ]}
         />
         <div className="mt-14">
           <Button asChild variant="link" className="text-accent">
-            <Link to="/werkwijze">Volledige werkwijze bekijken <ArrowRight className="w-4 h-4" /></Link>
+            <Link to="/werkwijze">Bekijk onze werkwijze <ArrowRight className="w-4 h-4" /></Link>
           </Button>
         </div>
       </Section>
 
-      {/* REALISATIES */}
-      <Section eyebrow="Realisaties" title="Realisaties in regio Diest">
-        <p className="max-w-2xl text-lg text-muted-foreground leading-relaxed mb-14">
-          Bekijk hoe wij woningen omvormen tot duurzame en kwalitatieve leefruimtes,
-          met oog voor detail en afwerking.
+      {/* SECTION 10 — WAT U NIET ZIET */}
+      <Section eyebrow="Onder de afwerking" title="Wat u niet ziet, bepaalt vaak de kwaliteit van het resultaat." bg="surface">
+        <div className="grid gap-14 lg:grid-cols-[1fr_1.1fr] items-start">
+          <p className="text-lg text-muted-foreground leading-relaxed">
+            Een project voelt pas kwalitatief wanneer alles klopt in gebruik. Niet alleen wat
+            zichtbaar is, maar vooral wat vooraf juist werd voorbereid.
+          </p>
+          <div>
+            <ul className="grid sm:grid-cols-2 gap-px bg-border border border-border">
+              {invisibleItems.map((item) => (
+                <li key={item} className="bg-background p-5 text-primary flex items-center gap-3">
+                  <span className="h-px w-6 bg-accent" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-8 text-muted-foreground leading-relaxed">
+              Dat zijn zaken waar u achteraf niet altijd bij stilstaat, maar die elke dag verschil
+              maken. Dimac kijkt daarom verder dan het zichtbare eindresultaat.
+            </p>
+          </div>
+        </div>
+      </Section>
+
+      {/* SECTION 11 — REALISATIES */}
+      <Section eyebrow="Realisaties" title="Projecten waar voorbereiding en afwerking samenkomen.">
+        <p className="max-w-3xl text-lg text-muted-foreground leading-relaxed mb-14">
+          Een goed resultaat ontstaat niet toevallig. Het is het gevolg van duidelijke keuzes,
+          correcte voorbereiding en vakmensen die weten hoe hun werk aansluit op het volgende.
         </p>
         <div className="grid gap-6 md:grid-cols-2">
           {[
-            { src: bathroom, label: "Badkamerrenovatie met zorg voor afwerking" },
-            { src: kitchen, label: "Keukenrenovatie waar technieken en maatwerk samenkomen" },
-            { src: roof, label: "Dakwerken met aandacht voor details" },
-            { src: total, label: "Totaalrenovatie met één duidelijke planning" },
+            { src: bathroom, title: "Badkamerrenovatie met zorg voor afwerking", caption: "Techniek, waterdichting, materiaalkeuze en afwerking in één geheel." },
+            { src: kitchen, title: "Keukenrenovatie waar technieken en maatwerk samenkomen", caption: "Een correcte voorbereiding van aansluitingen, indeling en afwerking." },
+            { src: roof, title: "Dakwerken met aandacht voor details", caption: "Opbouw, isolatie, afwatering en aansluitingen die technisch kloppen." },
+            { src: total, title: "Totaalproject met één duidelijke planning", caption: "Meerdere werken gebundeld in één overzichtelijk traject." },
           ].map((p) => (
-            <figure key={p.label} className="fade-up">
-              <ImagePlaceholder src={p.src} label={p.label} aspect="landscape" />
-              <figcaption className="mt-4 text-sm text-primary/80 max-w-md">{p.label}</figcaption>
+            <figure key={p.title} className="fade-up">
+              <ImagePlaceholder src={p.src} label={p.title} aspect="landscape" />
+              <figcaption className="mt-4 max-w-md">
+                <h3 className="font-display text-lg text-primary leading-snug">{p.title}</h3>
+                <p className="text-sm text-muted-foreground mt-1">{p.caption}</p>
+              </figcaption>
             </figure>
           ))}
         </div>
@@ -222,8 +397,8 @@ const Index = () => {
         </div>
       </Section>
 
-      {/* REVIEWS */}
-      <Section eyebrow="Reviews" title="Wat klanten zeggen" bg="surface">
+      {/* SECTION 12 — REVIEWS + TRUST */}
+      <Section eyebrow="Reviews" title="Waar klanten Dimac voor kiezen." bg="surface">
         <div className="grid gap-6 md:grid-cols-3">
           {[
             "Zeer tevreden over de communicatie en het eindresultaat. Alles verliep volgens afspraak.",
@@ -243,18 +418,38 @@ const Index = () => {
             </blockquote>
           ))}
         </div>
+        <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {trustThemes.map((t) => (
+            <div key={t.title} className="bg-background border border-border p-8">
+              <span className="block h-px w-8 bg-accent mb-6" />
+              <h3 className="font-display text-lg text-primary leading-snug mb-3">{t.title}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">{t.text}</p>
+            </div>
+          ))}
+        </div>
       </Section>
 
-      {/* OVER DIMAC */}
-      <Section eyebrow="Over Dimac" title="Uw aannemer in regio Diest">
-        <div className="grid gap-14 lg:grid-cols-[1.1fr_1fr]">
+      {/* SECTION 13 — OVER DIMAC */}
+      <Section eyebrow="Over Dimac" title="Uw aannemer voor renovatie en nieuwbouw in regio Diest.">
+        <div className="grid gap-14 lg:grid-cols-[1.1fr_1fr] items-start">
           <div className="space-y-5 text-lg text-muted-foreground leading-relaxed max-w-xl">
             <p>
-              Dimac is een lokale bouwpartner met meer dan 20 jaar ervaring in renovatie en nieuwbouw.
-              Wij combineren vakmanschap met een persoonlijke aanpak en duidelijke communicatie.
+              Dimac is een lokale bouwpartner voor renovatie- en nieuwbouwprojecten in ruime regio
+              Diest.
             </p>
             <p>
-              U heeft één aanspreekpunt voor uw volledige project, van eerste analyse tot oplevering.
+              We combineren vakmanschap met duidelijke communicatie, technische voorbereiding en
+              praktische opvolging van de werken. Onze meerwaarde zit niet alleen in de uitvoering,
+              maar vooral in het overzicht over het volledige traject.
+            </p>
+            <p>
+              Bij Dimac staat u niet tussen verschillende partijen die elk hun eigen onderdeel
+              uitvoeren. U krijgt één aanspreekpunt dat het project mee bewaakt van eerste analyse
+              tot oplevering.
+            </p>
+            <p>
+              Zo wordt uw renovatie of bouwproject geen verzameling losse beslissingen, maar één
+              logisch geheel.
             </p>
             <div className="pt-4">
               <Button asChild variant="outline">
@@ -268,13 +463,14 @@ const Index = () => {
         </div>
       </Section>
 
-      {/* FINAL CTA */}
+      {/* SECTION 14 — FINAL CTA */}
       <CTABlock
         eyebrow="Volgende stap"
-        title="Klaar om uw renovatie te starten?"
-        text="Twijfelt u nog over de aanpak of wil u meteen starten? Wij helpen u graag met de juiste eerste stap."
-        primary={{ label: "Vraag een offerte aan", to: "/contact" }}
+        title="Klaar om uw renovatie of bouwproject juist aan te pakken?"
+        text="Vertel ons kort wat u wil bouwen of renoveren. Dan bekijken we samen welke aanpak logisch is: meteen richting uitvoering of eerst meer duidelijkheid via de woningscan."
+        primary={{ label: "Vraag een gesprek aan", to: "/contact" }}
         secondary={{ label: "Plan uw woningscan", to: "/woningscan" }}
+        microcopy="Geen verplichting. Eerst een duidelijk gesprek over uw plannen, vragen en volgende stap."
       />
     </>
   );
