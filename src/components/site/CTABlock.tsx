@@ -9,9 +9,10 @@ interface Props {
   primary?: { label: string; to: string };
   secondary?: { label: string; to: string };
   variant?: "dark" | "surface";
+  microcopy?: string;
 }
 
-export const CTABlock = ({ eyebrow, title, text, primary, secondary, variant = "dark" }: Props) => {
+export const CTABlock = ({ eyebrow, title, text, primary, secondary, variant = "dark", microcopy }: Props) => {
   // Both variants render on a light surface; "dark" kept for API compatibility.
   const bg = variant === "surface" ? "bg-background" : "bg-surface";
   return (
