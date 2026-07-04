@@ -21,13 +21,13 @@ export const Section = ({
     bg === "surface"
       ? "bg-surface"
       : bg === "primary"
-      ? "bg-primary text-primary-foreground"
+      ? "bg-surface-strong"
       : "bg-background";
   return (
-    <section className={cn("py-20 md:py-28", bgClass, className)}>
+    <section className={cn("py-24 md:py-36", bgClass, className)}>
       <div className="container-tight">
         {(eyebrow || title) && (
-          <header className={cn("mb-14 max-w-3xl", align === "center" && "mx-auto text-center")}>
+          <header className={cn("mb-16 max-w-3xl", align === "center" && "mx-auto text-center")}>
             {eyebrow && <span className="eyebrow mb-5">{eyebrow}</span>}
             {title && (
               <h2 className="font-display text-3xl md:text-5xl leading-[1.05] tracking-tight">

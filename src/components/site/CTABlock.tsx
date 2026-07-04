@@ -12,30 +12,27 @@ interface Props {
 }
 
 export const CTABlock = ({ eyebrow, title, text, primary, secondary, variant = "dark" }: Props) => {
-  const isDark = variant === "dark";
+  // Both variants render on a light surface; "dark" kept for API compatibility.
+  const bg = variant === "surface" ? "bg-background" : "bg-surface";
   return (
-    <section className={isDark ? "bg-primary text-primary-foreground" : "bg-surface text-primary"}>
+    <section className={bg + " border-y border-border"}>
       <div className="container-tight py-24 md:py-32">
         <div className="max-w-3xl">
-          {eyebrow && (
-            <span className={"eyebrow mb-6 " + (isDark ? "!text-accent" : "")}>{eyebrow}</span>
-          )}
-          <h2 className="font-display text-3xl md:text-5xl leading-[1.1] mb-6">{title}</h2>
+          {eyebrow && <span className="eyebrow mb-6">{eyebrow}</span>}
+          <h2 className="font-display text-3xl md:text-5xl leading-[1.1] mb-6 text-primary">{title}</h2>
           {text && (
-            <p className={"text-lg leading-relaxed max-w-2xl " + (isDark ? "text-primary-foreground/75" : "text-muted-foreground")}>
-              {text}
-            </p>
+            <p className="text-lg leading-relaxed max-w-2xl text-muted-foreground">{text}</p>
           )}
           <div className="mt-10 flex flex-wrap gap-4">
             {primary && (
-              <Button asChild variant={isDark ? "accent" : "solid"} size="lg">
+              <Button asChild variant="solid" size="lg">
                 <Link to={primary.to}>
                   {primary.label} <ArrowRight className="w-4 h-4" />
                 </Link>
               </Button>
             )}
             {secondary && (
-              <Button asChild variant={isDark ? "outline" : "outline"} size="lg" className={isDark ? "border-primary-foreground/60 text-primary-foreground hover:bg-primary-foreground hover:text-primary" : ""}>
+              <Button asChild variant="outline" size="lg">
                 <Link to={secondary.to}>{secondary.label}</Link>
               </Button>
             )}

@@ -111,11 +111,11 @@ export const ServicePage = ({ service: s }: Props) => {
       </Section>
 
       {/* Outcome */}
-      <section className="py-20 md:py-28 bg-primary text-primary-foreground">
+      <section className="py-24 md:py-32 bg-surface border-y border-border">
         <div className="container-tight max-w-3xl">
-          <span className="eyebrow mb-6 !text-accent">Resultaat</span>
-          <h2 className="font-display text-3xl md:text-5xl leading-tight mb-6">{s.outcome.h2}</h2>
-          <div className="space-y-4 text-primary-foreground/75 text-lg leading-relaxed">
+          <span className="eyebrow mb-6">Resultaat</span>
+          <h2 className="font-display text-3xl md:text-5xl leading-tight mb-6 text-primary">{s.outcome.h2}</h2>
+          <div className="space-y-4 text-muted-foreground text-lg leading-relaxed">
             {s.outcome.text.map((p, i) => <p key={i}>{p}</p>)}
           </div>
         </div>

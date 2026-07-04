@@ -37,7 +37,7 @@ export const ImagePlaceholder = ({ label, src, className, aspect = "landscape" }
           <span className="text-[11px] uppercase tracking-[0.22em]">{label}</span>
         </div>
       )}
-      <div className="absolute inset-x-0 bottom-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-t from-primary/70 to-transparent">
+      <div className="absolute inset-x-0 bottom-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-t from-primary/60 to-transparent">
         <span className="text-[11px] uppercase tracking-[0.22em] text-primary-foreground">{label}</span>
       </div>
     </div>
