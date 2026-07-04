@@ -12,7 +12,8 @@ import bathroomAsset from "@/assets/bathroom-realisation.jpg.asset.json";
 const bathroom = bathroomAsset.url;
 import kitchenAsset from "@/assets/kitchen-realisation.jpg.asset.json";
 const kitchen = kitchenAsset.url;
-import roof from "@/assets/project-roof.jpg";
+import roofAsset from "@/assets/roof-realisation.jpg.asset.json";
+const roof = roofAsset.url;
 import total from "@/assets/project-total.jpg";
 import prep from "@/assets/preparation.jpg";
 
