@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { services } from "@/data/services";
 
 export const Footer = () => {
   return (
@@ -12,11 +13,11 @@ export const Footer = () => {
               <span className="text-[10px] uppercase tracking-[0.3em] text-primary-foreground/60">BV</span>
             </div>
             <p className="max-w-sm text-primary-foreground/70 leading-relaxed">
-              Renovatiepartner in Diest, Scherpenheuvel, Tessenderlo, Halen en ruime omgeving.
-              Eén aanspreekpunt van voorbereiding tot afwerking.
+              Uw aannemer in ruime regio Diest voor renovatie en nieuwbouw.
+              Eén aanspreekpunt, van eerste analyse tot oplevering.
             </p>
             <Button asChild variant="accent" className="mt-8">
-              <Link to="/contact">Vraag een gesprek aan</Link>
+              <Link to="/contact">Vraag een offerte aan</Link>
             </Button>
           </div>
 
@@ -25,10 +26,11 @@ export const Footer = () => {
             <ul className="space-y-3 text-sm">
               {[
                 ["/", "Home"],
+                ["/woningscan", "Woningscan"],
                 ["/diensten", "Diensten"],
                 ["/werkwijze", "Werkwijze"],
                 ["/realisaties", "Realisaties"],
-                ["/woningscan", "Woningscan"],
+                ["/reviews", "Reviews"],
                 ["/over", "Over Dimac"],
                 ["/contact", "Contact"],
               ].map(([to, label]) => (
@@ -44,14 +46,13 @@ export const Footer = () => {
           <div>
             <h4 className="text-xs uppercase tracking-[0.22em] text-primary-foreground/50 mb-5">Diensten</h4>
             <ul className="space-y-3 text-sm text-primary-foreground/80">
-              <li>Totaalrenovatie</li>
-              <li>Badkamers</li>
-              <li>Keukens</li>
-              <li>Dakwerken</li>
-              <li>Elektriciteit</li>
-              <li>Sanitair & technieken</li>
-              <li>Hernieuwbare energie</li>
-              <li>Afwerking & maatwerk</li>
+              {services.map((s) => (
+                <li key={s.slug}>
+                  <Link to={`/diensten/${s.slug}`} className="hover:text-accent transition-colors">
+                    {s.navLabel}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
