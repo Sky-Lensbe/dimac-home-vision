@@ -14,7 +14,8 @@ import kitchenAsset from "@/assets/kitchen-realisation.jpg.asset.json";
 const kitchen = kitchenAsset.url;
 import roofAsset from "@/assets/roof-realisation.jpg.asset.json";
 const roof = roofAsset.url;
-import total from "@/assets/project-total.jpg";
+import totalAsset from "@/assets/total-realisation.jpg.asset.json";
+const total = totalAsset.url;
 import prep from "@/assets/preparation.jpg";
 
 const trustCards = [
