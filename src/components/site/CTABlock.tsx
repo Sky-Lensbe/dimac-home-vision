@@ -38,6 +38,9 @@ export const CTABlock = ({ eyebrow, title, text, primary, secondary, variant = "
               </Button>
             )}
           </div>
+          {microcopy && (
+            <p className="mt-6 text-sm text-muted-foreground max-w-2xl">{microcopy}</p>
+          )}
         </div>
       </div>
     </section>
