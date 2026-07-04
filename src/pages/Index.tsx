@@ -126,16 +126,16 @@ const Index = () => {
               </div>
             ))}
           </div>
-          <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl">
-            <div className="flex items-center gap-3 border-t border-border pt-5">
+          <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
+            <div className="flex items-center justify-center gap-3 border-t border-border pt-5 text-center">
               <Star className="w-4 h-4 text-accent fill-accent" strokeWidth={0} />
               <span className="text-sm text-primary">5/5 klanttevredenheid<span className="block text-[10px] text-muted-foreground uppercase tracking-widest mt-1">Placeholder</span></span>
             </div>
-            <div className="flex items-center gap-3 border-t border-border pt-5">
+            <div className="flex items-center justify-center gap-3 border-t border-border pt-5 text-center">
               <MapPin className="w-4 h-4 text-accent" />
               <span className="text-sm text-primary">Actief in regio Diest<span className="block text-[10px] text-muted-foreground uppercase tracking-widest mt-1">& omgeving</span></span>
             </div>
-            <div className="flex items-center gap-3 border-t border-border pt-5">
+            <div className="flex items-center justify-center gap-3 border-t border-border pt-5 text-center">
               <Hammer className="w-4 h-4 text-accent" />
               <span className="text-sm text-primary">20+ jaar ervaring<span className="block text-[10px] text-muted-foreground uppercase tracking-widest mt-1">Placeholder</span></span>
             </div>
