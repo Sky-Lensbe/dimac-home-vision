@@ -34,7 +34,7 @@ const Contact = () => {
             Vertel ons over uw project
           </h1>
           <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
-            Vertel ons kort wat u wil aanpakken. Dan bekijken we samen welke stappen logisch zijn.
+            Vertel ons kort wat u wil aanpakken. Dan bekijken we samen welke stappen we best nemen voor uw project.
           </p>
         </div>
       </section>
