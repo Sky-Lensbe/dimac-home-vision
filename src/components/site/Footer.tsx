@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { services } from "@/data/services";
+import logoAsset from "@/assets/dimac-logo.jpg.asset.json";
 
 export const Footer = () => {
   return (
@@ -8,8 +9,14 @@ export const Footer = () => {
       <div className="container-wide py-20 md:py-28">
         <div className="grid gap-14 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div>
-            <div className="flex items-baseline gap-2 mb-6">
-              <span className="font-display text-3xl">Dimac</span>
+            <div className="flex items-center gap-4 mb-6">
+              <img
+                src={logoAsset.url}
+                alt="Dimac BV"
+                className="h-16 w-16 rounded-lg object-cover"
+                width={64}
+                height={64}
+              />
               <span className="text-[10px] uppercase tracking-[0.3em] text-primary-foreground/60">BV</span>
             </div>
             <p className="max-w-sm text-primary-foreground/70 leading-relaxed">

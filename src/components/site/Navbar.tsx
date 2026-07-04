@@ -4,6 +4,7 @@ import { ChevronDown, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { services } from "@/data/services";
+import logoAsset from "@/assets/dimac-logo.jpg.asset.json";
 
 const NAV: { to: string; label: string; children?: { to: string; label: string }[] }[] = [
   { to: "/", label: "Home" },
@@ -49,9 +50,15 @@ export const Navbar = () => {
       )}
     >
       <div className="container-wide flex h-20 items-center justify-between">
-        <Link to="/" className="flex items-baseline gap-2">
-          <span className="font-display text-2xl tracking-tight text-primary">Dimac</span>
-          <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">BV</span>
+        <Link to="/" className="flex items-center gap-3" aria-label="Dimac BV — home">
+          <img
+            src={logoAsset.url}
+            alt="Dimac BV"
+            className="h-11 w-11 rounded-md object-cover shadow-soft"
+            width={44}
+            height={44}
+          />
+          <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground hidden sm:inline">BV</span>
         </Link>
 
         <nav className="hidden lg:flex items-center gap-8">
