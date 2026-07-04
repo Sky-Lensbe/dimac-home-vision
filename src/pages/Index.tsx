@@ -130,8 +130,9 @@ const Index = () => {
               Begin met een duidelijk plan
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed mb-8 max-w-xl">
-              Met onze woningscan krijgt u een helder beeld van uw woning, de aandachtspunten en
-              de beste aanpak. Geen aannames, maar concreet advies waarop u kan bouwen.
+              Met onze woningscan krijgt u een helder beeld van uw volledige woning, de
+              aandachtspunten en de beste aanpak. Geen aannames, maar concreet advies waarop u kan
+              bouwen.
             </p>
             <BulletList
               items={[
