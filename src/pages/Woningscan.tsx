@@ -47,9 +47,9 @@ const Woningscan = () => {
 
       <Section eyebrow="Introductie" title="Eerst inzicht, daarna beslissen">
         <div className="max-w-3xl space-y-5 text-lg text-muted-foreground leading-relaxed">
-          <p>Een renovatie begint vaak met vragen. Wat moet er gebeuren? Wat kost het? Waar begint u best?</p>
+          <p>Een renovatie of n begint vaak met vragen. Wat moet er gebeuren? Wat kost het? Waar begint u best?</p>
           <p>
-            Met de woningscan van Dimac krijgt u een helder beeld van uw woning, de aandachtspunten en de beste aanpak.
+            Met de woningscan van Dimac krijgt u een helder beeld van uw huidige of toekomstige woning, de aandachtspunten en de beste aanpak.
             Zo maakt u doordachte keuzes, zonder verrassingen achteraf.
           </p>
         </div>
@@ -132,7 +132,7 @@ const Woningscan = () => {
         <BulletList
           columns={2}
           items={[
-            "Analyse van uw woning ter plaatse",
+            "Analyse van de volledige woning ter plaatse",
             "Inzicht in knelpunten en mogelijkheden",
             "Advies op maat van uw situatie",
             "Bespreking van mogelijke aanpak",
