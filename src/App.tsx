@@ -3,7 +3,16 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Layout } from "@/components/site/Layout";
 import Index from "./pages/Index.tsx";
+import Woningscan from "./pages/Woningscan.tsx";
+import Diensten from "./pages/Diensten.tsx";
+import DienstDetail from "./pages/DienstDetail.tsx";
+import Werkwijze from "./pages/Werkwijze.tsx";
+import Realisaties from "./pages/Realisaties.tsx";
+import Reviews from "./pages/Reviews.tsx";
+import Over from "./pages/Over.tsx";
+import Contact from "./pages/Contact.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -14,11 +23,20 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/woningscan" element={<Woningscan />} />
+            <Route path="/diensten" element={<Diensten />} />
+            <Route path="/diensten/:slug" element={<DienstDetail />} />
+            <Route path="/werkwijze" element={<Werkwijze />} />
+            <Route path="/realisaties" element={<Realisaties />} />
+            <Route path="/reviews" element={<Reviews />} />
+            <Route path="/over" element={<Over />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Layout>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
