@@ -5,17 +5,19 @@ interface Props {
   label: string;
   src?: string;
   className?: string;
-  aspect?: "square" | "portrait" | "landscape" | "wide";
+  aspect?: "square" | "portrait" | "landscape" | "wide" | "tall";
+  fit?: "cover" | "contain";
 }
 
 const aspectClass: Record<NonNullable<Props["aspect"]>, string> = {
   square: "aspect-square",
   portrait: "aspect-[4/5]",
+  tall: "aspect-[2/3]",
   landscape: "aspect-[4/3]",
   wide: "aspect-[16/10]",
 };
 
-export const ImagePlaceholder = ({ label, src, className, aspect = "landscape" }: Props) => {
+export const ImagePlaceholder = ({ label, src, className, aspect = "landscape", fit = "cover" }: Props) => {
   return (
     <div
       className={cn(
@@ -29,7 +31,10 @@ export const ImagePlaceholder = ({ label, src, className, aspect = "landscape" }
           src={src}
           alt={label}
           loading="lazy"
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+          className={cn(
+            "absolute inset-0 h-full w-full transition-transform duration-[1200ms] ease-out group-hover:scale-105",
+            fit === "contain" ? "object-contain" : "object-cover"
+          )}
         />
       ) : (
         <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground gap-3">

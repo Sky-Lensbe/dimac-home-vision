@@ -114,7 +114,7 @@ const Index = () => {
             </p>
           </div>
           <div className="fade-up">
-            <ImagePlaceholder src={hero} label="Hero — renovatieproject" aspect="portrait" />
+            <ImagePlaceholder src={hero} label="Hero — renovatieproject" aspect="tall" fit="contain" className="bg-surface" />
           </div>
         </div>
       </section>
