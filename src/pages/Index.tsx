@@ -38,7 +38,7 @@ const Index = () => {
             width={1600}
             height={1200}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-primary/85 via-primary/40 to-primary/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-primary/75 via-primary/35 to-primary/10" />
         </div>
         <div className="container-wide relative">
           <div className="max-w-3xl text-primary-foreground fade-up">
@@ -49,19 +49,19 @@ const Index = () => {
             <h1 className="font-display text-4xl sm:text-5xl md:text-7xl leading-[1.02] tracking-tight">
               Renoveren zonder giswerk en met één aanspreekpunt.
             </h1>
-            <p className="mt-8 text-lg md:text-xl text-primary-foreground/80 max-w-2xl leading-relaxed">
+            <p className="mt-8 text-lg md:text-xl text-primary-foreground/85 max-w-2xl leading-relaxed">
               Dimac begeleidt uw renovatie in ruime regio Diest van eerste analyse tot volledige uitvoering.
               Eerst een beter inzicht krijgen in uw (toekomstige) woning? Bekijk de woningscan.
             </p>
             <div className="mt-10 flex flex-wrap gap-4">
-              <Button asChild variant="accent" size="lg">
+              <Button asChild variant="solid" size="lg">
                 <Link to="/contact">Vraag een offerte aan <ArrowRight className="w-4 h-4" /></Link>
               </Button>
               <Button
                 asChild
                 variant="outline"
                 size="lg"
-                className="border-primary-foreground/60 text-primary-foreground hover:bg-primary-foreground hover:text-primary"
+                className="border-primary-foreground/70 text-primary-foreground hover:bg-primary-foreground hover:text-primary hover:border-primary-foreground"
               >
                 <Link to="/woningscan">Plan uw woningscan</Link>
               </Button>

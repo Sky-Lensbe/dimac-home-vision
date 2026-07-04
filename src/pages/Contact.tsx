@@ -130,9 +130,9 @@ const Contact = () => {
                 Actief in Diest, Scherpenheuvel, Tessenderlo, Halen en ruime omgeving.
               </p>
             </div>
-            <div className="border border-border p-8 bg-primary text-primary-foreground">
-              <h3 className="text-xs uppercase tracking-[0.22em] text-accent mb-4">Openingsuren</h3>
-              <dl className="space-y-2 text-sm text-primary-foreground/80">
+            <div className="border border-border p-8 bg-surface">
+              <h3 className="eyebrow mb-4">Openingsuren</h3>
+              <dl className="space-y-2 text-sm text-primary/80">
                 <div className="flex justify-between"><dt>Ma – Vr</dt><dd>08:00 – 17:00</dd></div>
                 <div className="flex justify-between"><dt>Za</dt><dd>Op afspraak</dd></div>
                 <div className="flex justify-between"><dt>Zo</dt><dd>Gesloten</dd></div>
