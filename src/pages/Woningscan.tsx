@@ -141,11 +141,11 @@ const Woningscan = () => {
         />
       </Section>
 
-      <section className="py-20 md:py-28 bg-primary text-primary-foreground">
+      <section className="py-24 md:py-32 bg-surface border-y border-border">
         <div className="container-tight max-w-3xl">
-          <span className="eyebrow !text-accent mb-6">Voordeel</span>
-          <h2 className="font-display text-3xl md:text-5xl leading-tight mb-6">Slim starten zonder dubbel te betalen</h2>
-          <p className="text-lg text-primary-foreground/75 leading-relaxed">
+          <span className="eyebrow mb-6">Voordeel</span>
+          <h2 className="font-display text-3xl md:text-5xl leading-tight mb-6 text-primary">Slim starten zonder dubbel te betalen</h2>
+          <p className="text-lg text-muted-foreground leading-relaxed">
             Beslist u om uw renovatie door Dimac te laten uitvoeren? Dan wordt het bedrag van de woningscan
             verrekend op de eerste factuur van de werken. Zo investeert u enkel in advies dat u effectief verder helpt.
           </p>

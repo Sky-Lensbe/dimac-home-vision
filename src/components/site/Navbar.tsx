@@ -43,22 +43,20 @@ export const Navbar = () => {
   return (
     <header
       className={cn(
-        "fixed top-0 inset-x-0 z-50 transition-all duration-500",
-        scrolled || open
-          ? "bg-background/90 backdrop-blur-md border-b border-border/60"
-          : "bg-transparent"
+        "fixed top-0 inset-x-0 z-50 transition-all duration-300 bg-background",
+        scrolled || open ? "border-b border-border" : "border-b border-transparent"
       )}
     >
       <div className="container-wide flex h-20 items-center justify-between">
-        <Link to="/" className="flex items-center gap-3" aria-label="Dimac BV — home">
+        <Link to="/" className="flex items-center gap-3" aria-label="Dimac — home">
           <img
             src={logoAsset.url}
-            alt="Dimac BV"
-            className="h-11 w-11 rounded-md object-cover shadow-soft"
+            alt="Dimac"
+            className="h-11 w-11 rounded-md object-cover"
             width={44}
             height={44}
           />
-          <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground hidden sm:inline">BV</span>
+          <span className="font-display text-lg text-primary hidden sm:inline">Dimac</span>
         </Link>
 
         <nav className="hidden lg:flex items-center gap-8">

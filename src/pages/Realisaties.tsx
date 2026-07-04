@@ -54,8 +54,8 @@ const Realisaties = () => {
               className={cn(
                 "px-5 py-2 text-xs uppercase tracking-[0.2em] border transition-colors",
                 filter === c
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-transparent text-primary/70 border-border hover:border-primary"
+                  ? "bg-accent text-accent-foreground border-accent"
+                  : "bg-transparent text-primary/70 border-border hover:border-accent hover:text-accent"
               )}
             >
               {c}

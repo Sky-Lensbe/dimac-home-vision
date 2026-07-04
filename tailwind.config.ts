@@ -12,8 +12,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Fraunces", "ui-serif", "Georgia", "serif"],
-        sans: ["Manrope", "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ["Playfair Display", "ui-serif", "Georgia", "serif"],
+        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
