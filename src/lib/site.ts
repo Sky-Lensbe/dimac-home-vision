@@ -63,7 +63,21 @@ export function organizationSchema() {
   };
 }
 
+/** WebSite schema, één keer per site op de homepage. */
+export function websiteSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${SITE_URL}/#website`,
+    name: COMPANY.name,
+    url: `${SITE_URL}/`,
+    inLanguage: "nl-BE",
+    publisher: { "@id": COMPANY.id },
+  };
+}
+
 export interface Crumb {
+
   label: string;
   to?: string;
 }
