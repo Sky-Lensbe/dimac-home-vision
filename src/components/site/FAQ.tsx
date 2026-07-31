@@ -16,25 +16,25 @@ export const FAQ = ({ items, className }: Props) => {
             key={i}
             className={cn(
               "py-2 px-3 -mx-3 border-l-2 transition-colors duration-300 ease-out",
-              isOpen ? "border-accent bg-accent-soft/40" : "border-transparent hover:bg-surface"
+              isOpen ? "border-accent bg-accent-soft/40" : "border-transparent fine:hover:bg-surface"
             )}
           >
             <button
-              className="w-full flex items-start justify-between gap-6 text-left py-5 min-h-[44px] group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="focus-ring w-full flex items-start justify-between gap-6 text-left py-5 min-h-[44px] group/faq"
               onClick={() => setOpen(isOpen ? null : i)}
               aria-expanded={isOpen}
             >
               <span
                 className={cn(
                   "font-display text-lg md:text-xl leading-snug transition-colors duration-300",
-                  isOpen ? "text-accent" : "text-primary lg:group-hover:text-accent"
+                  isOpen ? "text-accent" : "text-primary fine:lg:group-hover/faq:text-accent"
                 )}
               >
                 {item.q}
               </span>
               <ChevronDown
                 className={cn(
-                  "w-5 h-5 mt-1 shrink-0 text-accent transition-transform duration-300 ease-out",
+                  "w-5 h-5 mt-1 shrink-0 text-accent transition-transform duration-300 ease-out motion-reduce:transition-none",
                   isOpen && "rotate-180"
                 )}
               />

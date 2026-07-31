@@ -103,11 +103,12 @@
 }
 
 @layer base {
-  /* Focus-visible is overal minstens even duidelijk als hover. */
-  a:focus-visible,
-  button:focus-visible,
-  [role="button"]:focus-visible,
-  summary:focus-visible {
+  /* Globale focusregel = FALLBACK voor elementen zonder eigen focusstijl.
+     Elementen met .focus-ring / .focus-ring-inset regelen het zelf. */
+  a:focus-visible:not(.focus-ring):not(.focus-ring-inset),
+  button:focus-visible:not(.focus-ring):not(.focus-ring-inset),
+  [role="button"]:focus-visible:not(.focus-ring):not(.focus-ring-inset),
+  summary:focus-visible:not(.focus-ring):not(.focus-ring-inset) {
     outline: 2px solid hsl(var(--accent));
     outline-offset: 3px;
   }
@@ -115,7 +116,23 @@
   textarea:focus-visible,
   select:focus-visible {
     outline: 2px solid hsl(var(--accent));
-    outline-offset: 1px;
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Eén consistente focusstijl. Box-shadow i.p.v. outline zodat hij niet
+     wordt afgesneden en altijd dezelfde accentkleur/offset heeft. */
+  .focus-ring:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px hsl(var(--background)),
+      0 0 0 4px hsl(var(--accent));
+  }
+  /* Voor elementen in een raster met overflow/aangrenzende randen. */
+  .focus-ring-inset:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px hsl(var(--accent));
   }
 }
 
@@ -144,12 +161,11 @@
     content: "";
     @apply absolute left-0 -bottom-0.5 h-px w-full origin-right scale-x-0 bg-current transition-transform duration-500 ease-out;
   }
-  .link-underline:hover::after,
   .link-underline:focus-visible::after {
     @apply origin-left scale-x-100;
   }
 
-  /* Accentlijntje dat bij sectie-/kaarthover licht uitloopt. */
+  /* Accentlijntje dat bij kaarthover licht uitloopt. */
   .accent-rule {
     display: block;
     height: 1px;
@@ -184,52 +200,88 @@
   }
 }
 
-/* ---------- Interactieniveaus per breakpoint ---------- */
+/* ---------- Interactieniveaus per breakpoint ----------
+   Alle echte hoverstates zitten achter (hover: hover) and (pointer: fine),
+   zodat ze op touch nooit blijven hangen. */
 
-/* Tablet: alleen kleur- en randreacties, geen lift. */
-@media (min-width: 641px) and (max-width: 1023px) {
-  .card-interactive:hover {
-    border-color: hsl(var(--accent) / 0.4);
-    background-color: hsl(var(--surface));
+@media (hover: hover) and (pointer: fine) {
+  .link-underline:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
   }
-  .card-flush:hover {
-    background-color: hsl(var(--surface));
+
+  /* Tablet met muis: alleen kleur- en randreacties, geen lift. */
+  @media (min-width: 641px) and (max-width: 1023px) {
+    .card-interactive:hover {
+      border-color: hsl(var(--accent) / 0.4);
+      background-color: hsl(var(--surface));
+    }
+    .card-flush:hover {
+      background-color: hsl(var(--surface));
+    }
+  }
+
+  /* Desktop: volledige hoverlaag. */
+  @media (min-width: 1024px) {
+    .card-interactive:hover {
+      transform: translateY(-4px);
+      border-color: hsl(var(--accent) / 0.5);
+      background-color: hsl(var(--surface));
+      box-shadow: var(--shadow-md);
+    }
+    .card-flush:hover {
+      background-color: hsl(var(--surface));
+    }
+    .card-flush:hover::after {
+      box-shadow: inset 0 0 0 1px hsl(var(--accent) / 0.35);
+    }
+    .card-interactive:hover .accent-rule,
+    .card-flush:hover .accent-rule {
+      width: 3rem;
+    }
+    /* Beeldzoom: uitsluitend vanaf lg, uitsluitend met precieze pointer,
+       en uitsluitend gestuurd door de eigen beeld-/kaartgroep. */
+    .group\/img:hover .img-zoom,
+    .group\/real:hover .img-zoom {
+      transform: scale(1.04);
+    }
+    .group\/img:hover .img-overlay,
+    .group\/real:hover .img-overlay {
+      opacity: 1;
+    }
   }
 }
 
-/* Desktop: volledige hoverlaag. */
-@media (min-width: 1024px) {
-  .card-interactive:hover,
-  .card-interactive:focus-within {
-    transform: translateY(-4px);
-    border-color: hsl(var(--accent) / 0.5);
-    background-color: hsl(var(--surface));
-    box-shadow: var(--shadow-md);
-  }
-  .card-flush:hover,
-  .card-flush:focus-within {
-    background-color: hsl(var(--surface));
-  }
-  .card-flush:hover::after,
-  .card-flush:focus-within::after {
-    box-shadow: inset 0 0 0 1px hsl(var(--accent) / 0.35);
-  }
-  .card-interactive:hover .accent-rule,
-  .card-interactive:focus-within .accent-rule,
-  .card-flush:hover .accent-rule,
-  .card-flush:focus-within .accent-rule,
-  .group:hover .eyebrow::before,
-  .group:focus-within .eyebrow::before {
+/* Focus-within geeft dezelfde visuele hint, ongeacht pointertype. */
+.card-interactive:focus-within {
+  border-color: hsl(var(--accent) / 0.5);
+  background-color: hsl(var(--surface));
+}
+.card-flush:focus-within::after {
+  box-shadow: inset 0 0 0 1px hsl(var(--accent) / 0.35);
+}
+.card-interactive:focus-within .accent-rule,
+.card-flush:focus-within .accent-rule {
+  width: 3rem;
+}
+
+/* Accentlijn van een eyebrow reageert alleen op de eigen sectieheader. */
+@media (hover: hover) and (pointer: fine) {
+  header:hover > .eyebrow::before,
+  .eyebrow:hover::before {
     width: 3rem;
   }
 }
+header:focus-within > .eyebrow::before {
+  width: 3rem;
+}
 
-/* Directe feedback bij tikken/klikken. */
+/* Directe feedback bij tikken/klikken (werkt overal). */
 .card-interactive:active,
 .card-flush:active {
   background-color: hsl(var(--surface-strong));
 }
-@media (min-width: 1024px) {
+@media (hover: hover) and (pointer: fine) and (min-width: 1024px) {
   .card-interactive:active {
     transform: translateY(-1px);
   }
@@ -240,6 +292,9 @@
   .card-interactive:focus-within,
   .card-interactive:active {
     transform: none;
+  }
+  .img-zoom {
+    transform: none !important;
   }
 }
 
@@ -297,9 +352,39 @@ html.reveal-ready [data-reveal].is-visible {
   [data-reveal-delay="6"] { --reveal-delay: 100ms; }
 }
 
+/* Lijsten komen binnen als één groep, met een zeer korte interne stagger.
+   Max ~200 ms totaal op desktop, ~100 ms op mobiel. */
+html.reveal-ready [data-reveal].stagger-list > * {
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 400ms cubic-bezier(0.2, 0.7, 0.2, 1) var(--item-delay, 0ms),
+    transform 400ms cubic-bezier(0.2, 0.7, 0.2, 1) var(--item-delay, 0ms);
+}
+html.reveal-ready [data-reveal].stagger-list.is-visible > * {
+  opacity: 1;
+  transform: none;
+}
+.stagger-list > *:nth-child(1) { --item-delay: 0ms; }
+.stagger-list > *:nth-child(2) { --item-delay: 40ms; }
+.stagger-list > *:nth-child(3) { --item-delay: 80ms; }
+.stagger-list > *:nth-child(4) { --item-delay: 120ms; }
+.stagger-list > *:nth-child(5) { --item-delay: 160ms; }
+.stagger-list > *:nth-child(n + 6) { --item-delay: 200ms; }
+
+@media (max-width: 640px) {
+  .stagger-list > *:nth-child(1) { --item-delay: 0ms; }
+  .stagger-list > *:nth-child(2) { --item-delay: 25ms; }
+  .stagger-list > *:nth-child(3) { --item-delay: 50ms; }
+  .stagger-list > *:nth-child(4) { --item-delay: 75ms; }
+  .stagger-list > *:nth-child(n + 5) { --item-delay: 100ms; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html.reveal-ready [data-reveal],
-  html.reveal-ready [data-reveal].is-visible {
+  html.reveal-ready [data-reveal].is-visible,
+  html.reveal-ready [data-reveal].stagger-list > *,
+  html.reveal-ready [data-reveal].stagger-list.is-visible > * {
     opacity: 1 !important;
     transform: none !important;
     transition: none !important;

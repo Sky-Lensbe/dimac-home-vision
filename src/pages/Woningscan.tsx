@@ -19,7 +19,7 @@ const Woningscan = () => {
 
   return (
     <>
-      <section className="group pt-32 md:pt-40 pb-16 md:pb-24 bg-surface">
+      <section className="pt-32 md:pt-40 pb-16 md:pb-24 bg-surface">
         <div className="container-tight grid gap-12 lg:grid-cols-[1.1fr_1fr] items-center">
           <div className="fade-up">
             <span className="eyebrow mb-6">Woningscan</span>
@@ -141,7 +141,7 @@ const Woningscan = () => {
         />
       </Section>
 
-      <section className="group py-24 md:py-32 bg-surface border-y border-border">
+      <section className="py-24 md:py-32 bg-surface border-y border-border">
         <div className="container-tight max-w-3xl">
           <span className="eyebrow mb-6" data-reveal>Voordeel</span>
           <h2 className="font-display text-3xl md:text-5xl leading-tight mb-6 text-primary" data-reveal data-reveal-delay="1">Slim starten zonder dubbel te betalen</h2>

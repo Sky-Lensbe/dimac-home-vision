@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,8 @@ export const Navbar = () => {
   const [dienstenOpen, setDienstenOpen] = useState(false);
   const [mobileServices, setMobileServices] = useState(false);
   const { pathname } = useLocation();
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const mobileSubmenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -34,6 +36,17 @@ export const Navbar = () => {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // Gesloten menu's volledig uit de focusvolgorde halen.
+  useEffect(() => {
+    const el = mobileMenuRef.current;
+    if (el) el.inert = !open;
+  }, [open]);
+
+  useEffect(() => {
+    const el = mobileSubmenuRef.current;
+    if (el) el.inert = !(open && mobileServices);
+  }, [open, mobileServices]);
 
   useEffect(() => {
     setOpen(false);
@@ -53,17 +66,17 @@ export const Navbar = () => {
       <div className="container-wide flex h-20 items-center justify-between">
         <Link
           to="/"
-          className="flex items-center gap-3 group/logo focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-background"
+          className="focus-ring flex items-center gap-3 group/logo"
           aria-label="Dimac — home"
         >
           <img
             src={logoAsset.url}
             alt="Dimac"
-            className="h-11 w-11 rounded-md object-cover transition-opacity duration-300 group-hover/logo:opacity-85"
+            className="h-11 w-11 rounded-md object-cover transition-opacity duration-300 fine:group-hover/logo:opacity-85"
             width={44}
             height={44}
           />
-          <span className="font-display text-lg text-primary hidden sm:inline transition-colors duration-300 lg:group-hover/logo:text-accent">
+          <span className="font-display text-lg text-primary hidden sm:inline transition-colors duration-300 fine:lg:group-hover/logo:text-accent">
             Dimac
           </span>
         </Link>
@@ -85,15 +98,15 @@ export const Navbar = () => {
                   to={item.to}
                   className={({ isActive }) =>
                     cn(
-                      "flex items-center gap-1 text-[13px] tracking-wide py-2 transition-colors duration-300 link-underline",
-                      isActive ? "text-accent" : "text-primary/80 hover:text-primary"
+                      "focus-ring flex items-center gap-1 text-[13px] tracking-wide py-2 transition-colors duration-300 link-underline",
+                      isActive ? "text-accent" : "text-primary/80 fine:hover:text-primary"
                     )
                   }
                 >
                   {item.label}
                   <ChevronDown
                     className={cn(
-                      "w-3 h-3 transition-transform duration-300 ease-out",
+                      "w-3 h-3 transition-transform duration-300 ease-out motion-reduce:transition-none",
                       dienstenOpen && "rotate-180"
                     )}
                   />
@@ -114,10 +127,10 @@ export const Navbar = () => {
                         to={c.to}
                         className={({ isActive }) =>
                           cn(
-                            "block px-5 py-2.5 text-[13px] border-l-2 transition-[color,background-color,border-color,padding] duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent",
+                            "focus-ring-inset block px-5 py-2.5 text-[13px] border-l-2 transition-[color,background-color,border-color,padding] duration-300 ease-out",
                             isActive
                               ? "text-accent bg-surface border-accent"
-                              : "text-primary/80 border-transparent hover:text-accent hover:bg-surface/70 hover:border-accent/60 hover:pl-6"
+                              : "text-primary/80 border-transparent fine:hover:text-accent fine:hover:bg-surface/70 fine:hover:border-accent/60 fine:hover:pl-6"
                           )
                         }
                       >
@@ -134,8 +147,8 @@ export const Navbar = () => {
                 end={item.to === "/"}
                 className={({ isActive }) =>
                   cn(
-                    "text-[13px] tracking-wide link-underline transition-colors duration-300",
-                    isActive ? "text-accent" : "text-primary/80 hover:text-primary"
+                    "focus-ring text-[13px] tracking-wide link-underline transition-colors duration-300",
+                    isActive ? "text-accent" : "text-primary/80 fine:hover:text-primary"
                   )
                 }
               >
@@ -152,16 +165,20 @@ export const Navbar = () => {
         </div>
 
         <button
-          className="lg:hidden p-2 -mr-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-primary transition-colors duration-200 active:bg-surface-strong"
+          className="focus-ring lg:hidden p-2 -mr-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-primary transition-colors duration-200 active:bg-surface-strong"
           onClick={() => setOpen((v) => !v)}
           aria-label="Menu"
           aria-expanded={open}
+          aria-controls="mobile-menu"
         >
           {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
 
       <div
+        ref={mobileMenuRef}
+        id="mobile-menu"
+        aria-hidden={!open}
         className={cn(
           "lg:hidden overflow-hidden bg-background transition-[max-height,opacity] duration-300 ease-out",
           open
@@ -174,33 +191,37 @@ export const Navbar = () => {
             item.children ? (
               <div key={item.to} className="border-b border-border/40">
                 <button
-                  className="w-full flex items-center justify-between py-3 min-h-[44px] text-base text-primary transition-colors duration-200 active:text-accent"
+                  className="focus-ring w-full flex items-center justify-between py-3 min-h-[44px] text-base text-primary transition-colors duration-200 active:text-accent"
                   onClick={() => setMobileServices((v) => !v)}
                   aria-expanded={mobileServices}
+                  aria-controls="mobile-submenu-diensten"
                 >
                   {item.label}
                   <ChevronDown
                     className={cn(
-                      "w-4 h-4 transition-transform duration-300 ease-out",
+                      "w-4 h-4 transition-transform duration-300 ease-out motion-reduce:transition-none",
                       mobileServices && "rotate-180"
                     )}
                   />
                 </button>
                 <div
+                  ref={mobileSubmenuRef}
+                  id="mobile-submenu-diensten"
+                  aria-hidden={!(open && mobileServices)}
                   className={cn(
                     "grid transition-all duration-300 ease-out",
                     mobileServices ? "grid-rows-[1fr] opacity-100 pb-4" : "grid-rows-[0fr] opacity-0"
                   )}
                 >
                   <div className="overflow-hidden pl-4 flex flex-col">
-                    <NavLink to={item.to} className="text-sm text-accent py-3 min-h-[44px] flex items-center">
+                    <NavLink to={item.to} className="focus-ring text-sm text-accent py-3 min-h-[44px] flex items-center">
                       Alle diensten →
                     </NavLink>
                     {item.children.map((c) => (
                       <NavLink
                         key={c.to}
                         to={c.to}
-                        className="text-sm text-primary/80 py-3 min-h-[44px] flex items-center transition-colors duration-200 active:text-accent"
+                        className="focus-ring text-sm text-primary/80 py-3 min-h-[44px] flex items-center transition-colors duration-200 active:text-accent"
                       >
                         {c.label}
                       </NavLink>
@@ -215,7 +236,7 @@ export const Navbar = () => {
                 end={item.to === "/"}
                 className={({ isActive }) =>
                   cn(
-                    "py-3 min-h-[44px] flex items-center text-base border-b border-border/40 transition-colors duration-200 active:text-accent",
+                    "focus-ring py-3 min-h-[44px] flex items-center text-base border-b border-border/40 transition-colors duration-200 active:text-accent",
                     isActive ? "text-accent" : "text-primary"
                   )
                 }

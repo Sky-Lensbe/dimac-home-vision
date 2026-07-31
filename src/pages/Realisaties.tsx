@@ -32,7 +32,7 @@ const Realisaties = () => {
 
   return (
     <>
-      <section className="group pt-32 md:pt-40 pb-16 bg-surface">
+      <section className="pt-32 md:pt-40 pb-16 bg-surface">
         <div className="container-tight fade-up max-w-3xl">
           <span className="eyebrow mb-6">Realisaties</span>
           <h1 className="font-display text-4xl md:text-6xl leading-[1.02] tracking-tight text-primary">
@@ -46,33 +46,31 @@ const Realisaties = () => {
       </section>
 
       <Section>
-        <div className="flex flex-wrap gap-2 mb-14">
+        <div className="stagger-list flex flex-wrap gap-2 mb-14" data-reveal>
           {CATEGORIES.map((c) => (
             <button
               key={c}
               onClick={() => setFilter(c)}
               className={cn(
-                "px-5 py-2 min-h-[44px] text-xs uppercase tracking-[0.2em] border transition-[background-color,border-color,color,transform] duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 active:scale-[0.98]",
+                "focus-ring px-5 py-2 min-h-[44px] text-xs uppercase tracking-[0.2em] border transition-[background-color,border-color,color,transform] duration-300 ease-out active:scale-[0.98]",
                 filter === c
                   ? "bg-accent text-accent-foreground border-accent"
-                  : "bg-transparent text-primary/70 border-border hover:border-accent hover:text-accent"
+                  : "bg-transparent text-primary/70 border-border fine:hover:border-accent fine:hover:text-accent"
               )}
             >
               {c}
             </button>
           ))}
         </div>
-        <div className="grid gap-6 md:gap-8 md:grid-cols-2">
+        <div className="stagger-list grid gap-6 md:gap-8 md:grid-cols-2" data-reveal>
           {filtered.map((p, i) => (
             <figure
               key={i}
               className="group/real"
-              data-reveal
-              data-reveal-delay={String(Math.min(i + 1, 6))}
             >
-              <ImagePlaceholder src={p.img} label={p.label} aspect={i % 3 === 0 ? "landscape" : "wide"} />
-              <figcaption className="mt-5 flex items-start justify-between gap-6 transition-transform duration-300 ease-out motion-safe:lg:group-hover/real:-translate-y-1">
-                <p className="font-display text-lg text-primary leading-snug max-w-md transition-colors duration-300 lg:group-hover/real:text-accent">{p.label}</p>
+              <ImagePlaceholder src={p.img} label={p.label} aspect={i % 3 === 0 ? "landscape" : "wide"} showLabelOverlay={false} />
+              <figcaption className="mt-5 flex flex-wrap items-start justify-between gap-x-6 gap-y-2 transition-transform duration-300 ease-out motion-safe:fine:lg:group-hover/real:-translate-y-1">
+                <p className="font-display text-lg text-primary leading-snug max-w-md transition-colors duration-300 fine:lg:group-hover/real:text-accent">{p.label}</p>
                 <span className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground shrink-0 pt-1">
                   {p.cat} · {p.place}
                 </span>

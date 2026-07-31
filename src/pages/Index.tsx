@@ -101,14 +101,14 @@ const Index = () => {
   return (
     <>
       {/* SECTION 1 — HERO */}
-      <section className="group relative pt-40 pb-20 md:pt-48 md:pb-24 overflow-hidden bg-background">
+      <section className="relative pt-32 pb-20 md:pt-40 lg:pt-[8.5rem] md:pb-24 overflow-hidden bg-background">
         <div className="container-wide relative grid gap-16 lg:grid-cols-[1.15fr_1fr] items-center">
           <div className="fade-up">
             <span className="inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-accent mb-8">
               <span className="h-px w-8 bg-accent" />
               Aannemer in ruime regio Diest
             </span>
-            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[1.03] tracking-tight text-primary">
+            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-[4rem] xl:text-7xl leading-[1.03] tracking-tight text-primary max-w-[15ch] lg:max-w-none xl:max-w-[16ch]">
               Renoveren of bouwen zonder zelf alles te moeten coördineren.
             </h1>
             <p className="mt-8 text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed">
@@ -143,9 +143,9 @@ const Index = () => {
       {/* SECTION 2 — VERTROUWENSBALK */}
       <section className="pb-16 md:pb-24 bg-background">
         <div className="container-wide">
-          <div className="grid gap-px bg-border border border-border sm:grid-cols-2 lg:grid-cols-4">
-            {trustBar.map((c, i) => (
-              <div key={c.title} className="card-flush bg-background p-8" data-reveal data-reveal-delay={String(i + 1)}>
+          <div className="stagger-list grid gap-px bg-border border border-border sm:grid-cols-2 lg:grid-cols-4" data-reveal>
+            {trustBar.map((c) => (
+              <div key={c.title} className="card-flush bg-background p-8">
                 <span className="accent-rule mb-6" />
                 <h2 className="font-display text-xl text-primary leading-snug mb-3">{c.title}</h2>
                 <p className="text-sm text-muted-foreground leading-relaxed">{c.text}</p>
@@ -158,7 +158,7 @@ const Index = () => {
       {/* SECTION 3 — PROBLEEMHERKENNING */}
       <Section eyebrow="Waarom overzicht telt" title="Een project loopt zelden vast op één beslissing." bg="surface">
         <div className="grid gap-14 lg:grid-cols-[1fr_1.2fr] items-start">
-          <div>
+          <div data-reveal>
             <p className="text-lg text-muted-foreground leading-relaxed">
               Bij renoveren of bouwen hangt bijna alles aan elkaar vast. Wie elk onderdeel als een
               losse opdracht bekijkt, botst later op keuzes die elkaar tegenwerken.
@@ -167,9 +167,9 @@ const Index = () => {
               Daarom bekijkt Dimac een project als één geheel.
             </p>
           </div>
-          <ul className="divide-y divide-border border-y border-border">
+          <ul className="stagger-list divide-y divide-border border-y border-border" data-reveal>
             {problemLines.map((line) => (
-              <li key={line} className="py-5 text-primary/90 leading-relaxed transition-colors duration-300 lg:hover:text-primary lg:hover:bg-surface/70 lg:hover:px-4">
+              <li key={line} className="py-5 text-primary/90 leading-relaxed transition-colors duration-300 fine:lg:hover:text-primary fine:lg:hover:bg-surface/70">
                 {line}
               </li>
             ))}
@@ -179,14 +179,14 @@ const Index = () => {
 
       {/* SECTION 4 — POSITIONERING */}
       <Section eyebrow="Positionering" title="Geen losse werken. Wel één logisch geheel.">
-        <p className="max-w-3xl text-lg text-muted-foreground leading-relaxed mb-14">
+        <p className="max-w-3xl text-lg text-muted-foreground leading-relaxed mb-14" data-reveal>
           Dimac pakt renovatie- en bouwprojecten gestructureerd aan: niet elk onderdeel apart, maar
           vooraf begrijpen hoe alles samenkomt.
         </p>
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="stagger-list grid gap-6 md:grid-cols-3" data-reveal>
           {positioningCards.map((c, i) => (
-            <div key={c.title} className="card-interactive group/card border border-border p-8 md:p-10 bg-background" data-reveal data-reveal-delay={String(i + 1)}>
-              <span className="font-display text-accent text-sm inline-block transition-transform duration-300 ease-out origin-left motion-safe:lg:group-hover/card:scale-110">{String(i + 1).padStart(2, "0")}</span>
+            <div key={c.title} className="card-interactive group/card border border-border p-8 md:p-10 bg-background">
+              <span className="font-display text-accent text-sm inline-block transition-transform duration-300 ease-out origin-left motion-safe:fine:lg:group-hover/card:scale-110">{String(i + 1).padStart(2, "0")}</span>
               <h3 className="font-display text-2xl mt-4 mb-3 text-primary leading-tight">{c.title}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">{c.text}</p>
             </div>
@@ -201,13 +201,13 @@ const Index = () => {
 
       {/* SECTION 5 — TWEE INSTAPPADEN */}
       <Section eyebrow="Twee instappaden" title="Wat is voor u de juiste eerste stap?" bg="surface">
-        <div className="grid gap-px bg-border border border-border md:grid-cols-2">
+        <div className="stagger-list grid gap-px bg-border border border-border md:grid-cols-2" data-reveal>
           {entryPaths.map((p) => (
-            <div key={p.n} className="card-flush group/card bg-background p-10 md:p-14" data-reveal data-reveal-delay={p.n === "01" ? "1" : "2"}>
-              <span className="font-display text-accent text-2xl inline-block transition-transform duration-300 ease-out origin-left motion-safe:lg:group-hover/card:scale-110">{p.n}</span>
+            <div key={p.n} className="card-flush group/card bg-background p-10 md:p-14">
+              <span className="font-display text-accent text-2xl inline-block transition-transform duration-300 ease-out origin-left motion-safe:fine:lg:group-hover/card:scale-110">{p.n}</span>
               <h3 className="font-display text-2xl md:text-3xl mt-4 mb-4 text-primary leading-tight">{p.title}</h3>
               <p className="text-muted-foreground leading-relaxed mb-8">{p.text}</p>
-              <Button asChild variant="ghost" className="px-0 h-auto text-accent hover:bg-transparent hover:text-primary">
+              <Button asChild variant="ghost" className="px-0 h-auto text-accent fine:hover:bg-transparent fine:hover:text-primary">
                 <Link to={p.to}>{p.cta} <ArrowRight className="w-4 h-4" /></Link>
               </Button>
             </div>
@@ -217,20 +217,18 @@ const Index = () => {
 
       {/* SECTION 6 — DIENSTEN */}
       <Section eyebrow="Diensten" title="Voor renovatie- en bouwprojecten waar alles moet kloppen.">
-        <div className="grid gap-px bg-border border border-border md:grid-cols-2 lg:grid-cols-3">
+        <div className="stagger-list grid gap-px bg-border border border-border md:grid-cols-2 lg:grid-cols-3" data-reveal>
           {homeServices.map((s, i) => (
             <Link
               key={s.slug}
               to={`/diensten/${s.slug}`}
-              className="card-flush group/card bg-background p-8 md:p-10 flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
-              data-reveal
-              data-reveal-delay={String(Math.min(i + 1, 6))}
+              className="focus-ring-inset card-flush group/card bg-background p-8 md:p-10 flex flex-col"
             >
-              <span className="font-display text-accent text-sm inline-block transition-transform duration-300 ease-out origin-left motion-safe:lg:group-hover/card:scale-110">{String(i + 1).padStart(2, "0")}</span>
+              <span className="font-display text-accent text-sm inline-block transition-transform duration-300 ease-out origin-left motion-safe:fine:lg:group-hover/card:scale-110">{String(i + 1).padStart(2, "0")}</span>
               <h3 className="font-display text-2xl mt-4 mb-3 text-primary leading-tight">{s.overviewTitle}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed flex-1">{serviceSummaries[s.slug]}</p>
               <span className="mt-8 inline-flex items-center gap-2 text-sm text-accent">
-                Meer over deze dienst <ArrowRight className="w-4 h-4 transition-transform duration-300 ease-out motion-safe:lg:group-hover/card:translate-x-1" />
+                Meer over deze dienst <ArrowRight className="w-4 h-4 transition-transform duration-300 ease-out motion-safe:fine:lg:group-hover/card:translate-x-1" />
               </span>
             </Link>
           ))}
@@ -243,24 +241,24 @@ const Index = () => {
       </Section>
 
       {/* SECTION 7 — WONINGSCAN */}
-      <section className="group py-24 md:py-36 bg-surface">
+      <section className="py-24 md:py-36 bg-surface">
         <div className="container-tight grid gap-14 lg:grid-cols-[1fr_1.1fr] items-start">
-          <div className="lg:sticky lg:top-28" data-reveal>
+          <div className="lg:sticky lg:top-28 lg:self-start" data-reveal>
             <ImagePlaceholder label="Voorbereiding en analyse van een woning" src={prep} aspect="portrait" />
           </div>
           <div>
-            <span className="eyebrow mb-5">Woningscan</span>
-            <h2 className="font-display text-3xl md:text-5xl leading-[1.05] text-primary mb-6">
+            <span className="eyebrow mb-5" data-reveal>Woningscan</span>
+            <h2 className="font-display text-3xl md:text-5xl leading-[1.05] text-primary mb-6" data-reveal data-reveal-delay="1">
               Twijfelt u over de juiste aanpak? Begin met inzicht.
             </h2>
-            <p className="text-lg text-muted-foreground leading-relaxed mb-10 max-w-xl">
+            <p className="text-lg text-muted-foreground leading-relaxed mb-10 max-w-xl" data-reveal data-reveal-delay="2">
               Met de woningscan krijgt u een helder beeld van de staat van uw woning, de technische
               aandachtspunten en de logische volgorde van uw werken.
             </p>
-            <ol className="space-y-6 mb-10">
+            <ol className="stagger-list space-y-6 mb-10" data-reveal>
               {woningscanPoints.map((p, i) => (
-                <li key={p.title} className="group/point flex gap-5 pb-6 border-b border-border last:border-0" data-reveal data-reveal-delay={String(Math.min(i + 1, 6))}>
-                  <span className="font-display text-accent text-lg leading-none pt-1 min-w-[2rem] transition-transform duration-300 ease-out origin-left motion-safe:lg:group-hover/point:scale-110">
+                <li key={p.title} className="group/point flex gap-5 pb-6 border-b border-border last:border-0">
+                  <span className="font-display text-accent text-lg leading-none pt-1 min-w-[2rem] transition-transform duration-300 ease-out origin-left motion-safe:fine:lg:group-hover/point:scale-110">
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   <div>
@@ -279,14 +277,14 @@ const Index = () => {
 
       {/* SECTION 8 — REALISATIES */}
       <Section eyebrow="Realisaties" title="Projecten waar voorbereiding en afwerking samenkomen.">
-        <div className="grid gap-6 md:grid-cols-2">
-          {realisations.map((p, i) => (
-            <figure key={p.title} className="group/real" data-reveal data-reveal-delay={String(Math.min(i + 1, 6))}>
-              <ImagePlaceholder src={p.src} label={p.label} aspect="landscape" />
-              <figcaption className="mt-4 max-w-md transition-transform duration-300 ease-out motion-safe:lg:group-hover/real:-translate-y-1">
+        <div className="stagger-list grid gap-6 md:grid-cols-2" data-reveal>
+          {realisations.map((p) => (
+            <figure key={p.title} className="group/real">
+              <ImagePlaceholder src={p.src} label={p.label} aspect="landscape" showLabelOverlay={false} />
+              <figcaption className="mt-4 max-w-md transition-transform duration-300 ease-out motion-safe:fine:lg:group-hover/real:-translate-y-1">
                 <span className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">{p.type}</span>
-                <h3 className="font-display text-lg text-primary leading-snug mt-2 transition-colors duration-300 lg:group-hover/real:text-accent">{p.title}</h3>
-                <span className="mt-3 block h-px w-8 bg-accent transition-[width] duration-500 ease-out lg:group-hover/real:w-16" aria-hidden="true" />
+                <h3 className="font-display text-lg text-primary leading-snug mt-2 transition-colors duration-300 fine:lg:group-hover/real:text-accent">{p.title}</h3>
+                <span className="mt-3 block h-px w-8 bg-accent transition-[width] duration-500 ease-out fine:lg:group-hover/real:w-16" aria-hidden="true" />
               </figcaption>
             </figure>
           ))}
@@ -300,9 +298,9 @@ const Index = () => {
 
       {/* SECTION 9 — VERTROUWENSSECTIE */}
       <Section eyebrow="Waarom Dimac" title="Duidelijkheid tijdens het volledige traject." bg="surface">
-        <div className="grid gap-px bg-border border border-border sm:grid-cols-2 lg:grid-cols-4">
-          {trustElements.map((t, i) => (
-            <div key={t.title} className="card-flush bg-background p-8" data-reveal data-reveal-delay={String(i + 1)}>
+        <div className="stagger-list grid gap-px bg-border border border-border sm:grid-cols-2 lg:grid-cols-4" data-reveal>
+          {trustElements.map((t) => (
+            <div key={t.title} className="card-flush bg-background p-8">
               <span className="accent-rule mb-6" />
               <h3 className="font-display text-lg text-primary leading-snug mb-3">{t.title}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">{t.text}</p>
@@ -313,7 +311,7 @@ const Index = () => {
 
       {/* SECTION 10 — OVER DIMAC */}
       <Section eyebrow="Over Dimac" title="Uw aannemer voor renovatie en nieuwbouw in regio Diest.">
-        <div className="max-w-2xl space-y-5 text-lg text-muted-foreground leading-relaxed">
+        <div className="max-w-2xl space-y-5 text-lg text-muted-foreground leading-relaxed" data-reveal>
           <p>
             Dimac is een lokale bouwpartner voor renovatie- en nieuwbouwprojecten in ruime regio
             Diest. We combineren vakmanschap met duidelijke communicatie, technische voorbereiding

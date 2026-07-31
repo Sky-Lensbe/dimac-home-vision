@@ -7,6 +7,8 @@ interface Props {
   className?: string;
   aspect?: "square" | "portrait" | "landscape" | "wide" | "tall";
   fit?: "cover" | "contain";
+  /** Toont het label als overlay bij hover. Default true (backwards compatible). */
+  showLabelOverlay?: boolean;
 }
 
 const aspectClass: Record<NonNullable<Props["aspect"]>, string> = {
@@ -17,7 +19,14 @@ const aspectClass: Record<NonNullable<Props["aspect"]>, string> = {
   wide: "aspect-[16/10]",
 };
 
-export const ImagePlaceholder = ({ label, src, className, aspect = "landscape", fit = "cover" }: Props) => {
+export const ImagePlaceholder = ({
+  label,
+  src,
+  className,
+  aspect = "landscape",
+  fit = "cover",
+  showLabelOverlay = true,
+}: Props) => {
   return (
     <div
       className={cn(
@@ -33,9 +42,9 @@ export const ImagePlaceholder = ({ label, src, className, aspect = "landscape", 
           loading="lazy"
           className={cn(
             "absolute inset-0 h-full w-full transition-transform duration-[800ms] ease-out",
-            fit === "contain"
-              ? "object-contain"
-              : "object-cover motion-safe:md:group-hover/img:scale-[1.02] motion-safe:lg:group-hover/img:scale-[1.04] motion-safe:lg:group-hover:scale-[1.04]"
+            // Zoom uitsluitend vanaf lg + precieze pointer (zie .img-zoom in index.css)
+            // en nooit bij fit="contain".
+            fit === "contain" ? "object-contain" : "object-cover img-zoom"
           )}
         />
       ) : (
@@ -44,9 +53,13 @@ export const ImagePlaceholder = ({ label, src, className, aspect = "landscape", 
           <span className="text-[11px] uppercase tracking-[0.22em]">{label}</span>
         </div>
       )}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 p-4 opacity-0 lg:group-hover/img:opacity-100 lg:group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-t from-primary/50 to-transparent">
-        <span className="text-[11px] uppercase tracking-[0.22em] text-primary-foreground">{label}</span>
-      </div>
+      {showLabelOverlay && (
+        <div className="img-overlay pointer-events-none absolute inset-x-0 bottom-0 p-4 opacity-0 transition-opacity duration-500 bg-gradient-to-t from-primary/50 to-transparent">
+          <span className="text-[11px] uppercase tracking-[0.22em] text-primary-foreground">
+            {label}
+          </span>
+        </div>
+      )}
     </div>
   );
 };

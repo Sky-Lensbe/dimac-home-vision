@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import plugin from "tailwindcss/plugin";
 
 export default {
   darkMode: ["class"],
@@ -85,5 +86,11 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    // `fine:` => alleen op toestellen met een echte muis/precieze pointer.
+    plugin(({ addVariant }) => {
+      addVariant("fine", "@media (hover: hover) and (pointer: fine)");
+    }),
+  ],
 } satisfies Config;

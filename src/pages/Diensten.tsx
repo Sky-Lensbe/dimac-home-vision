@@ -16,7 +16,7 @@ const Diensten = () => {
 
   return (
     <>
-      <section className="group pt-32 md:pt-40 pb-16 md:pb-24 bg-surface">
+      <section className="pt-32 md:pt-40 pb-16 md:pb-24 bg-surface">
         <div className="container-tight fade-up max-w-3xl">
           <span className="eyebrow mb-6">Diensten</span>
           <h1 className="font-display text-4xl md:text-6xl leading-[1.02] tracking-tight text-primary">
@@ -37,7 +37,7 @@ const Diensten = () => {
       </section>
 
       <Section eyebrow="Aanpak" title="Alles onder één dak">
-        <div className="max-w-3xl space-y-5 text-lg text-muted-foreground leading-relaxed">
+        <div className="max-w-3xl space-y-5 text-lg text-muted-foreground leading-relaxed" data-reveal>
           <p>
             Of het nu gaat om een volledige renovatie, een nieuwe badkamer of een uitbreiding van uw woning,
             Dimac zorgt voor een doordachte aanpak en een kwalitatieve uitvoering.
@@ -56,22 +56,20 @@ const Diensten = () => {
       />
 
       <Section eyebrow="Alle diensten" title="Van ruwbouw tot afwerking">
-        <div className="grid gap-px bg-border border border-border md:grid-cols-2">
+        <div className="stagger-list grid gap-px bg-border border border-border md:grid-cols-2" data-reveal>
           {services.map((s, i) => (
             <Link
               key={s.slug}
               to={`/diensten/${s.slug}`}
-              className="card-flush group/card bg-background p-8 md:p-10 flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
-              data-reveal
-              data-reveal-delay={String(Math.min(i + 1, 6))}
+              className="focus-ring-inset card-flush group/card bg-background p-8 md:p-10 flex flex-col"
             >
-              <span className="font-display text-accent text-sm inline-block transition-transform duration-300 ease-out origin-left motion-safe:lg:group-hover/card:scale-110">{String(i + 1).padStart(2, "0")}</span>
+              <span className="font-display text-accent text-sm inline-block transition-transform duration-300 ease-out origin-left motion-safe:fine:lg:group-hover/card:scale-110">{String(i + 1).padStart(2, "0")}</span>
               <h3 className="font-display text-2xl md:text-3xl mt-4 mb-4 text-primary leading-tight">
                 {s.overviewTitle}
               </h3>
               <p className="text-muted-foreground leading-relaxed flex-1">{s.overviewText}</p>
               <span className="mt-8 inline-flex items-center gap-2 text-sm text-accent">
-                Meer over {s.navLabel.toLowerCase()} <ArrowRight className="w-4 h-4 transition-transform duration-300 ease-out motion-safe:lg:group-hover/card:translate-x-1" />
+                Meer over {s.navLabel.toLowerCase()} <ArrowRight className="w-4 h-4 transition-transform duration-300 ease-out motion-safe:fine:lg:group-hover/card:translate-x-1" />
               </span>
             </Link>
           ))}
@@ -79,7 +77,7 @@ const Diensten = () => {
       </Section>
 
       <Section eyebrow="Totaalaanpak" title="Eén aanpak voor elk project" bg="surface">
-        <div className="max-w-3xl space-y-5 text-lg text-muted-foreground leading-relaxed">
+        <div className="max-w-3xl space-y-5 text-lg text-muted-foreground leading-relaxed" data-reveal>
           <p>
             Wat deze diensten verbindt, is de manier waarop Dimac werkt.
           </p>
