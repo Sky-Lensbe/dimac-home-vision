@@ -8,7 +8,7 @@ import { resolve } from "path";
  * Daarom lezen we de slugs rechtstreeks uit de bron, zodat de sitemap
  * altijd synchroon blijft met de data.
  */
-function slugsFrom(file: string, opts: { requireEnabled?: boolean; requireDraftFalse?: boolean } = {}) {
+function slugsFrom(file: string, opts: { requireEnabled?: boolean; requirePublished?: boolean } = {}) {
   const src = readFileSync(resolve(file), "utf8");
   const blocks = src.split(/\n\s*\{\s*\n/).slice(1);
   const found: string[] = [];
@@ -16,7 +16,7 @@ function slugsFrom(file: string, opts: { requireEnabled?: boolean; requireDraftF
     const slug = block.match(/^\s*slug:\s*"([^"]+)"/m)?.[1];
     if (!slug || found.includes(slug)) continue;
     if (opts.requireEnabled && /^\s*enabled:\s*false/m.test(block)) continue;
-    if (opts.requireDraftFalse && /^\s*draft:\s*true/m.test(block)) continue;
+    if (opts.requirePublished && !/^\s*status:\s*"published"/m.test(block)) continue;
     found.push(slug);
   }
   return found;
@@ -24,9 +24,9 @@ function slugsFrom(file: string, opts: { requireEnabled?: boolean; requireDraftF
 
 const services = slugsFrom("src/data/services.ts").map((slug) => ({ slug }));
 const activeRegions = slugsFrom("src/data/regions.ts", { requireEnabled: true }).map((slug) => ({ slug }));
-const publishedArticles = slugsFrom("src/data/articles.ts", { requireDraftFalse: true }).map((slug) => ({ slug }));
+const publishedArticles = slugsFrom("src/data/articles.ts", { requirePublished: true }).map((slug) => ({ slug }));
 
-const BASE_URL = "https://dimac.be";
+const BASE_URL = "https://www.dimac.be";
 
 interface SitemapEntry {
   path: string;

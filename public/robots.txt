@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://dimac.be/sitemap.xml
+Sitemap: https://www.dimac.be/sitemap.xml
