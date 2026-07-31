@@ -144,9 +144,9 @@ const Index = () => {
       <section className="pb-16 md:pb-24 bg-background">
         <div className="container-wide">
           <div className="grid gap-px bg-border border border-border sm:grid-cols-2 lg:grid-cols-4">
-            {trustBar.map((c) => (
-              <div key={c.title} className="bg-background p-8">
-                <span className="block h-px w-8 bg-accent mb-6" />
+            {trustBar.map((c, i) => (
+              <div key={c.title} className="card-flush bg-background p-8" data-reveal data-reveal-delay={String(i + 1)}>
+                <span className="accent-rule mb-6" />
                 <h2 className="font-display text-xl text-primary leading-snug mb-3">{c.title}</h2>
                 <p className="text-sm text-muted-foreground leading-relaxed">{c.text}</p>
               </div>
@@ -169,7 +169,7 @@ const Index = () => {
           </div>
           <ul className="divide-y divide-border border-y border-border">
             {problemLines.map((line) => (
-              <li key={line} className="py-5 text-primary/90 leading-relaxed">
+              <li key={line} className="py-5 text-primary/90 leading-relaxed transition-colors duration-300 lg:hover:text-primary lg:hover:bg-surface/70 lg:hover:px-4">
                 {line}
               </li>
             ))}
@@ -185,8 +185,8 @@ const Index = () => {
         </p>
         <div className="grid gap-6 md:grid-cols-3">
           {positioningCards.map((c, i) => (
-            <div key={c.title} className="border border-border p-8 md:p-10 bg-background">
-              <span className="font-display text-accent text-sm">{String(i + 1).padStart(2, "0")}</span>
+            <div key={c.title} className="card-interactive group/card border border-border p-8 md:p-10 bg-background" data-reveal data-reveal-delay={String(i + 1)}>
+              <span className="font-display text-accent text-sm inline-block transition-transform duration-300 ease-out origin-left motion-safe:lg:group-hover/card:scale-110">{String(i + 1).padStart(2, "0")}</span>
               <h3 className="font-display text-2xl mt-4 mb-3 text-primary leading-tight">{c.title}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">{c.text}</p>
             </div>
@@ -203,8 +203,8 @@ const Index = () => {
       <Section eyebrow="Twee instappaden" title="Wat is voor u de juiste eerste stap?" bg="surface">
         <div className="grid gap-px bg-border border border-border md:grid-cols-2">
           {entryPaths.map((p) => (
-            <div key={p.n} className="bg-background p-10 md:p-14 hover:bg-surface transition-colors duration-500">
-              <span className="font-display text-accent text-2xl">{p.n}</span>
+            <div key={p.n} className="card-flush group/card bg-background p-10 md:p-14" data-reveal data-reveal-delay={p.n === "01" ? "1" : "2"}>
+              <span className="font-display text-accent text-2xl inline-block transition-transform duration-300 ease-out origin-left motion-safe:lg:group-hover/card:scale-110">{p.n}</span>
               <h3 className="font-display text-2xl md:text-3xl mt-4 mb-4 text-primary leading-tight">{p.title}</h3>
               <p className="text-muted-foreground leading-relaxed mb-8">{p.text}</p>
               <Button asChild variant="ghost" className="px-0 h-auto text-accent hover:bg-transparent hover:text-primary">
@@ -222,13 +222,15 @@ const Index = () => {
             <Link
               key={s.slug}
               to={`/diensten/${s.slug}`}
-              className="group bg-background p-8 md:p-10 flex flex-col hover:bg-surface transition-colors duration-500"
+              className="card-flush group/card bg-background p-8 md:p-10 flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
+              data-reveal
+              data-reveal-delay={String(Math.min(i + 1, 6))}
             >
-              <span className="font-display text-accent text-sm">{String(i + 1).padStart(2, "0")}</span>
+              <span className="font-display text-accent text-sm inline-block transition-transform duration-300 ease-out origin-left motion-safe:lg:group-hover/card:scale-110">{String(i + 1).padStart(2, "0")}</span>
               <h3 className="font-display text-2xl mt-4 mb-3 text-primary leading-tight">{s.overviewTitle}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed flex-1">{serviceSummaries[s.slug]}</p>
-              <span className="mt-8 inline-flex items-center gap-2 text-sm text-accent group-hover:gap-3 transition-all">
-                Meer over deze dienst <ArrowRight className="w-4 h-4" />
+              <span className="mt-8 inline-flex items-center gap-2 text-sm text-accent">
+                Meer over deze dienst <ArrowRight className="w-4 h-4 transition-transform duration-300 ease-out motion-safe:lg:group-hover/card:translate-x-1" />
               </span>
             </Link>
           ))}
@@ -257,8 +259,8 @@ const Index = () => {
             </p>
             <ol className="space-y-6 mb-10">
               {woningscanPoints.map((p, i) => (
-                <li key={p.title} className="flex gap-5 pb-6 border-b border-border last:border-0">
-                  <span className="font-display text-accent text-lg leading-none pt-1 min-w-[2rem]">
+                <li key={p.title} className="group/point flex gap-5 pb-6 border-b border-border last:border-0" data-reveal data-reveal-delay={String(Math.min(i + 1, 6))}>
+                  <span className="font-display text-accent text-lg leading-none pt-1 min-w-[2rem] transition-transform duration-300 ease-out origin-left motion-safe:lg:group-hover/point:scale-110">
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   <div>
@@ -278,12 +280,13 @@ const Index = () => {
       {/* SECTION 8 — REALISATIES */}
       <Section eyebrow="Realisaties" title="Projecten waar voorbereiding en afwerking samenkomen.">
         <div className="grid gap-6 md:grid-cols-2">
-          {realisations.map((p) => (
-            <figure key={p.title} className="fade-up">
+          {realisations.map((p, i) => (
+            <figure key={p.title} className="group/real" data-reveal data-reveal-delay={String(Math.min(i + 1, 6))}>
               <ImagePlaceholder src={p.src} label={p.label} aspect="landscape" />
-              <figcaption className="mt-4 max-w-md">
+              <figcaption className="mt-4 max-w-md transition-transform duration-300 ease-out motion-safe:lg:group-hover/real:-translate-y-1">
                 <span className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">{p.type}</span>
-                <h3 className="font-display text-lg text-primary leading-snug mt-2">{p.title}</h3>
+                <h3 className="font-display text-lg text-primary leading-snug mt-2 transition-colors duration-300 lg:group-hover/real:text-accent">{p.title}</h3>
+                <span className="mt-3 block h-px w-8 bg-accent transition-[width] duration-500 ease-out lg:group-hover/real:w-16" aria-hidden="true" />
               </figcaption>
             </figure>
           ))}
@@ -298,9 +301,9 @@ const Index = () => {
       {/* SECTION 9 — VERTROUWENSSECTIE */}
       <Section eyebrow="Waarom Dimac" title="Duidelijkheid tijdens het volledige traject." bg="surface">
         <div className="grid gap-px bg-border border border-border sm:grid-cols-2 lg:grid-cols-4">
-          {trustElements.map((t) => (
-            <div key={t.title} className="bg-background p-8">
-              <span className="block h-px w-8 bg-accent mb-6" />
+          {trustElements.map((t, i) => (
+            <div key={t.title} className="card-flush bg-background p-8" data-reveal data-reveal-delay={String(i + 1)}>
+              <span className="accent-rule mb-6" />
               <h3 className="font-display text-lg text-primary leading-snug mb-3">{t.title}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">{t.text}</p>
             </div>
