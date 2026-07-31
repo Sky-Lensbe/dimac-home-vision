@@ -100,8 +100,55 @@ const Index = () => {
 
   return (
     <>
-      {/* SECTION 1 — HERO */}
-      <section className="relative pt-32 pb-20 md:pt-40 lg:pt-[8.5rem] md:pb-24 overflow-hidden bg-background">
+      {/* SECTION 1 — HERO (mobiel/tablet: overlay op foto) */}
+      <section className="relative lg:hidden pt-24 sm:pt-28 pb-12 bg-background">
+        <div className="container-wide">
+          <div className="relative overflow-hidden rounded-sm bg-surface-strong min-h-[34rem] sm:min-h-[38rem] flex items-end">
+            <img
+              src={hero}
+              alt="Renovatieproject van Dimac in regio Diest"
+              className="absolute inset-0 h-full w-full object-cover object-[60%_30%]"
+            />
+            <span
+              aria-hidden="true"
+              className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/70 to-primary/25"
+            />
+            <div className="relative w-full p-6 sm:p-8 max-w-xl">
+              <span className="inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-primary-foreground/85 mb-5" data-reveal>
+                <span className="h-px w-8 bg-accent" />
+                Aannemer in ruime regio Diest
+              </span>
+              <h1 className="font-display text-[2rem] sm:text-4xl leading-[1.08] tracking-tight text-primary-foreground" data-reveal data-reveal-delay="1">
+                Renoveren of bouwen zonder zelf alles te moeten coördineren.
+              </h1>
+              <p className="mt-5 text-base sm:text-lg text-primary-foreground/85 leading-relaxed" data-reveal data-reveal-delay="2">
+                Dimac begeleidt uw renovatie- of bouwproject met één aanspreekpunt, een duidelijke
+                voorbereiding en correcte opvolging van de werken tot de afwerking.
+              </p>
+              <div className="mt-7 flex flex-col gap-3" data-reveal data-reveal-delay="3">
+                <Button asChild variant="solid" size="lg" className="w-full">
+                  <Link to="/contact">Bespreek uw project <ArrowRight className="w-4 h-4" /></Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="w-full border-primary-foreground/50 bg-primary-foreground/10 text-primary-foreground fine:hover:bg-primary-foreground fine:hover:text-primary"
+                >
+                  <Link to="/woningscan">Ontdek de woningscan</Link>
+                </Button>
+              </div>
+              <p className="mt-5 text-[13px] text-primary-foreground/80 flex items-start gap-2 leading-relaxed" data-reveal data-reveal-delay="4">
+                <MapPin className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                <span>Actief in Diest, Scherpenheuvel, Tessenderlo, Halen en ruime omgeving.</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 1 — HERO (desktop) */}
+      <section className="relative hidden lg:block pt-32 pb-20 md:pt-40 lg:pt-[8.5rem] md:pb-24 overflow-hidden bg-background">
         <div className="container-wide relative grid gap-16 lg:grid-cols-[1.15fr_1fr] items-center">
           <div className="fade-up">
             <span className="inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-accent mb-8">
@@ -139,6 +186,7 @@ const Index = () => {
           </div>
         </div>
       </section>
+
 
       {/* SECTION 2 — VERTROUWENSBALK */}
       <section className="pb-16 md:pb-24 bg-background">
