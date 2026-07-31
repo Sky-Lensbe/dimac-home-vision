@@ -156,7 +156,7 @@ const Woningscan = () => {
         <WorkflowSteps
           steps={[
             { title: "Afspraak inplannen", text: "We plannen een moment dat voor u past." },
-            { title: "Analyse ter plaatse", text: "We bekijken uw woning en brengen alles in kaart." },
+            { title: "Analyse ter plaatse", text: "We scannen steeds de volledige woning en brengen alles in kaart." },
             { title: "Advies en bespreking", text: "U krijgt duidelijke inzichten en mogelijke oplossingen." },
             { title: "Volgende stap bepalen", text: "U beslist hoe u verder wil gaan." },
           ]}
