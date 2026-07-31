@@ -69,7 +69,7 @@ const Realisaties = () => {
               className="group/real"
             >
               <ImagePlaceholder src={p.img} label={p.label} aspect={i % 3 === 0 ? "landscape" : "wide"} showLabelOverlay={false} />
-              <figcaption className="mt-5 flex items-start justify-between gap-6 transition-transform duration-300 ease-out motion-safe:fine:lg:group-hover/real:-translate-y-1">
+              <figcaption className="mt-5 flex flex-wrap items-start justify-between gap-x-6 gap-y-2 transition-transform duration-300 ease-out motion-safe:fine:lg:group-hover/real:-translate-y-1">
                 <p className="font-display text-lg text-primary leading-snug max-w-md transition-colors duration-300 fine:lg:group-hover/real:text-accent">{p.label}</p>
                 <span className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground shrink-0 pt-1">
                   {p.cat} · {p.place}
