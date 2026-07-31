@@ -3,12 +3,19 @@ import { Button } from "@/components/ui/button";
 import { services } from "@/data/services";
 import logoAsset from "@/assets/dimac-logo.jpg.asset.json";
 
+const linkClass =
+  "link-underline text-primary/80 hover:text-accent transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
+
 export const Footer = () => {
   return (
-    <footer className="bg-surface border-t border-border text-primary">
+    <footer className="group bg-surface border-t border-border text-primary">
       <div className="container-wide py-20 md:py-28">
+        <span
+          aria-hidden="true"
+          className="block h-px w-12 bg-accent mb-12 transition-[width] duration-700 ease-out lg:group-hover:w-24"
+        />
         <div className="grid gap-14 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
-          <div>
+          <div data-reveal>
             <div className="flex items-center gap-4 mb-6">
               <img
                 src={logoAsset.url}
@@ -28,7 +35,7 @@ export const Footer = () => {
             </Button>
           </div>
 
-          <div>
+          <div data-reveal data-reveal-delay="1">
             <h4 className="text-xs uppercase tracking-[0.22em] text-muted-foreground mb-5">Navigatie</h4>
             <ul className="space-y-3 text-sm">
               {[
@@ -42,7 +49,7 @@ export const Footer = () => {
                 ["/contact", "Contact"],
               ].map(([to, label]) => (
                 <li key={to}>
-                  <Link to={to} className="text-primary/80 hover:text-accent transition-colors">
+                  <Link to={to} className={linkClass}>
                     {label}
                   </Link>
                 </li>
@@ -50,12 +57,12 @@ export const Footer = () => {
             </ul>
           </div>
 
-          <div>
+          <div data-reveal data-reveal-delay="2">
             <h4 className="text-xs uppercase tracking-[0.22em] text-muted-foreground mb-5">Diensten</h4>
             <ul className="space-y-3 text-sm text-primary/80">
               {services.map((s) => (
                 <li key={s.slug}>
-                  <Link to={`/diensten/${s.slug}`} className="hover:text-accent transition-colors">
+                  <Link to={`/diensten/${s.slug}`} className={linkClass}>
                     {s.navLabel}
                   </Link>
                 </li>
@@ -63,7 +70,7 @@ export const Footer = () => {
             </ul>
           </div>
 
-          <div>
+          <div data-reveal data-reveal-delay="3">
             <h4 className="text-xs uppercase tracking-[0.22em] text-muted-foreground mb-5">Regio</h4>
             <ul className="space-y-3 text-sm text-primary/80">
               <li>Diest</li>

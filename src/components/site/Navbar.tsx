@@ -38,25 +38,34 @@ export const Navbar = () => {
   useEffect(() => {
     setOpen(false);
     setMobileServices(false);
+    setDienstenOpen(false);
   }, [pathname]);
 
   return (
     <header
       className={cn(
-        "fixed top-0 inset-x-0 z-50 transition-all duration-300 bg-background",
-        scrolled || open ? "border-b border-border" : "border-b border-transparent"
+        "fixed top-0 inset-x-0 z-50 bg-background transition-[background-color,border-color,box-shadow] duration-300 ease-out",
+        scrolled || open
+          ? "border-b border-border shadow-soft bg-background/95 supports-[backdrop-filter]:backdrop-blur-[2px]"
+          : "border-b border-transparent shadow-none"
       )}
     >
       <div className="container-wide flex h-20 items-center justify-between">
-        <Link to="/" className="flex items-center gap-3" aria-label="Dimac — home">
+        <Link
+          to="/"
+          className="flex items-center gap-3 group/logo focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-background"
+          aria-label="Dimac — home"
+        >
           <img
             src={logoAsset.url}
             alt="Dimac"
-            className="h-11 w-11 rounded-md object-cover"
+            className="h-11 w-11 rounded-md object-cover transition-opacity duration-300 group-hover/logo:opacity-85"
             width={44}
             height={44}
           />
-          <span className="font-display text-lg text-primary hidden sm:inline">Dimac</span>
+          <span className="font-display text-lg text-primary hidden sm:inline transition-colors duration-300 lg:group-hover/logo:text-accent">
+            Dimac
+          </span>
         </Link>
 
         <nav className="hidden lg:flex items-center gap-8">
@@ -67,36 +76,48 @@ export const Navbar = () => {
                 className="relative"
                 onMouseEnter={() => setDienstenOpen(true)}
                 onMouseLeave={() => setDienstenOpen(false)}
+                onFocus={() => setDienstenOpen(true)}
+                onBlur={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node)) setDienstenOpen(false);
+                }}
               >
                 <NavLink
                   to={item.to}
                   className={({ isActive }) =>
                     cn(
-                      "flex items-center gap-1 text-[13px] tracking-wide py-2 transition-colors",
+                      "flex items-center gap-1 text-[13px] tracking-wide py-2 transition-colors duration-300 link-underline",
                       isActive ? "text-accent" : "text-primary/80 hover:text-primary"
                     )
                   }
                 >
                   {item.label}
-                  <ChevronDown className={cn("w-3 h-3 transition-transform", dienstenOpen && "rotate-180")} />
+                  <ChevronDown
+                    className={cn(
+                      "w-3 h-3 transition-transform duration-300 ease-out",
+                      dienstenOpen && "rotate-180"
+                    )}
+                  />
                 </NavLink>
+                {/* pt-3 vormt de hoverbrug tussen trigger en menu */}
                 <div
                   className={cn(
-                    "absolute left-1/2 -translate-x-1/2 top-full pt-3 transition-all duration-200",
-                    dienstenOpen ? "opacity-100 visible" : "opacity-0 invisible"
+                    "absolute left-1/2 -translate-x-1/2 top-full pt-3 transition-[opacity,transform] duration-200 ease-out",
+                    dienstenOpen
+                      ? "opacity-100 visible translate-y-0"
+                      : "opacity-0 invisible -translate-y-1 pointer-events-none"
                   )}
                 >
-                  <div className="w-64 bg-background border border-border shadow-elevated py-2">
+                  <div className="w-64 max-w-[calc(100vw-3rem)] bg-background border border-border shadow-elevated py-2">
                     {item.children.map((c) => (
                       <NavLink
                         key={c.to}
                         to={c.to}
                         className={({ isActive }) =>
                           cn(
-                            "block px-5 py-2.5 text-[13px] transition-colors",
+                            "block px-5 py-2.5 text-[13px] border-l-2 transition-[color,background-color,border-color,padding] duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent",
                             isActive
-                              ? "text-accent bg-surface"
-                              : "text-primary/80 hover:text-accent hover:bg-surface/70"
+                              ? "text-accent bg-surface border-accent"
+                              : "text-primary/80 border-transparent hover:text-accent hover:bg-surface/70 hover:border-accent/60 hover:pl-6"
                           )
                         }
                       >
@@ -113,7 +134,7 @@ export const Navbar = () => {
                 end={item.to === "/"}
                 className={({ isActive }) =>
                   cn(
-                    "text-[13px] tracking-wide link-underline transition-colors",
+                    "text-[13px] tracking-wide link-underline transition-colors duration-300",
                     isActive ? "text-accent" : "text-primary/80 hover:text-primary"
                   )
                 }
@@ -131,58 +152,83 @@ export const Navbar = () => {
         </div>
 
         <button
-          className="lg:hidden p-2 -mr-2 text-primary"
+          className="lg:hidden p-2 -mr-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-primary transition-colors duration-200 active:bg-surface-strong"
           onClick={() => setOpen((v) => !v)}
           aria-label="Menu"
+          aria-expanded={open}
         >
           {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
 
-      {open && (
-        <div className="lg:hidden border-t border-border/60 bg-background max-h-[80vh] overflow-y-auto">
-          <div className="container-wide py-6 flex flex-col">
-            {NAV.map((item) =>
-              item.children ? (
-                <div key={item.to} className="border-b border-border/40">
-                  <button
-                    className="w-full flex items-center justify-between py-3 text-base text-primary"
-                    onClick={() => setMobileServices((v) => !v)}
-                  >
-                    {item.label}
-                    <ChevronDown className={cn("w-4 h-4 transition-transform", mobileServices && "rotate-180")} />
-                  </button>
-                  {mobileServices && (
-                    <div className="pl-4 pb-4 flex flex-col gap-3">
-                      <NavLink to={item.to} className="text-sm text-accent">Alle diensten →</NavLink>
-                      {item.children.map((c) => (
-                        <NavLink key={c.to} to={c.to} className="text-sm text-primary/80">{c.label}</NavLink>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.to === "/"}
-                  className={({ isActive }) =>
-                    cn(
-                      "py-3 text-base border-b border-border/40",
-                      isActive ? "text-accent" : "text-primary"
-                    )
-                  }
+      <div
+        className={cn(
+          "lg:hidden overflow-hidden bg-background transition-[max-height,opacity] duration-300 ease-out",
+          open
+            ? "max-h-[80vh] opacity-100 overflow-y-auto border-t border-border/60"
+            : "max-h-0 opacity-0 pointer-events-none border-t border-transparent"
+        )}
+      >
+        <div className="container-wide py-6 flex flex-col">
+          {NAV.map((item) =>
+            item.children ? (
+              <div key={item.to} className="border-b border-border/40">
+                <button
+                  className="w-full flex items-center justify-between py-3 min-h-[44px] text-base text-primary transition-colors duration-200 active:text-accent"
+                  onClick={() => setMobileServices((v) => !v)}
+                  aria-expanded={mobileServices}
                 >
                   {item.label}
-                </NavLink>
-              )
-            )}
-            <Button asChild variant="solid" className="mt-6 w-full">
-              <Link to="/contact">Offerte aanvragen</Link>
-            </Button>
-          </div>
+                  <ChevronDown
+                    className={cn(
+                      "w-4 h-4 transition-transform duration-300 ease-out",
+                      mobileServices && "rotate-180"
+                    )}
+                  />
+                </button>
+                <div
+                  className={cn(
+                    "grid transition-all duration-300 ease-out",
+                    mobileServices ? "grid-rows-[1fr] opacity-100 pb-4" : "grid-rows-[0fr] opacity-0"
+                  )}
+                >
+                  <div className="overflow-hidden pl-4 flex flex-col">
+                    <NavLink to={item.to} className="text-sm text-accent py-3 min-h-[44px] flex items-center">
+                      Alle diensten →
+                    </NavLink>
+                    {item.children.map((c) => (
+                      <NavLink
+                        key={c.to}
+                        to={c.to}
+                        className="text-sm text-primary/80 py-3 min-h-[44px] flex items-center transition-colors duration-200 active:text-accent"
+                      >
+                        {c.label}
+                      </NavLink>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === "/"}
+                className={({ isActive }) =>
+                  cn(
+                    "py-3 min-h-[44px] flex items-center text-base border-b border-border/40 transition-colors duration-200 active:text-accent",
+                    isActive ? "text-accent" : "text-primary"
+                  )
+                }
+              >
+                {item.label}
+              </NavLink>
+            )
+          )}
+          <Button asChild variant="solid" className="mt-6 w-full">
+            <Link to="/contact">Offerte aanvragen</Link>
+          </Button>
         </div>
-      )}
+      </div>
     </header>
   );
 };

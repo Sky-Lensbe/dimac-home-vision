@@ -2,12 +2,15 @@ import { PropsWithChildren, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
+import { useReveal } from "@/hooks/use-reveal";
 
 export const Layout = ({ children }: PropsWithChildren) => {
   const { pathname } = useLocation();
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
   }, [pathname]);
+
+  useReveal();
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

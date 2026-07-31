@@ -18,7 +18,7 @@ export const ServicePage = ({ service: s }: Props) => {
   return (
     <>
       {/* Hero */}
-      <section className="pt-32 md:pt-40 pb-16 md:pb-24 bg-surface">
+      <section className="group pt-32 md:pt-40 pb-16 md:pb-24 bg-surface">
         <div className="container-tight grid gap-12 lg:grid-cols-[1.1fr_1fr] items-center">
           <div className="fade-up">
             {s.hero.eyebrow && <span className="eyebrow mb-6">{s.hero.eyebrow}</span>}
@@ -51,16 +51,16 @@ export const ServicePage = ({ service: s }: Props) => {
       </Section>
 
       {/* Problem / Solution split */}
-      <section className="py-20 md:py-28 bg-surface">
+      <section className="group py-20 md:py-28 bg-surface">
         <div className="container-tight grid gap-12 lg:grid-cols-2">
-          <div>
+          <div data-reveal>
             <span className="eyebrow mb-5">Herkenning</span>
             <h2 className="font-display text-3xl md:text-4xl leading-tight mb-6 text-primary">{s.problem.h2}</h2>
             <div className="space-y-4 text-muted-foreground leading-relaxed">
               {s.problem.text.map((p, i) => <p key={i}>{p}</p>)}
             </div>
           </div>
-          <div className="lg:pl-10 lg:border-l lg:border-border">
+          <div className="lg:pl-10 lg:border-l lg:border-border" data-reveal data-reveal-delay="2">
             <span className="eyebrow mb-5">Oplossing</span>
             <h2 className="font-display text-3xl md:text-4xl leading-tight mb-6 text-primary">{s.solution.h2}</h2>
             <div className="space-y-4 text-muted-foreground leading-relaxed">
@@ -90,14 +90,14 @@ export const ServicePage = ({ service: s }: Props) => {
       </Section>
 
       {/* For who + Benefits */}
-      <section className="py-20 md:py-28 bg-surface">
+      <section className="group py-20 md:py-28 bg-surface">
         <div className="container-tight grid gap-14 lg:grid-cols-2">
-          <div>
+          <div data-reveal>
             <span className="eyebrow mb-5">Voor wie</span>
             <h2 className="font-display text-3xl md:text-4xl leading-tight mb-8 text-primary">{s.forWho.h2}</h2>
             <BulletList items={s.forWho.bullets} />
           </div>
-          <div>
+          <div data-reveal data-reveal-delay="2">
             <span className="eyebrow mb-5">Voordelen</span>
             <h2 className="font-display text-3xl md:text-4xl leading-tight mb-8 text-primary">{s.benefits.h2}</h2>
             <BulletList items={s.benefits.bullets} />
@@ -111,11 +111,11 @@ export const ServicePage = ({ service: s }: Props) => {
       </Section>
 
       {/* Outcome */}
-      <section className="py-24 md:py-32 bg-surface border-y border-border">
+      <section className="group py-24 md:py-32 bg-surface border-y border-border">
         <div className="container-tight max-w-3xl">
-          <span className="eyebrow mb-6">Resultaat</span>
-          <h2 className="font-display text-3xl md:text-5xl leading-tight mb-6 text-primary">{s.outcome.h2}</h2>
-          <div className="space-y-4 text-muted-foreground text-lg leading-relaxed">
+          <span className="eyebrow mb-6" data-reveal>Resultaat</span>
+          <h2 className="font-display text-3xl md:text-5xl leading-tight mb-6 text-primary" data-reveal data-reveal-delay="1">{s.outcome.h2}</h2>
+          <div className="space-y-4 text-muted-foreground text-lg leading-relaxed" data-reveal data-reveal-delay="2">
             {s.outcome.text.map((p, i) => <p key={i}>{p}</p>)}
           </div>
         </div>

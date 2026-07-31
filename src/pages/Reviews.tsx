@@ -19,7 +19,7 @@ const Reviews = () => {
   });
   return (
     <>
-      <section className="pt-32 md:pt-40 pb-16 bg-surface">
+      <section className="group pt-32 md:pt-40 pb-16 bg-surface">
         <div className="container-tight fade-up max-w-3xl">
           <span className="eyebrow mb-6">Reviews</span>
           <h1 className="font-display text-4xl md:text-6xl leading-[1.02] tracking-tight text-primary">
@@ -35,7 +35,12 @@ const Reviews = () => {
       <Section>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {REVIEWS.map((r, i) => (
-            <blockquote key={i} className="border border-border p-8 md:p-10 bg-background flex flex-col">
+            <blockquote
+              key={i}
+              className="card-interactive border border-border p-8 md:p-10 bg-background flex flex-col"
+              data-reveal
+              data-reveal-delay={String(Math.min(i + 1, 6))}
+            >
               <div className="flex gap-1 mb-6 text-accent">
                 {Array.from({ length: 5 }).map((_, j) => (
                   <Star key={j} className="w-4 h-4 fill-accent" strokeWidth={0} />

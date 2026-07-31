@@ -16,15 +16,35 @@ export const CTABlock = ({ eyebrow, title, text, primary, secondary, variant = "
   // Both variants render on a light surface; "dark" kept for API compatibility.
   const bg = variant === "surface" ? "bg-background" : "bg-surface";
   return (
-    <section className={bg + " border-y border-border"}>
+    <section className={bg + " group relative border-y border-border overflow-hidden"}>
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute left-0 top-0 h-px w-0 bg-accent transition-[width] duration-700 ease-out group-hover:w-40 lg:group-hover:w-64"
+      />
       <div className="container-tight py-24 md:py-32">
         <div className="max-w-3xl">
-          {eyebrow && <span className="eyebrow mb-6">{eyebrow}</span>}
-          <h2 className="font-display text-3xl md:text-5xl leading-[1.1] mb-6 text-primary">{title}</h2>
-          {text && (
-            <p className="text-lg leading-relaxed max-w-2xl text-muted-foreground">{text}</p>
+          {eyebrow && (
+            <span className="eyebrow mb-6" data-reveal>
+              {eyebrow}
+            </span>
           )}
-          <div className="mt-10 flex flex-wrap gap-4">
+          <h2
+            className="font-display text-3xl md:text-5xl leading-[1.1] mb-6 text-primary"
+            data-reveal
+            data-reveal-delay="1"
+          >
+            {title}
+          </h2>
+          {text && (
+            <p
+              className="text-lg leading-relaxed max-w-2xl text-muted-foreground"
+              data-reveal
+              data-reveal-delay="2"
+            >
+              {text}
+            </p>
+          )}
+          <div className="mt-10 flex flex-wrap gap-4" data-reveal data-reveal-delay="3">
             {primary && (
               <Button asChild variant="solid" size="lg">
                 <Link to={primary.to}>
@@ -39,7 +59,13 @@ export const CTABlock = ({ eyebrow, title, text, primary, secondary, variant = "
             )}
           </div>
           {microcopy && (
-            <p className="mt-6 text-sm text-muted-foreground max-w-2xl">{microcopy}</p>
+            <p
+              className="mt-6 text-sm text-muted-foreground max-w-2xl"
+              data-reveal
+              data-reveal-delay="4"
+            >
+              {microcopy}
+            </p>
           )}
         </div>
       </div>

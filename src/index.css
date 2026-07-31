@@ -102,13 +102,31 @@
   ::selection { background: hsl(var(--accent) / 0.20); color: hsl(var(--primary)); }
 }
 
+@layer base {
+  /* Focus-visible is overal minstens even duidelijk als hover. */
+  a:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid hsl(var(--accent));
+    outline-offset: 3px;
+  }
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid hsl(var(--accent));
+    outline-offset: 1px;
+  }
+}
+
 @layer components {
   .eyebrow {
     @apply inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-accent font-medium;
   }
   .eyebrow::before {
     content: "";
-    @apply block h-px w-8 bg-accent;
+    @apply block h-px w-8 bg-accent origin-left;
+    transition: width 400ms cubic-bezier(0.2, 0.7, 0.2, 1);
   }
   .container-tight {
     @apply mx-auto w-full max-w-6xl px-6 md:px-10;
@@ -126,10 +144,106 @@
     content: "";
     @apply absolute left-0 -bottom-0.5 h-px w-full origin-right scale-x-0 bg-current transition-transform duration-500 ease-out;
   }
-  .link-underline:hover::after {
+  .link-underline:hover::after,
+  .link-underline:focus-visible::after {
     @apply origin-left scale-x-100;
   }
+
+  /* Accentlijntje dat bij sectie-/kaarthover licht uitloopt. */
+  .accent-rule {
+    display: block;
+    height: 1px;
+    width: 2rem;
+    background: hsl(var(--accent));
+    transition: width 400ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  /* Gedeelde kaartinteractie (kaarten met eigen rand). */
+  .card-interactive {
+    transition:
+      transform 350ms cubic-bezier(0.2, 0.7, 0.2, 1),
+      border-color 300ms ease-out,
+      background-color 300ms ease-out,
+      box-shadow 350ms ease-out;
+  }
+  /* Kaarten in een gap-px raster: geen lift, wel duidelijke reactie. */
+  .card-flush {
+    transition:
+      background-color 300ms ease-out,
+      box-shadow 350ms ease-out,
+      color 300ms ease-out;
+    position: relative;
+  }
+  .card-flush::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    box-shadow: inset 0 0 0 1px transparent;
+    transition: box-shadow 300ms ease-out;
+  }
 }
+
+/* ---------- Interactieniveaus per breakpoint ---------- */
+
+/* Tablet: alleen kleur- en randreacties, geen lift. */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .card-interactive:hover {
+    border-color: hsl(var(--accent) / 0.4);
+    background-color: hsl(var(--surface));
+  }
+  .card-flush:hover {
+    background-color: hsl(var(--surface));
+  }
+}
+
+/* Desktop: volledige hoverlaag. */
+@media (min-width: 1024px) {
+  .card-interactive:hover,
+  .card-interactive:focus-within {
+    transform: translateY(-4px);
+    border-color: hsl(var(--accent) / 0.5);
+    background-color: hsl(var(--surface));
+    box-shadow: var(--shadow-md);
+  }
+  .card-flush:hover,
+  .card-flush:focus-within {
+    background-color: hsl(var(--surface));
+  }
+  .card-flush:hover::after,
+  .card-flush:focus-within::after {
+    box-shadow: inset 0 0 0 1px hsl(var(--accent) / 0.35);
+  }
+  .card-interactive:hover .accent-rule,
+  .card-interactive:focus-within .accent-rule,
+  .card-flush:hover .accent-rule,
+  .card-flush:focus-within .accent-rule,
+  .group:hover .eyebrow::before,
+  .group:focus-within .eyebrow::before {
+    width: 3rem;
+  }
+}
+
+/* Directe feedback bij tikken/klikken. */
+.card-interactive:active,
+.card-flush:active {
+  background-color: hsl(var(--surface-strong));
+}
+@media (min-width: 1024px) {
+  .card-interactive:active {
+    transform: translateY(-1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-interactive:hover,
+  .card-interactive:focus-within,
+  .card-interactive:active {
+    transform: none;
+  }
+}
+
+
 
 @layer utilities {
   .fade-up {
@@ -147,9 +261,69 @@
   .delay-4 { animation-delay: 0.5s; }
 }
 
+/* ---------- Scroll reveals ---------- */
+
+html.reveal-ready [data-reveal] {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 600ms cubic-bezier(0.2, 0.7, 0.2, 1) var(--reveal-delay, 0ms),
+    transform 600ms cubic-bezier(0.2, 0.7, 0.2, 1) var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+html.reveal-ready [data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+}
+
+[data-reveal-delay="1"] { --reveal-delay: 80ms; }
+[data-reveal-delay="2"] { --reveal-delay: 160ms; }
+[data-reveal-delay="3"] { --reveal-delay: 240ms; }
+[data-reveal-delay="4"] { --reveal-delay: 320ms; }
+[data-reveal-delay="5"] { --reveal-delay: 400ms; }
+[data-reveal-delay="6"] { --reveal-delay: 480ms; }
+
+/* Mobiel: kortere afstand en kortere stagger. */
+@media (max-width: 640px) {
+  html.reveal-ready [data-reveal] {
+    transform: translateY(10px);
+  }
+  [data-reveal-delay="1"] { --reveal-delay: 50ms; }
+  [data-reveal-delay="2"] { --reveal-delay: 100ms; }
+  [data-reveal-delay="3"] { --reveal-delay: 100ms; }
+  [data-reveal-delay="4"] { --reveal-delay: 100ms; }
+  [data-reveal-delay="5"] { --reveal-delay: 100ms; }
+  [data-reveal-delay="6"] { --reveal-delay: 100ms; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.reveal-ready [data-reveal],
+  html.reveal-ready [data-reveal].is-visible {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .fade-up,
+  .fade-in {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 @keyframes fadeUp {
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes fadeIn {
   to { opacity: 1; }
 }
+
