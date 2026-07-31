@@ -101,7 +101,7 @@ const Index = () => {
   return (
     <>
       {/* SECTION 1 — HERO */}
-      <section className="relative pt-40 pb-20 md:pt-48 md:pb-24 overflow-hidden bg-background">
+      <section className="group relative pt-40 pb-20 md:pt-48 md:pb-24 overflow-hidden bg-background">
         <div className="container-wide relative grid gap-16 lg:grid-cols-[1.15fr_1fr] items-center">
           <div className="fade-up">
             <span className="inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-accent mb-8">
@@ -243,9 +243,9 @@ const Index = () => {
       </Section>
 
       {/* SECTION 7 — WONINGSCAN */}
-      <section className="py-24 md:py-36 bg-surface">
+      <section className="group py-24 md:py-36 bg-surface">
         <div className="container-tight grid gap-14 lg:grid-cols-[1fr_1.1fr] items-start">
-          <div>
+          <div className="lg:sticky lg:top-28" data-reveal>
             <ImagePlaceholder label="Voorbereiding en analyse van een woning" src={prep} aspect="portrait" />
           </div>
           <div>

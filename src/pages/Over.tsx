@@ -13,7 +13,7 @@ const Over = () => {
   });
   return (
     <>
-      <section className="pt-32 md:pt-40 pb-16 md:pb-24 bg-surface">
+      <section className="group pt-32 md:pt-40 pb-16 md:pb-24 bg-surface">
         <div className="container-tight grid gap-12 lg:grid-cols-[1.1fr_1fr] items-center">
           <div className="fade-up">
             <span className="eyebrow mb-6">Over Dimac</span>
@@ -42,7 +42,7 @@ const Over = () => {
               Zo blijft de rode draad bewaard van voorbereiding tot afwerking, met minder risico op fouten en betere afstemming.
             </p>
           </div>
-          <div>
+          <div className="lg:sticky lg:top-28 lg:self-start">
             <ImagePlaceholder label="Detail voorbereiding" src={prep} aspect="landscape" />
           </div>
         </div>
@@ -65,7 +65,7 @@ const Over = () => {
       <Section eyebrow="Team" title="Mensen achter Dimac">
         <div className="grid gap-6 md:grid-cols-3">
           {["Zaakvoerder & projectleider", "Werfleiding & coördinatie", "Vaste equipe & partners"].map((role) => (
-            <div key={role} className="border border-border p-8 bg-background">
+            <div key={role} className="card-interactive group/card border border-border p-8 bg-background" data-reveal>
               <ImagePlaceholder label={`Portret ${role.toLowerCase()}`} aspect="portrait" />
               <p className="mt-5 font-display text-lg text-primary">{role}</p>
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mt-2">Placeholder</p>

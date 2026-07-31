@@ -32,7 +32,7 @@ const Realisaties = () => {
 
   return (
     <>
-      <section className="pt-32 md:pt-40 pb-16 bg-surface">
+      <section className="group pt-32 md:pt-40 pb-16 bg-surface">
         <div className="container-tight fade-up max-w-3xl">
           <span className="eyebrow mb-6">Realisaties</span>
           <h1 className="font-display text-4xl md:text-6xl leading-[1.02] tracking-tight text-primary">
@@ -52,7 +52,7 @@ const Realisaties = () => {
               key={c}
               onClick={() => setFilter(c)}
               className={cn(
-                "px-5 py-2 text-xs uppercase tracking-[0.2em] border transition-colors",
+                "px-5 py-2 min-h-[44px] text-xs uppercase tracking-[0.2em] border transition-[background-color,border-color,color,transform] duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 active:scale-[0.98]",
                 filter === c
                   ? "bg-accent text-accent-foreground border-accent"
                   : "bg-transparent text-primary/70 border-border hover:border-accent hover:text-accent"
@@ -64,10 +64,15 @@ const Realisaties = () => {
         </div>
         <div className="grid gap-6 md:gap-8 md:grid-cols-2">
           {filtered.map((p, i) => (
-            <figure key={i} className="fade-up group">
+            <figure
+              key={i}
+              className="group/real"
+              data-reveal
+              data-reveal-delay={String(Math.min(i + 1, 6))}
+            >
               <ImagePlaceholder src={p.img} label={p.label} aspect={i % 3 === 0 ? "landscape" : "wide"} />
-              <figcaption className="mt-5 flex items-start justify-between gap-6">
-                <p className="font-display text-lg text-primary leading-snug max-w-md">{p.label}</p>
+              <figcaption className="mt-5 flex items-start justify-between gap-6 transition-transform duration-300 ease-out motion-safe:lg:group-hover/real:-translate-y-1">
+                <p className="font-display text-lg text-primary leading-snug max-w-md transition-colors duration-300 lg:group-hover/real:text-accent">{p.label}</p>
                 <span className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground shrink-0 pt-1">
                   {p.cat} · {p.place}
                 </span>
