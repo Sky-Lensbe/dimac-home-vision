@@ -10,7 +10,7 @@ const Werkwijze = () => {
   });
   return (
     <>
-      <section className="group pt-32 md:pt-40 pb-16 bg-surface">
+      <section className="pt-32 md:pt-40 pb-16 bg-surface">
         <div className="container-tight fade-up max-w-3xl">
           <span className="eyebrow mb-6">Werkwijze</span>
           <h1 className="font-display text-4xl md:text-6xl leading-[1.02] tracking-tight text-primary">

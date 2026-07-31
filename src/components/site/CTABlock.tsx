@@ -16,10 +16,10 @@ export const CTABlock = ({ eyebrow, title, text, primary, secondary, variant = "
   // Both variants render on a light surface; "dark" kept for API compatibility.
   const bg = variant === "surface" ? "bg-background" : "bg-surface";
   return (
-    <section className={bg + " group relative border-y border-border overflow-hidden"}>
+    <section className={bg + " group/cta relative border-y border-border overflow-hidden"}>
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute left-0 top-0 h-px w-0 bg-accent transition-[width] duration-700 ease-out group-hover:w-40 lg:group-hover:w-64"
+        className="pointer-events-none absolute left-0 top-0 h-px w-0 bg-accent transition-[width] duration-700 ease-out fine:group-hover/cta:w-40 fine:lg:group-hover/cta:w-64"
       />
       <div className="container-tight py-24 md:py-32">
         <div className="max-w-3xl">

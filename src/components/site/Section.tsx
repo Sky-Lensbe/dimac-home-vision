@@ -24,7 +24,7 @@ export const Section = ({
       ? "bg-surface-strong"
       : "bg-background";
   return (
-    <section className={cn("group py-24 md:py-36", bgClass, className)}>
+    <section className={cn("group/section py-24 md:py-36", bgClass, className)}>
       <div className="container-tight">
         {(eyebrow || title) && (
           <header className={cn("mb-16 max-w-3xl", align === "center" && "mx-auto text-center")}>
@@ -44,9 +44,9 @@ export const Section = ({
             )}
           </header>
         )}
-        <div data-reveal data-reveal-delay="2">
-          {children}
-        </div>
+        {/* Geen reveal op de children-wrapper: elke groep bepaalt zijn eigen
+            binnenkomstanimatie, zodat parent en child niet dubbel faden. */}
+        {children}
       </div>
     </section>
   );

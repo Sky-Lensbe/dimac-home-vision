@@ -6,7 +6,7 @@ import { usePageMeta } from "@/hooks/use-page-meta";
 import { toast } from "sonner";
 
 const inputCls =
-  "w-full bg-transparent border-b border-border py-3 text-primary placeholder:text-muted-foreground/60 transition-[border-color,background-color,box-shadow] duration-300 ease-out hover:border-primary/30 focus:outline-none focus:border-accent focus:bg-accent-soft/40 focus-visible:outline-none focus-visible:border-accent focus-visible:shadow-[inset_0_-1px_0_0_hsl(var(--accent))] autofill:bg-transparent";
+  "w-full bg-transparent border-b border-border py-3 text-primary placeholder:text-muted-foreground/60 transition-[border-color,background-color,box-shadow] duration-300 ease-out fine:hover:border-primary/30 focus:outline-none focus:border-accent focus:bg-accent-soft/40 autofill:bg-transparent";
 
 const Contact = () => {
   usePageMeta({
@@ -27,7 +27,7 @@ const Contact = () => {
 
   return (
     <>
-      <section className="group pt-32 md:pt-40 pb-16 bg-surface">
+      <section className="pt-32 md:pt-40 pb-16 bg-surface">
         <div className="container-tight fade-up max-w-3xl">
           <span className="eyebrow mb-6">Contact</span>
           <h1 className="font-display text-4xl md:text-6xl leading-[1.02] tracking-tight text-primary">
@@ -41,7 +41,7 @@ const Contact = () => {
 
       <Section>
         <div className="grid gap-16 lg:grid-cols-[1.4fr_1fr]">
-          <form onSubmit={onSubmit} className="space-y-8">
+          <form onSubmit={onSubmit} className="space-y-8" data-reveal>
             <div className="grid gap-8 sm:grid-cols-2">
               <label className="block">
                 <span className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Naam</span>
@@ -106,8 +106,8 @@ const Contact = () => {
             </div>
           </form>
 
-          <aside className="space-y-8 lg:sticky lg:top-28 lg:self-start">
-            <div className="card-interactive border border-border bg-surface p-8" data-reveal>
+          <aside className="stagger-list space-y-8 lg:sticky lg:top-28 lg:self-start" data-reveal>
+            <div className="card-interactive border border-border bg-surface p-8">
               <h3 className="eyebrow mb-4">Contact</h3>
               <ul className="space-y-4 text-primary">
                 <li className="flex items-start gap-3">
@@ -124,13 +124,13 @@ const Contact = () => {
                 </li>
               </ul>
             </div>
-            <div className="card-interactive border border-border p-8" data-reveal data-reveal-delay="1">
+            <div className="card-interactive border border-border p-8">
               <h3 className="eyebrow mb-4">Regio</h3>
               <p className="text-muted-foreground leading-relaxed">
                 Actief in Diest, Scherpenheuvel, Tessenderlo, Halen en ruime omgeving.
               </p>
             </div>
-            <div className="card-interactive border border-border p-8 bg-surface" data-reveal data-reveal-delay="2">
+            <div className="card-interactive border border-border p-8 bg-surface">
               <h3 className="eyebrow mb-4">Openingsuren</h3>
               <dl className="space-y-2 text-sm text-primary/80">
                 <div className="flex justify-between"><dt>Ma – Vr</dt><dd>08:00 – 17:00</dd></div>

@@ -13,7 +13,7 @@ const Over = () => {
   });
   return (
     <>
-      <section className="group pt-32 md:pt-40 pb-16 md:pb-24 bg-surface">
+      <section className="pt-32 md:pt-40 pb-16 md:pb-24 bg-surface">
         <div className="container-tight grid gap-12 lg:grid-cols-[1.1fr_1fr] items-center">
           <div className="fade-up">
             <span className="eyebrow mb-6">Over Dimac</span>
@@ -33,7 +33,7 @@ const Over = () => {
 
       <Section eyebrow="Positie" title="Eén aanspreekpunt van eerste analyse tot oplevering">
         <div className="grid gap-14 lg:grid-cols-2 max-w-5xl">
-          <div className="space-y-5 text-lg text-muted-foreground leading-relaxed">
+          <div className="space-y-5 text-lg text-muted-foreground leading-relaxed" data-reveal>
             <p>
               U heeft één aanspreekpunt voor uw volledige project. Wij coördineren de verschillende vakgebieden
               en zorgen dat alles samenkomt.
@@ -42,7 +42,7 @@ const Over = () => {
               Zo blijft de rode draad bewaard van voorbereiding tot afwerking, met minder risico op fouten en betere afstemming.
             </p>
           </div>
-          <div className="lg:sticky lg:top-28 lg:self-start">
+          <div>
             <ImagePlaceholder label="Detail voorbereiding" src={prep} aspect="landscape" />
           </div>
         </div>
@@ -63,9 +63,9 @@ const Over = () => {
       </Section>
 
       <Section eyebrow="Team" title="Mensen achter Dimac">
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="stagger-list grid gap-6 md:grid-cols-3" data-reveal>
           {["Zaakvoerder & projectleider", "Werfleiding & coördinatie", "Vaste equipe & partners"].map((role) => (
-            <div key={role} className="card-interactive group/card border border-border p-8 bg-background" data-reveal>
+            <div key={role} className="card-interactive group/card border border-border p-8 bg-background">
               <ImagePlaceholder label={`Portret ${role.toLowerCase()}`} aspect="portrait" />
               <p className="mt-5 font-display text-lg text-primary">{role}</p>
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mt-2">Placeholder</p>

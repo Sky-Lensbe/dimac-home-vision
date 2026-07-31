@@ -18,7 +18,7 @@ export const ServicePage = ({ service: s }: Props) => {
   return (
     <>
       {/* Hero */}
-      <section className="group pt-32 md:pt-40 pb-16 md:pb-24 bg-surface">
+      <section className="pt-32 md:pt-40 pb-16 md:pb-24 bg-surface">
         <div className="container-tight grid gap-12 lg:grid-cols-[1.1fr_1fr] items-center">
           <div className="fade-up">
             {s.hero.eyebrow && <span className="eyebrow mb-6">{s.hero.eyebrow}</span>}
@@ -45,13 +45,13 @@ export const ServicePage = ({ service: s }: Props) => {
 
       {/* Intro */}
       <Section eyebrow="Introductie" title={s.intro.h2}>
-        <div className="max-w-3xl space-y-5 text-lg text-muted-foreground leading-relaxed">
+        <div className="max-w-3xl space-y-5 text-lg text-muted-foreground leading-relaxed" data-reveal>
           {s.intro.text.map((p, i) => <p key={i}>{p}</p>)}
         </div>
       </Section>
 
       {/* Problem / Solution split */}
-      <section className="group py-20 md:py-28 bg-surface">
+      <section className="py-20 md:py-28 bg-surface">
         <div className="container-tight grid gap-12 lg:grid-cols-2">
           <div data-reveal>
             <span className="eyebrow mb-5">Herkenning</span>
@@ -84,13 +84,13 @@ export const ServicePage = ({ service: s }: Props) => {
       {/* Scope */}
       <Section eyebrow="Wat omvat het" title={s.scope.h2}>
         {s.scope.intro && (
-          <p className="max-w-3xl text-lg text-muted-foreground leading-relaxed mb-10">{s.scope.intro}</p>
+          <p className="max-w-3xl text-lg text-muted-foreground leading-relaxed mb-10" data-reveal>{s.scope.intro}</p>
         )}
         <BulletList items={s.scope.bullets} columns={2} />
       </Section>
 
       {/* For who + Benefits */}
-      <section className="group py-20 md:py-28 bg-surface">
+      <section className="py-20 md:py-28 bg-surface">
         <div className="container-tight grid gap-14 lg:grid-cols-2">
           <div data-reveal>
             <span className="eyebrow mb-5">Voor wie</span>
@@ -111,7 +111,7 @@ export const ServicePage = ({ service: s }: Props) => {
       </Section>
 
       {/* Outcome */}
-      <section className="group py-24 md:py-32 bg-surface border-y border-border">
+      <section className="py-24 md:py-32 bg-surface border-y border-border">
         <div className="container-tight max-w-3xl">
           <span className="eyebrow mb-6" data-reveal>Resultaat</span>
           <h2 className="font-display text-3xl md:text-5xl leading-tight mb-6 text-primary" data-reveal data-reveal-delay="1">{s.outcome.h2}</h2>
@@ -123,14 +123,16 @@ export const ServicePage = ({ service: s }: Props) => {
 
       {/* Local */}
       <Section eyebrow="Lokaal" title={s.local.h2}>
-        <div className="max-w-3xl space-y-4 text-muted-foreground leading-relaxed text-lg">
+        <div className="max-w-3xl space-y-4 text-muted-foreground leading-relaxed text-lg" data-reveal>
           {s.local.text.map((p, i) => <p key={i}>{p}</p>)}
         </div>
       </Section>
 
       {/* FAQ */}
       <Section eyebrow="FAQ" title={s.faq.h2} bg="surface">
-        <FAQ items={s.faq.items} className="max-w-3xl" />
+        <div data-reveal>
+          <FAQ items={s.faq.items} className="max-w-3xl" />
+        </div>
       </Section>
 
       {/* Final CTA */}

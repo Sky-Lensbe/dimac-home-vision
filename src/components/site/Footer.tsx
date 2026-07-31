@@ -4,15 +4,15 @@ import { services } from "@/data/services";
 import logoAsset from "@/assets/dimac-logo.jpg.asset.json";
 
 const linkClass =
-  "link-underline text-primary/80 hover:text-accent transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
+  "link-underline text-primary/80 fine:hover:text-accent transition-colors duration-300 focus-ring";
 
 export const Footer = () => {
   return (
-    <footer className="group bg-surface border-t border-border text-primary">
+    <footer className="group/footer bg-surface border-t border-border text-primary">
       <div className="container-wide py-20 md:py-28">
         <span
           aria-hidden="true"
-          className="block h-px w-12 bg-accent mb-12 transition-[width] duration-700 ease-out lg:group-hover:w-24"
+          className="block h-px w-12 bg-accent mb-12 transition-[width] duration-700 ease-out fine:lg:group-hover/footer:w-24"
         />
         <div className="grid gap-14 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div data-reveal>
