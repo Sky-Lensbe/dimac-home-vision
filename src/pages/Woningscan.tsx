@@ -47,7 +47,7 @@ const Woningscan = () => {
 
       <Section eyebrow="Introductie" title="Eerst inzicht, daarna beslissen">
         <div className="max-w-3xl space-y-5 text-lg text-muted-foreground leading-relaxed">
-          <p>Een renovatie of n begint vaak met vragen. Wat moet er gebeuren? Wat kost het? Waar begint u best?</p>
+          <p>Een renovatie of nieuwbouw begint vaak met vragen. Wat moet er gebeuren? Wat kost het? Waar begint u best?</p>
           <p>
             Met de woningscan van Dimac krijgt u een helder beeld van uw huidige of toekomstige woning, de aandachtspunten en de beste aanpak.
             Zo maakt u doordachte keuzes, zonder verrassingen achteraf.
