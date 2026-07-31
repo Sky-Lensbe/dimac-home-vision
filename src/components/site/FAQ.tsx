@@ -12,25 +12,36 @@ export const FAQ = ({ items, className }: Props) => {
       {items.map((item, i) => {
         const isOpen = open === i;
         return (
-          <div key={i} className="py-2">
+          <div
+            key={i}
+            className={cn(
+              "py-2 px-3 -mx-3 border-l-2 transition-colors duration-300 ease-out",
+              isOpen ? "border-accent bg-accent-soft/40" : "border-transparent hover:bg-surface"
+            )}
+          >
             <button
-              className="w-full flex items-start justify-between gap-6 text-left py-5 group"
+              className="w-full flex items-start justify-between gap-6 text-left py-5 min-h-[44px] group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               onClick={() => setOpen(isOpen ? null : i)}
               aria-expanded={isOpen}
             >
-              <span className="font-display text-lg md:text-xl text-primary leading-snug group-hover:text-accent transition-colors">
+              <span
+                className={cn(
+                  "font-display text-lg md:text-xl leading-snug transition-colors duration-300",
+                  isOpen ? "text-accent" : "text-primary lg:group-hover:text-accent"
+                )}
+              >
                 {item.q}
               </span>
               <ChevronDown
                 className={cn(
-                  "w-5 h-5 mt-1 shrink-0 text-accent transition-transform duration-300",
+                  "w-5 h-5 mt-1 shrink-0 text-accent transition-transform duration-300 ease-out",
                   isOpen && "rotate-180"
                 )}
               />
             </button>
             <div
               className={cn(
-                "grid transition-all duration-500 ease-out",
+                "grid transition-all duration-300 ease-out",
                 isOpen ? "grid-rows-[1fr] opacity-100 pb-6" : "grid-rows-[0fr] opacity-0"
               )}
             >
