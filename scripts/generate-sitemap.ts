@@ -1,10 +1,30 @@
 // Draait vóór `vite dev` en `vite build` (predev/prebuild); schrijft public/sitemap.xml.
 
-import { writeFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import { resolve } from "path";
-import { services } from "../src/data/services";
-import { activeRegions } from "../src/data/regions";
-import { publishedArticles } from "../src/data/articles";
+
+/**
+ * De datafiles importeren afbeeldingen, wat buiten Vite niet laadbaar is.
+ * Daarom lezen we de slugs rechtstreeks uit de bron, zodat de sitemap
+ * altijd synchroon blijft met de data.
+ */
+function slugsFrom(file: string, opts: { requireEnabled?: boolean; requireDraftFalse?: boolean } = {}) {
+  const src = readFileSync(resolve(file), "utf8");
+  const blocks = src.split(/\n\s*\{\s*\n/).slice(1);
+  const found: string[] = [];
+  for (const block of blocks) {
+    const slug = block.match(/^\s*slug:\s*"([^"]+)"/m)?.[1];
+    if (!slug || found.includes(slug)) continue;
+    if (opts.requireEnabled && /^\s*enabled:\s*false/m.test(block)) continue;
+    if (opts.requireDraftFalse && /^\s*draft:\s*true/m.test(block)) continue;
+    found.push(slug);
+  }
+  return found;
+}
+
+const services = slugsFrom("src/data/services.ts").map((slug) => ({ slug }));
+const activeRegions = slugsFrom("src/data/regions.ts", { requireEnabled: true }).map((slug) => ({ slug }));
+const publishedArticles = slugsFrom("src/data/articles.ts", { requireDraftFalse: true }).map((slug) => ({ slug }));
 
 const BASE_URL = "https://dimac.be";
 
