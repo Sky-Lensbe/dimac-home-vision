@@ -7,18 +7,25 @@ import { WorkflowSteps } from "@/components/site/WorkflowSteps";
 import { FAQ } from "@/components/site/FAQ";
 import { CTABlock } from "@/components/site/CTABlock";
 import { ImagePlaceholder } from "@/components/site/ImagePlaceholder";
-import { usePageMeta } from "@/hooks/use-page-meta";
+import { PageSEO } from "@/components/seo/PageSEO";
+import { organizationSchema, breadcrumbSchema } from "@/lib/site";
 import prep from "@/assets/preparation.jpg";
 
 const Woningscan = () => {
-  usePageMeta({
-    title: "Woningscan regio Diest | Inzicht vóór renovatie of aankoop | Dimac",
-    description:
-      "Laat een woningscan uitvoeren door Dimac in ruime regio Diest. Inclusief 25-punten rapport en advies. Verrekenbaar bij renovatie.",
-  });
-
   return (
     <>
+      <PageSEO
+        path="/woningscan"
+        title="Woningscan regio Diest | Inzicht vóór renovatie of aankoop | Dimac"
+        description="Laat een woningscan uitvoeren door Dimac in ruime regio Diest. Volledige woning, 25-punten rapport en advies. Verrekenbaar bij renovatie."
+        schemas={[
+          organizationSchema(),
+          breadcrumbSchema([
+            { label: "Home", to: "/" },
+            { label: "Woningscan" },
+          ]),
+        ]}
+      />
       <section className="pt-32 md:pt-40 pb-16 md:pb-24 bg-surface">
         <div className="container-tight grid gap-12 lg:grid-cols-[1.1fr_1fr] items-center">
           <div className="fade-up">

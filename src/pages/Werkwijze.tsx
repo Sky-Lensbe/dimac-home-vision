@@ -1,15 +1,24 @@
 import { Section } from "@/components/site/Section";
 import { WorkflowSteps } from "@/components/site/WorkflowSteps";
 import { CTABlock } from "@/components/site/CTABlock";
-import { usePageMeta } from "@/hooks/use-page-meta";
+import { PageSEO } from "@/components/seo/PageSEO";
+import { organizationSchema, breadcrumbSchema } from "@/lib/site";
 
 const Werkwijze = () => {
-  usePageMeta({
-    title: "Werkwijze | Dimac Diest",
-    description: "Onze werkwijze in 5 stappen. Van kennismaking tot oplevering, met één aanspreekpunt.",
-  });
   return (
     <>
+      <PageSEO
+        path="/werkwijze"
+        title="Werkwijze | Aannemer Dimac in regio Diest"
+        description="De werkwijze van Dimac in vijf stappen: kennismaking, analyse, offerte, uitvoering en oplevering, met één aanspreekpunt."
+        schemas={[
+          organizationSchema(),
+          breadcrumbSchema([
+            { label: "Home", to: "/" },
+            { label: "Werkwijze" },
+          ]),
+        ]}
+      />
       <section className="pt-32 md:pt-40 pb-16 bg-surface">
         <div className="container-tight fade-up max-w-3xl">
           <span className="eyebrow mb-6">Werkwijze</span>

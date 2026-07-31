@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { ImagePlaceholder } from "@/components/site/ImagePlaceholder";
 import { Section } from "@/components/site/Section";
 import { CTABlock } from "@/components/site/CTABlock";
-import { usePageMeta } from "@/hooks/use-page-meta";
+import { PageSEO } from "@/components/seo/PageSEO";
+import { organizationSchema, websiteSchema } from "@/lib/site";
 import { services } from "@/data/services";
 import heroAsset from "@/assets/hero-dimac.jpg.asset.json";
 const hero = heroAsset.url;
@@ -90,16 +91,16 @@ const trustElements = [
 ];
 
 const Index = () => {
-  usePageMeta({
-    title: "Aannemer regio Diest | Renovatie & nieuwbouw | Dimac",
-    description:
-      "Dimac is uw aannemer voor renovatie en nieuwbouw in regio Diest. Eén aanspreekpunt, duidelijke voorbereiding en correcte opvolging van de werken.",
-  });
-
   const homeServices = services.filter((s) => s.slug in serviceSummaries);
 
   return (
     <>
+      <PageSEO
+        path="/"
+        title="Aannemer regio Diest | Renovatie & nieuwbouw | Dimac"
+        description="Dimac is uw aannemer voor renovatie en nieuwbouw in regio Diest. Eén aanspreekpunt, duidelijke voorbereiding en correcte opvolging van de werken."
+        schemas={[organizationSchema(), websiteSchema()]}
+      />
       {/* SECTION 1 — HERO (mobiel/tablet: overlay op foto) */}
       <section className="relative lg:hidden pt-24 sm:pt-28 pb-12 bg-background">
         <div className="container-wide">

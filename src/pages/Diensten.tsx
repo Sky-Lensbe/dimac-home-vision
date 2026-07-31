@@ -4,18 +4,25 @@ import { Button } from "@/components/ui/button";
 import { Section } from "@/components/site/Section";
 import { WorkflowSteps } from "@/components/site/WorkflowSteps";
 import { CTABlock } from "@/components/site/CTABlock";
-import { usePageMeta } from "@/hooks/use-page-meta";
+import { PageSEO } from "@/components/seo/PageSEO";
+import { organizationSchema, breadcrumbSchema } from "@/lib/site";
 import { services } from "@/data/services";
 
 const Diensten = () => {
-  usePageMeta({
-    title: "Aannemer Diest | Renovatie en bouw van A tot Z | Dimac",
-    description:
-      "Dimac is uw aannemer in regio Diest voor renovatie, technieken en afwerking. Eén aanspreekpunt voor uw volledige project.",
-  });
-
   return (
     <>
+      <PageSEO
+        path="/diensten"
+        title="Aannemer Diest | Renovatie en bouw van A tot Z | Dimac"
+        description="Dimac is uw aannemer in regio Diest voor renovatie, technieken en afwerking. Eén aanspreekpunt voor uw volledige project."
+        schemas={[
+          organizationSchema(),
+          breadcrumbSchema([
+            { label: "Home", to: "/" },
+            { label: "Diensten" },
+          ]),
+        ]}
+      />
       <section className="pt-32 md:pt-40 pb-16 md:pb-24 bg-surface">
         <div className="container-tight fade-up max-w-3xl">
           <span className="eyebrow mb-6">Diensten</span>
