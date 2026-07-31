@@ -218,8 +218,8 @@
   .card-interactive:focus-within .accent-rule,
   .card-flush:hover .accent-rule,
   .card-flush:focus-within .accent-rule,
-  .group:hover > .eyebrow::before,
-  .group:focus-within > .eyebrow::before {
+  .group:hover .eyebrow::before,
+  .group:focus-within .eyebrow::before {
     width: 3rem;
   }
 }
