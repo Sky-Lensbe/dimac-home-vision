@@ -119,9 +119,11 @@ const Index = () => {
                 <span className="h-px w-8 bg-accent" />
                 Aannemer in ruime regio Diest
               </span>
-              <h1 className="font-display text-[2rem] sm:text-4xl leading-[1.08] tracking-tight text-primary-foreground" data-reveal data-reveal-delay="1">
+              {/* Visueel de mobiele titel; de semantische h1 staat in de desktophero,
+                  zodat de pagina exact één h1 in de DOM heeft. */}
+              <div role="text" className="font-display text-[2rem] sm:text-4xl leading-[1.08] tracking-tight text-primary-foreground" data-reveal data-reveal-delay="1">
                 Renoveren of bouwen zonder zelf alles te moeten coördineren.
-              </h1>
+              </div>
               <p className="mt-5 text-base sm:text-lg text-primary-foreground/85 leading-relaxed" data-reveal data-reveal-delay="2">
                 Dimac begeleidt uw renovatie- of bouwproject met één aanspreekpunt, een duidelijke
                 voorbereiding en correcte opvolging van de werken tot de afwerking.
