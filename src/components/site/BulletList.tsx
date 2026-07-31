@@ -5,17 +5,20 @@ interface Props {
   items: string[];
   className?: string;
   columns?: 1 | 2;
+  /** Zet op false wanneer de lijst al binnen een reveal-container staat. */
+  reveal?: boolean;
 }
 
-export const BulletList = ({ items, className, columns = 1 }: Props) => (
+export const BulletList = ({ items, className, columns = 1, reveal = true }: Props) => (
   <ul
     className={cn(
       "stagger-list grid gap-x-10 gap-y-4",
       columns === 2 ? "sm:grid-cols-2" : "grid-cols-1",
       className
     )}
-    data-reveal
+    {...(reveal ? { "data-reveal": "" } : {})}
   >
+
     {items.map((it) => (
       <li key={it} className="group/item flex items-start gap-3 text-[15px] leading-relaxed">
         <span className="mt-1.5 shrink-0 inline-flex h-5 w-5 items-center justify-center border border-accent/40 bg-accent/10 transition-colors duration-300 fine:lg:group-hover/item:border-accent fine:lg:group-hover/item:bg-accent/20">
