@@ -1,18 +1,15 @@
 import { FormEvent, useState } from "react";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { Mail, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Section } from "@/components/site/Section";
-import { usePageMeta } from "@/hooks/use-page-meta";
+import { PageSEO } from "@/components/seo/PageSEO";
+import { organizationSchema } from "@/lib/site";
 import { toast } from "sonner";
 
 const inputCls =
   "w-full bg-transparent border-b border-border py-3 text-primary placeholder:text-muted-foreground/60 transition-[border-color,background-color,box-shadow] duration-300 ease-out fine:hover:border-primary/30 focus:outline-none focus:border-accent focus:bg-accent-soft/40 autofill:bg-transparent";
 
 const Contact = () => {
-  usePageMeta({
-    title: "Contact | Dimac Diest",
-    description: "Contacteer Dimac voor uw renovatie of nieuwbouw in regio Diest. Vraag een offerte of plan een woningscan.",
-  });
   const [sending, setSending] = useState(false);
 
   const onSubmit = (e: FormEvent) => {
@@ -27,6 +24,12 @@ const Contact = () => {
 
   return (
     <>
+      <PageSEO
+        path="/contact"
+        title="Contact | Dimac, aannemer in regio Diest"
+        description="Contacteer Dimac voor uw renovatie of nieuwbouw in regio Diest. Vraag een offerte aan of plan een woningscan."
+        schemas={[organizationSchema()]}
+      />
       <section className="pt-32 md:pt-40 pb-16 bg-surface">
         <div className="container-tight fade-up max-w-3xl">
           <span className="eyebrow mb-6">Contact</span>
@@ -112,11 +115,7 @@ const Contact = () => {
               <ul className="space-y-4 text-primary">
                 <li className="flex items-start gap-3">
                   <Mail className="w-4 h-4 mt-1 text-accent" />
-                  <span>info@dimac.be</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Phone className="w-4 h-4 mt-1 text-accent" />
-                  <span>+32 (0)00 00 00 00</span>
+                  <a href="mailto:info@dimac.be" className="link-underline focus-ring">info@dimac.be</a>
                 </li>
                 <li className="flex items-start gap-3">
                   <MapPin className="w-4 h-4 mt-1 text-accent" />

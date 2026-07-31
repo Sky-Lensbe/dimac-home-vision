@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { ImagePlaceholder } from "@/components/site/ImagePlaceholder";
 import { Section } from "@/components/site/Section";
 import { CTABlock } from "@/components/site/CTABlock";
-import { usePageMeta } from "@/hooks/use-page-meta";
+import { PageSEO } from "@/components/seo/PageSEO";
+import { organizationSchema, websiteSchema } from "@/lib/site";
 import { services } from "@/data/services";
 import heroAsset from "@/assets/hero-dimac.jpg.asset.json";
 const hero = heroAsset.url;
@@ -90,16 +91,16 @@ const trustElements = [
 ];
 
 const Index = () => {
-  usePageMeta({
-    title: "Aannemer regio Diest | Renovatie & nieuwbouw | Dimac",
-    description:
-      "Dimac is uw aannemer voor renovatie en nieuwbouw in regio Diest. Eén aanspreekpunt, duidelijke voorbereiding en correcte opvolging van de werken.",
-  });
-
   const homeServices = services.filter((s) => s.slug in serviceSummaries);
 
   return (
     <>
+      <PageSEO
+        path="/"
+        title="Aannemer regio Diest | Renovatie & nieuwbouw | Dimac"
+        description="Dimac is uw aannemer voor renovatie en nieuwbouw in regio Diest. Eén aanspreekpunt, duidelijke voorbereiding en correcte opvolging van de werken."
+        schemas={[organizationSchema(), websiteSchema()]}
+      />
       {/* SECTION 1 — HERO (mobiel/tablet: overlay op foto) */}
       <section className="relative lg:hidden pt-24 sm:pt-28 pb-12 bg-background">
         <div className="container-wide">
@@ -118,9 +119,11 @@ const Index = () => {
                 <span className="h-px w-8 bg-accent" />
                 Aannemer in ruime regio Diest
               </span>
-              <h1 className="font-display text-[2rem] sm:text-4xl leading-[1.08] tracking-tight text-primary-foreground" data-reveal data-reveal-delay="1">
+              {/* Visueel de mobiele titel; de semantische h1 staat in de desktophero,
+                  zodat de pagina exact één h1 in de DOM heeft. */}
+              <div role="text" className="font-display text-[2rem] sm:text-4xl leading-[1.08] tracking-tight text-primary-foreground" data-reveal data-reveal-delay="1">
                 Renoveren of bouwen zonder zelf alles te moeten coördineren.
-              </h1>
+              </div>
               <p className="mt-5 text-base sm:text-lg text-primary-foreground/85 leading-relaxed" data-reveal data-reveal-delay="2">
                 Dimac begeleidt uw renovatie- of bouwproject met één aanspreekpunt, een duidelijke
                 voorbereiding en correcte opvolging van de werken tot de afwerking.

@@ -1,21 +1,13 @@
-import { useEffect } from "react";
+import { PageSEO, type PageSEOProps } from "@/components/seo/PageSEO";
 
-interface PageMeta {
-  title?: string;
-  description?: string;
+/**
+ * Backwards-compatible wrapper rond de centrale SEO-oplossing.
+ * Nieuwe pagina's gebruiken bij voorkeur rechtstreeks <PageSEO />.
+ */
+export function usePageMeta(_props: { title?: string; description?: string }) {
+  // Bewust leeg gelaten: de titel- en descriptionlogica zit nu in PageSEO.
+  // Deze hook blijft bestaan zodat oudere imports niet breken.
 }
 
-export function usePageMeta({ title, description }: PageMeta) {
-  useEffect(() => {
-    if (title) document.title = title;
-    if (description) {
-      let tag = document.querySelector('meta[name="description"]');
-      if (!tag) {
-        tag = document.createElement("meta");
-        tag.setAttribute("name", "description");
-        document.head.appendChild(tag);
-      }
-      tag.setAttribute("content", description);
-    }
-  }, [title, description]);
-}
+export { PageSEO };
+export type { PageSEOProps };

@@ -7,20 +7,64 @@ import { Section } from "./Section";
 import { BulletList } from "./BulletList";
 import { WorkflowSteps } from "./WorkflowSteps";
 import { FAQ } from "./FAQ";
-import { usePageMeta } from "@/hooks/use-page-meta";
+import { Breadcrumbs } from "./Breadcrumbs";
+import { PageSEO } from "@/components/seo/PageSEO";
+import { activeRegions } from "@/data/regions";
+import { publishedArticles } from "@/data/articles";
+import {
+  COMPANY,
+  absoluteUrl,
+  breadcrumbSchema,
+  faqSchema,
+  organizationSchema,
+  type Crumb,
+} from "@/lib/site";
 import type { ServiceContent } from "@/data/services";
 
 interface Props { service: ServiceContent }
 
 export const ServicePage = ({ service: s }: Props) => {
-  usePageMeta({ title: s.meta.title, description: s.meta.description });
+  const path = `/diensten/${s.slug}`;
+  const crumbs: Crumb[] = [
+    { label: "Home", to: "/" },
+    { label: "Diensten", to: "/diensten" },
+    { label: s.navLabel },
+  ];
+
+  // Artikels die deze dienst als gerelateerd opgeven.
+  const relatedArticles = publishedArticles
+    .filter((a) => a.relatedServices.includes(s.slug))
+    .slice(0, 2);
 
   return (
     <>
+      <PageSEO
+        path={path}
+        title={s.meta.title}
+        description={s.meta.description}
+        schemas={[
+          organizationSchema(),
+          {
+            "@context": "https://schema.org",
+            "@type": "Service",
+            "@id": absoluteUrl(path) + "#service",
+            name: s.overviewTitle,
+            description: s.meta.description,
+            serviceType: s.navLabel,
+            url: absoluteUrl(path),
+            provider: { "@id": COMPANY.id },
+            areaServed: COMPANY.areaServed.map((name) => ({ "@type": "City", name })),
+          },
+          breadcrumbSchema(crumbs),
+          ...(s.faq.items.length ? [faqSchema(s.faq.items)] : []),
+        ]}
+      />
+
       {/* Hero */}
       <section className="pt-32 md:pt-40 pb-16 md:pb-24 bg-surface">
         <div className="container-tight grid gap-12 lg:grid-cols-[1.1fr_1fr] items-center">
           <div className="fade-up">
+            <Breadcrumbs items={crumbs} className="mb-8" />
             {s.hero.eyebrow && <span className="eyebrow mb-6">{s.hero.eyebrow}</span>}
             <h1 className="font-display text-4xl md:text-6xl leading-[1.02] tracking-tight text-primary">
               {s.hero.h1}
@@ -42,6 +86,7 @@ export const ServicePage = ({ service: s }: Props) => {
           </div>
         </div>
       </section>
+
 
       {/* Intro */}
       <Section eyebrow="Introductie" title={s.intro.h2}>
@@ -126,7 +171,36 @@ export const ServicePage = ({ service: s }: Props) => {
         <div className="max-w-3xl space-y-4 text-muted-foreground leading-relaxed text-lg" data-reveal>
           {s.local.text.map((p, i) => <p key={i}>{p}</p>)}
         </div>
+        <div className="mt-10 max-w-3xl" data-reveal data-reveal-delay="2">
+          <ul className="space-y-3 text-muted-foreground">
+            {activeRegions.map((r) => (
+              <li key={r.slug}>
+                <Link to={`/regio/${r.slug}`} className="link-underline text-accent focus-ring">
+                  {s.navLabel} door een aannemer in {r.name}
+                </Link>
+              </li>
+            ))}
+            <li>
+              <Link to="/realisaties" className="link-underline text-accent focus-ring">
+                Realisaties van Dimac bekijken
+              </Link>
+            </li>
+            <li>
+              <Link to="/woningscan" className="link-underline text-accent focus-ring">
+                Woningscan als eerste stap in uw project
+              </Link>
+            </li>
+            {relatedArticles.map((a) => (
+              <li key={a.slug}>
+                <Link to={`/blog/${a.slug}`} className="link-underline text-accent focus-ring">
+                  {a.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
       </Section>
+
 
       {/* FAQ */}
       <Section eyebrow="FAQ" title={s.faq.h2} bg="surface">
