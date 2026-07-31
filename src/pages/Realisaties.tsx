@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Section } from "@/components/site/Section";
 import { ImagePlaceholder } from "@/components/site/ImagePlaceholder";
 import { CTABlock } from "@/components/site/CTABlock";
-import { usePageMeta } from "@/hooks/use-page-meta";
+import { Link } from "react-router-dom";
+import { PageSEO } from "@/components/seo/PageSEO";
+import { organizationSchema } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import bathroom from "@/assets/project-bathroom.jpg";
 import kitchen from "@/assets/project-kitchen.jpg";
@@ -14,24 +16,26 @@ import prep from "@/assets/preparation.jpg";
 const CATEGORIES = ["Alle", "Badkamer", "Keuken", "Dak", "Totaalrenovatie", "Nieuwbouw"] as const;
 
 const PROJECTS = [
-  { img: bathroom, label: "Badkamerrenovatie met zorg voor afwerking", cat: "Badkamer", place: "Diest" },
-  { img: kitchen, label: "Keukenrenovatie waar technieken en maatwerk samenkomen", cat: "Keuken", place: "Scherpenheuvel" },
-  { img: roof, label: "Dakwerken met aandacht voor details", cat: "Dak", place: "Halen" },
-  { img: total, label: "Totaalrenovatie met één duidelijke planning", cat: "Totaalrenovatie", place: "Tessenderlo" },
-  { img: hero, label: "Volledig gerenoveerd woonhuis met open indeling", cat: "Totaalrenovatie", place: "Diest" },
-  { img: prep, label: "Voorbereiding technieken en materialen", cat: "Nieuwbouw", place: "Diest" },
+  { img: bathroom, label: "Badkamerrenovatie met zorg voor afwerking", cat: "Badkamer" },
+  { img: kitchen, label: "Keukenrenovatie waar technieken en maatwerk samenkomen", cat: "Keuken" },
+  { img: roof, label: "Dakwerken met aandacht voor details", cat: "Dak" },
+  { img: total, label: "Totaalrenovatie met één duidelijke planning", cat: "Totaalrenovatie" },
+  { img: hero, label: "Volledig gerenoveerd woonhuis met open indeling", cat: "Totaalrenovatie" },
+  { img: prep, label: "Voorbereiding technieken en materialen", cat: "Nieuwbouw" },
 ];
 
 const Realisaties = () => {
-  usePageMeta({
-    title: "Realisaties in regio Diest | Dimac",
-    description: "Bekijk realisaties van Dimac in Diest en omgeving. Placeholder projecten in afwachting van actuele fotografie.",
-  });
   const [filter, setFilter] = useState<(typeof CATEGORIES)[number]>("Alle");
   const filtered = filter === "Alle" ? PROJECTS : PROJECTS.filter((p) => p.cat === filter);
 
   return (
     <>
+      <PageSEO
+        path="/realisaties"
+        title="Realisaties in regio Diest | Dimac"
+        description="Beelden van uitgevoerde renovatie- en bouwwerken door Dimac: badkamer, keuken, dak, totaalrenovatie en nieuwbouw."
+        schemas={[organizationSchema()]}
+      />
       <section className="pt-32 md:pt-40 pb-16 bg-surface">
         <div className="container-tight fade-up max-w-3xl">
           <span className="eyebrow mb-6">Realisaties</span>
@@ -39,8 +43,8 @@ const Realisaties = () => {
             Realisaties in regio Diest
           </h1>
           <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
-            Een greep uit onze projecten. Bekijk hoe wij woningen omvormen tot duurzame en kwalitatieve leefruimtes,
-            met oog voor detail en afwerking.
+            Beelden van uitgevoerde werken, gegroepeerd per type project. Herkent u uw eigen situatie, dan
+            bespreken wij graag hoe wij die zouden aanpakken.
           </p>
         </div>
       </section>
@@ -72,7 +76,7 @@ const Realisaties = () => {
               <figcaption className="mt-5 flex flex-wrap items-start justify-between gap-x-6 gap-y-2 transition-transform duration-300 ease-out motion-safe:fine:lg:group-hover/real:-translate-y-1">
                 <p className="font-display text-lg text-primary leading-snug max-w-md transition-colors duration-300 fine:lg:group-hover/real:text-accent">{p.label}</p>
                 <span className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground shrink-0 pt-1">
-                  {p.cat} · {p.place}
+                  {p.cat}
                 </span>
               </figcaption>
             </figure>
