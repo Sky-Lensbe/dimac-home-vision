@@ -100,7 +100,7 @@ export const ServicePage = ({ service: s }: Props) => {
           <div data-reveal data-reveal-delay="2">
             <span className="eyebrow mb-5">Voordelen</span>
             <h2 className="font-display text-3xl md:text-4xl leading-tight mb-8 text-primary">{s.benefits.h2}</h2>
-            <BulletList items={s.benefits.bullets} />
+            <BulletList items={s.benefits.bullets} reveal={false} />
           </div>
         </div>
       </section>
