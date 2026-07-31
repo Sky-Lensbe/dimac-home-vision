@@ -58,8 +58,8 @@ const Woningscan = () => {
       <Section eyebrow="Wat is het" title="Wat is een woningscan?" bg="surface">
         <div className="max-w-3xl space-y-5 text-lg text-muted-foreground leading-relaxed">
           <p>
-            Een woningscan is een analyse van uw woning waarbij we de huidige staat, mogelijke problemen en
-            renovatiekansen in kaart brengen.
+            Een woningscan is een analyse waarbij we steeds de volledige woning scannen: de huidige staat,
+            mogelijke problemen en renovatiekansen brengen we van kelder tot dak in kaart.
           </p>
           <p>
             We bekijken uw woning ter plaatse en geven u concreet advies over wat nodig is en hoe u het best te werk gaat.
