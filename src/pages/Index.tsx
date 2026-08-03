@@ -303,7 +303,7 @@ const Index = () => {
               Twijfelt u over de juiste aanpak? Begin met inzicht.
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed mb-10 max-w-xl" data-reveal data-reveal-delay="2">
-              Met de woningscan krijgt u een helder beeld van de staat van uw woning, de technische
+              Met de woningscan krijgt u een helder beeld van de staat van uw volledige woning, de technische
               aandachtspunten en de logische volgorde van uw werken.
             </p>
             <ol className="stagger-list space-y-6 mb-10" data-reveal>
