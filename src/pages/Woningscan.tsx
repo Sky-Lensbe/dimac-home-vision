@@ -34,7 +34,7 @@ const Woningscan = () => {
               Woningscan in regio Diest
             </h1>
             <p className="mt-6 text-lg text-muted-foreground max-w-xl leading-relaxed">
-              Krijg eerst duidelijkheid over uw woning en maak daarna de juiste renovatiekeuzes.
+              Krijg eerst duidelijkheid over uw volledige woning en maak daarna de juiste renovatiekeuzes.
               Zonder verrassingen, met concreet advies.
             </p>
             <div className="mt-9 flex flex-wrap gap-4">
@@ -52,11 +52,11 @@ const Woningscan = () => {
         </div>
       </section>
 
-      <Section eyebrow="Introductie" title="Eerst inzicht, daarna beslissen">
+      <Section eyebrow="Introductie" title="Eerst inzicht in uw volledige woning, daarna beslissen">
         <div className="max-w-3xl space-y-5 text-lg text-muted-foreground leading-relaxed">
           <p>Een renovatie of nieuwbouw begint vaak met vragen. Wat moet er gebeuren? Wat kost het? Waar begint u best?</p>
           <p>
-            Met de woningscan van Dimac krijgt u een helder beeld van uw huidige of toekomstige woning, de aandachtspunten en de beste aanpak.
+            Met de woningscan van Dimac krijgt u een helder beeld van uw volledige huidige of toekomstige woning, de aandachtspunten en de beste aanpak.
             Zo maakt u doordachte keuzes, zonder verrassingen achteraf.
           </p>
         </div>
@@ -65,7 +65,7 @@ const Woningscan = () => {
       <Section eyebrow="Wat is het" title="Wat is een woningscan?" bg="surface">
         <div className="max-w-3xl space-y-5 text-lg text-muted-foreground leading-relaxed">
           <p>
-            Een woningscan is een analyse waarbij we steeds de volledige woning scannen: de huidige staat,
+            Een woningscan is een analyse waarbij we de volledige woning scannen: de huidige staat,
             mogelijke problemen en renovatiekansen brengen we van kelder tot dak in kaart.
           </p>
           <p>
@@ -173,7 +173,7 @@ const Woningscan = () => {
       <Section eyebrow="Na de scan" title="Wat na de woningscan?" bg="surface">
         <div className="grid gap-10 lg:grid-cols-2 max-w-4xl">
           <div className="space-y-4 text-muted-foreground leading-relaxed">
-            <p>Na de scan heeft u een duidelijk beeld van uw woning en de mogelijke aanpak. U kan:</p>
+            <p>Na de scan heeft u een duidelijk beeld van uw volledige woning en de mogelijke aanpak. U kan:</p>
             <BulletList
               items={[
                 "Zelf verder aan de slag",
