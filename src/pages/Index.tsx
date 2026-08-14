@@ -250,7 +250,7 @@ const Index = () => {
       <Section eyebrow="Instappen" title="Waar sta je vandaag?" bg="surface">
         <div className="stagger-list grid gap-px bg-border border border-border md:grid-cols-2" data-reveal>
           {paths.map((p) => (
-            <div key={p.title} className="card-flush group/card bg-background p-10 md:p-14 flex flex-col">
+            <div key={p.title} className="card-flush group/card bg-background p-8 sm:p-10 md:p-14 flex flex-col min-w-0">
               <h3 className="font-display text-2xl md:text-3xl text-primary leading-tight">{p.title}</h3>
               <p className="mt-4 text-muted-foreground leading-relaxed flex-1">{p.text}</p>
               <div className="mt-8">
