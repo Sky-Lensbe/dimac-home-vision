@@ -1,110 +1,113 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ImagePlaceholder } from "@/components/site/ImagePlaceholder";
 import { Section } from "@/components/site/Section";
 import { CTABlock } from "@/components/site/CTABlock";
+import { PhaseStrip } from "@/components/site/PhaseStrip";
+import { DisciplineGrid } from "@/components/site/DisciplineGrid";
+import { ProjectCard } from "@/components/site/ProjectCard";
+import { TeamSection } from "@/components/site/TeamSection";
+import { ReviewsSection } from "@/components/site/ReviewsSection";
+import { ImagePlaceholder } from "@/components/site/ImagePlaceholder";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { organizationSchema, websiteSchema } from "@/lib/site";
-import { services } from "@/data/services";
+import { visibleProjects } from "@/data/projects";
+import { activeRegions } from "@/data/regions";
+import { track } from "@/lib/analytics";
 import heroAsset from "@/assets/hero-dimac.jpg.asset.json";
-const hero = heroAsset.url;
-import bathroomAsset from "@/assets/bathroom-realisation.jpg.asset.json";
-const bathroom = bathroomAsset.url;
-import kitchenAsset from "@/assets/kitchen-realisation.jpg.asset.json";
-const kitchen = kitchenAsset.url;
-import roofAsset from "@/assets/roof-realisation.jpg.asset.json";
-const roof = roofAsset.url;
-import totalAsset from "@/assets/total-realisation.jpg.asset.json";
-const total = totalAsset.url;
 import prep from "@/assets/preparation.jpg";
 
-/* ---------- Homepage content ---------- */
+const hero = heroAsset.url;
 
-const trustBar = [
-  { title: "Eén aanspreekpunt", text: "Voor uw volledige project, van eerste vraag tot oplevering." },
-  { title: "Duidelijke voorbereiding", text: "Keuzes, timing en technieken worden vooraf op elkaar afgestemd." },
-  { title: "Eigen vakmensen en vaste partners", text: "Mensen die weten hoe hun werk aansluit op de volgende stap." },
-  { title: "Actief in regio Diest", text: "Diest, Scherpenheuvel, Tessenderlo, Halen en ruime omgeving." },
-];
+/* ---------- Homepagecontent ---------- */
 
-const problemLines = [
-  "Een keuken vraagt correcte aansluitingen.",
-  "Een badkamer vraagt technische voorbereiding achter de muur.",
-  "Een dak beïnvloedt isolatie, comfort en energieverbruik.",
-  "Elektriciteit, sanitair en verwarming moeten afgestemd zijn op hoe u woont.",
-  "Afwerking klopt pas wanneer de voorbereiding juist zat.",
-];
-
-const positioningCards = [
-  { title: "Voorbereiding", text: "We bekijken wat technisch, praktisch en budgettair nodig is vóór de werken starten." },
-  { title: "Coördinatie", text: "We stemmen de verschillende werken op elkaar af, zodat planning en uitvoering niet naast elkaar lopen." },
-  { title: "Opvolging", text: "Uw aanspreekpunt volgt het project op tot de afwerking klopt." },
-];
-
-const entryPaths = [
-  {
-    n: "01",
-    title: "Ik wil mijn project laten uitvoeren",
-    text: "U weet wat u wil aanpakken en zoekt een aannemer die de werken voorbereidt, coördineert en uitvoert.",
-    cta: "Bekijk onze diensten",
-    to: "/diensten",
-  },
-  {
-    n: "02",
-    title: "Ik wil eerst duidelijkheid voor ik beslis",
-    text: "U wil eerst weten wat technisch nodig is, welke keuzes belangrijk zijn en in welke volgorde de werken best gebeuren.",
-    cta: "Ontdek de woningscan",
-    to: "/woningscan",
-  },
-];
-
-const serviceSummaries: Record<string, string> = {
-  totaalrenovatie: "Meerdere werken gebundeld in één traject. Eén planning, één aanspreekpunt.",
-  nieuwbouw: "Van ruwbouw tot afwerking. Technieken en uitvoering op elkaar afgestemd.",
-  "badkamer-renovatie": "Waterdichting, technieken en afwerking in één geheel voorbereid.",
-  "keuken-renovatie": "Aansluitingen, indeling en afwerking die op elkaar aansluiten.",
-  dakwerken: "Opbouw, isolatie en afwatering die technisch kloppen.",
-  technieken: "Elektriciteit, sanitair en verwarming afgestemd op uw gebruik.",
+const HERO = {
+  eyebrow: "Aannemer in ruime regio Diest",
+  title: "Renoveren zonder zelf alles te moeten coördineren.",
+  sub: "Van technieken en dakwerken tot keuken, badkamer en afwerking. Dimac stemt de verschillende werken op elkaar af en blijft je centrale aanspreekpunt.",
+  region: "Actief in regio Diest, Scherpenheuvel-Zichem, Halen, Tessenderlo-Ham en omgeving.",
 };
 
-const woningscanPoints = [
-  { title: "Inzicht vóór u beslist", text: "U weet welke werken nodig zijn en welke keuzes elkaar beïnvloeden." },
-  { title: "Minder verrassingen tijdens de werken", text: "Aandachtspunten worden vroeger zichtbaar in plaats van tijdens de uitvoering." },
-  { title: "Technisch en praktisch advies", text: "Een duidelijk beeld van wat haalbaar en logisch is voor uw woning." },
-  { title: "Scanbedrag wordt verrekend", text: "Laat u het project nadien door Dimac uitvoeren, dan wordt het bedrag van de scan verrekend." },
+const problems = [
+  "Verschillende aannemers zijn afhankelijk van elkaars planning.",
+  "Technieken beïnvloeden vloer, keuken en badkamer.",
+  "Wijzigingen hebben gevolgen voor andere werkzaamheden.",
+  "Zonder centrale coördinatie raakt het overzicht versnipperd.",
 ];
 
-const realisations = [
-  { src: bathroom, type: "Badkamer", title: "Badkamerrenovatie met zorg voor afwerking", label: "Gerenoveerde badkamer met tegelwerk en inloopdouche" },
-  { src: kitchen, type: "Keuken", title: "Keukenrenovatie waar technieken en maatwerk samenkomen", label: "Gerenoveerde keuken met maatwerkkasten" },
-  { src: roof, type: "Dakwerken", title: "Dakwerken met aandacht voor detail", label: "Vernieuwd dak met nieuwe dakbedekking" },
-  { src: total, type: "Totaalrenovatie", title: "Totaalproject met één duidelijke planning", label: "Volledig gerenoveerde woning met open leefruimte" },
+const phases = [
+  { title: "Analyse", text: "We brengen in kaart wat de woning technisch en praktisch vraagt." },
+  { title: "Planning", text: "De werken krijgen een volgorde die technisch klopt." },
+  { title: "Coördinatie", text: "De disciplines worden op elkaar afgestemd." },
+  { title: "Uitvoering", text: "De fases volgen elkaar op vanuit één plan." },
+  { title: "Afwerking", text: "De aansluitingen en details worden samen overlopen." },
 ];
 
-// Placeholder voor echte Google-reviews: vervang deze array later door reviewdata.
-const trustElements = [
-  { title: "Duidelijke communicatie", text: "U weet wie uw aanspreekpunt is en wat de volgende stap wordt." },
-  { title: "Eén partij die het overzicht bewaakt", text: "Geen losse aannemers aansturen, maar één traject met opvolging." },
-  { title: "Technische voorbereiding", text: "Aandacht voor wat moet kloppen vóór de werken zichtbaar worden." },
-  { title: "Afwerking met oog voor detail", text: "Kwaliteit zit in aansluitingen, overgangen en praktische afwerking." },
+const capabilities = [
+  { slug: "totaalrenovatie", label: "Totaalrenovatie", text: "Meerdere werken gebundeld in één traject." },
+  { slug: "dakwerken", label: "Dakwerken", text: "Opbouw, isolatie en afwatering die technisch kloppen." },
+  { slug: "elektriciteit", label: "Elektriciteit", text: "Aansluitingen afgestemd op hoe je woont." },
+  { slug: "sanitair", label: "Sanitair", text: "Leidingen en afvoer voorbereid vóór de afwerking." },
+  { slug: "hernieuwbare-energie", label: "Verwarming en warmtepompen", text: "Technieken die passen bij de staat van de woning." },
+  { slug: "badkamer-renovatie", label: "Badkamerrenovatie", text: "Waterdichting, technieken en afwerking als één geheel." },
+  { slug: "keuken-renovatie", label: "Keukenrenovatie", text: "Aansluitingen en indeling klaar vóór plaatsing." },
+  { slug: "afwerking", label: "Afwerking", text: "Overgangen en details die het geheel afmaken." },
+];
+
+const paths = [
+  {
+    title: "Ik weet wat ik wil aanpakken",
+    text: "Heb je al een concreet renovatieproject of specifieke werken in gedachten? Dan bekijken we samen de mogelijkheden en volgende stappen.",
+    cta: "Bespreek je project",
+    to: "/contact",
+    event: "project_contact_start" as const,
+  },
+  {
+    title: "Ik weet nog niet wat eerst moet",
+    text: "Wil je renoveren maar ontbreekt er nog een duidelijke volgorde of prioriteit? Start dan met een woningscan.",
+    cta: "Start met een woningscan",
+    to: "/woningscan",
+    event: "woningscan_click" as const,
+  },
+];
+
+const scanPoints = [
+  { title: "Voor wie", text: "Voor eigenaars met renovatieplannen die nog geen duidelijke volgorde of prioriteit hebben." },
+  { title: "Wat bekeken kan worden", text: "De staat van de volledige woning: van dak en technieken tot vochtpunten, isolatie en afwerking." },
+  { title: "Waarom volgorde telt", text: "Werken in de verkeerde volgorde betekent later opnieuw openbreken wat net afgewerkt was." },
+  { title: "Wat je erna weet", text: "Welke werken prioritair zijn, welke keuzes elkaar beïnvloeden en wat een logische eerste stap is." },
+];
+
+const werkwijze = [
+  { title: "Kennismaking", text: "Een eerste gesprek over je plannen en je woning." },
+  { title: "Project begrijpen", text: "We bekijken wat er technisch en praktisch nodig is." },
+  { title: "Voorstel en analyse", text: "Je krijgt een duidelijk beeld van scope en aanpak." },
+  { title: "Planning", text: "De werken en disciplines worden ingepland." },
+  { title: "Uitvoering", text: "De fases volgen elkaar op vanuit één plan." },
+  { title: "Opvolging", text: "Je aanspreekpunt blijft het overzicht bewaken tot de oplevering." },
 ];
 
 const Index = () => {
-  const homeServices = services.filter((s) => s.slug in serviceSummaries);
+  const featured = visibleProjects.slice(0, 3);
+
+  useEffect(() => {
+    track("woningscan_view", { page_type: "home" });
+  }, []);
 
   return (
     <>
       <PageSEO
         path="/"
-        title="Aannemer regio Diest | Renovatie & nieuwbouw | Dimac"
-        description="Dimac is uw aannemer voor renovatie en nieuwbouw in regio Diest. Eén aanspreekpunt, duidelijke voorbereiding en correcte opvolging van de werken."
+        title="Aannemer regio Diest | Renovatie met één aanspreekpunt | Dimac"
+        description="Dimac coördineert renovatieprojecten in regio Diest, Scherpenheuvel-Zichem, Halen en Tessenderlo-Ham. Eén aanspreekpunt voor technieken, dakwerken, badkamer, keuken en afwerking."
         schemas={[organizationSchema(), websiteSchema()]}
       />
-      {/* SECTION 1 — HERO (mobiel/tablet: overlay op foto) */}
+
+      {/* 1 — HERO (mobiel en tablet: overlay op de foto) */}
       <section className="relative lg:hidden pt-24 sm:pt-28 pb-12 bg-background">
         <div className="container-wide">
-          <div className="relative overflow-hidden rounded-sm bg-surface-strong min-h-[34rem] sm:min-h-[38rem] flex items-end">
+          <div className="relative overflow-hidden rounded-sm bg-surface-strong min-h-[32rem] sm:min-h-[36rem] flex items-end">
             <img
               src={hero}
               alt="Renovatieproject van Dimac in regio Diest"
@@ -117,20 +120,23 @@ const Index = () => {
             <div className="relative w-full p-6 sm:p-8 max-w-xl">
               <span className="inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-primary-foreground/85 mb-5" data-reveal>
                 <span className="h-px w-8 bg-accent" />
-                Aannemer in ruime regio Diest
+                {HERO.eyebrow}
               </span>
-              {/* Visueel de mobiele titel; de semantische h1 staat in de desktophero,
-                  zodat de pagina exact één h1 in de DOM heeft. */}
+              {/* Visueel de mobiele titel; de semantische h1 staat in de desktophero. */}
               <div role="text" className="font-display text-[2rem] sm:text-4xl leading-[1.08] tracking-tight text-primary-foreground" data-reveal data-reveal-delay="1">
-                Renoveren of bouwen zonder zelf alles te moeten coördineren.
+                {HERO.title}
               </div>
-              <p className="mt-5 text-base sm:text-lg text-primary-foreground/85 leading-relaxed" data-reveal data-reveal-delay="2">
-                Dimac begeleidt uw renovatie- of bouwproject met één aanspreekpunt, een duidelijke
-                voorbereiding en correcte opvolging van de werken tot de afwerking.
+              <p className="mt-5 text-base text-primary-foreground/85 leading-relaxed" data-reveal data-reveal-delay="2">
+                {HERO.sub}
               </p>
               <div className="mt-7 flex flex-col gap-3" data-reveal data-reveal-delay="3">
                 <Button asChild variant="solid" size="lg" className="w-full">
-                  <Link to="/contact">Bespreek uw project <ArrowRight className="w-4 h-4" /></Link>
+                  <Link
+                    to="/contact"
+                    onClick={() => track("project_contact_start", { page_type: "home", cta_label: "Bespreek je project" })}
+                  >
+                    Bespreek je project <ArrowRight className="w-4 h-4" />
+                  </Link>
                 </Button>
                 <Button
                   asChild
@@ -138,178 +144,166 @@ const Index = () => {
                   size="lg"
                   className="w-full border-primary-foreground/50 bg-primary-foreground/10 text-primary-foreground fine:hover:bg-primary-foreground fine:hover:text-primary"
                 >
-                  <Link to="/woningscan">Ontdek de woningscan</Link>
+                  <Link
+                    to="/woningscan"
+                    onClick={() => track("woningscan_click", { page_type: "home", cta_label: "Ontdek de woningscan" })}
+                  >
+                    Ontdek de woningscan
+                  </Link>
                 </Button>
               </div>
               <p className="mt-5 text-[13px] text-primary-foreground/80 flex items-start gap-2 leading-relaxed" data-reveal data-reveal-delay="4">
                 <MapPin className="w-4 h-4 text-accent shrink-0 mt-0.5" />
-                <span>Actief in Diest, Scherpenheuvel, Tessenderlo, Halen en ruime omgeving.</span>
+                <span>{HERO.region}</span>
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* SECTION 1 — HERO (desktop) */}
-      <section className="relative hidden lg:block pt-32 pb-20 md:pt-40 lg:pt-[8.5rem] md:pb-24 overflow-hidden bg-background">
+      {/* 1 — HERO (desktop) */}
+      <section className="relative hidden lg:block pt-32 pb-20 lg:pt-[8.5rem] md:pb-24 overflow-hidden bg-background">
         <div className="container-wide relative grid gap-16 lg:grid-cols-[1.15fr_1fr] items-center">
           <div className="fade-up">
             <span className="inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-accent mb-8">
               <span className="h-px w-8 bg-accent" />
-              Aannemer in ruime regio Diest
+              {HERO.eyebrow}
             </span>
-            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-[4rem] xl:text-7xl leading-[1.03] tracking-tight text-primary max-w-[15ch] lg:max-w-none xl:max-w-[16ch]">
-              Renoveren of bouwen zonder zelf alles te moeten coördineren.
+            <h1 className="font-display text-5xl lg:text-[4rem] xl:text-7xl leading-[1.03] tracking-tight text-primary xl:max-w-[16ch]">
+              {HERO.title}
             </h1>
             <p className="mt-8 text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed">
-              Dimac begeleidt uw renovatie- of bouwproject met één aanspreekpunt, een duidelijke
-              voorbereiding en correcte opvolging van de werken tot de afwerking.
+              {HERO.sub}
             </p>
             <div className="mt-10 flex flex-wrap gap-4">
               <Button asChild variant="solid" size="lg">
-                <Link to="/contact">Bespreek uw project <ArrowRight className="w-4 h-4" /></Link>
+                <Link
+                  to="/contact"
+                  onClick={() => track("project_contact_start", { page_type: "home", cta_label: "Bespreek je project" })}
+                >
+                  Bespreek je project <ArrowRight className="w-4 h-4" />
+                </Link>
               </Button>
               <Button asChild variant="outline" size="lg">
-                <Link to="/woningscan">Ontdek de woningscan</Link>
+                <Link
+                  to="/woningscan"
+                  onClick={() => track("woningscan_click", { page_type: "home", cta_label: "Ontdek de woningscan" })}
+                >
+                  Ontdek de woningscan
+                </Link>
               </Button>
             </div>
-            <p className="mt-6 text-sm text-muted-foreground flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-accent shrink-0" />
-              Actief in Diest, Scherpenheuvel, Tessenderlo, Halen en ruime omgeving.
+            <p className="mt-8 text-sm text-muted-foreground flex items-start gap-2 leading-relaxed">
+              <MapPin className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+              <span>{HERO.region}</span>
             </p>
           </div>
-          <div className="fade-up">
+          <div className="fade-up delay-2">
             <ImagePlaceholder
               src={hero}
               label="Renovatieproject van Dimac in regio Diest"
-              aspect="tall"
-              fit="contain"
-              className="bg-surface"
+              aspect="portrait"
+              showLabelOverlay={false}
             />
           </div>
         </div>
       </section>
 
-
-      {/* SECTION 2 — VERTROUWENSBALK */}
-      <section className="pb-16 md:pb-24 bg-background">
-        <div className="container-wide">
-          <div className="stagger-list grid gap-px bg-border border border-border sm:grid-cols-2 lg:grid-cols-4" data-reveal>
-            {trustBar.map((c) => (
-              <div key={c.title} className="card-flush bg-background p-8">
-                <span className="accent-rule mb-6" />
-                <h2 className="font-display text-xl text-primary leading-snug mb-3">{c.title}</h2>
-                <p className="text-sm text-muted-foreground leading-relaxed">{c.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 3 — PROBLEEMHERKENNING */}
-      <Section eyebrow="Waarom overzicht telt" title="Een project loopt zelden vast op één beslissing." bg="surface">
-        <div className="grid gap-14 lg:grid-cols-[1fr_1.2fr] items-start">
-          <div data-reveal>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              Bij renoveren of bouwen hangt bijna alles aan elkaar vast. Wie elk onderdeel als een
-              losse opdracht bekijkt, botst later op keuzes die elkaar tegenwerken.
-            </p>
-            <p className="mt-6 text-lg text-primary leading-relaxed">
-              Daarom bekijkt Dimac een project als één geheel.
-            </p>
-          </div>
+      {/* 2 — PROBLEEMHERKENNING */}
+      <Section
+        eyebrow="Herkenbaar?"
+        title="Een renovatie wordt pas complex wanneer alles op elkaar moet aansluiten."
+        bg="surface"
+      >
+        <div className="grid gap-14 lg:grid-cols-[1fr_1.15fr] items-start">
+          <p className="text-lg text-muted-foreground leading-relaxed" data-reveal>
+            De losse werken zijn zelden het probleem. De samenhang ertussen wel: wat eerst moet,
+            wat op elkaar wacht en wie het geheel bewaakt.
+          </p>
           <ul className="stagger-list divide-y divide-border border-y border-border" data-reveal>
-            {problemLines.map((line) => (
-              <li key={line} className="py-5 text-primary/90 leading-relaxed transition-colors duration-300 fine:lg:hover:text-primary fine:lg:hover:bg-surface/70">
+            {problems.map((line) => (
+              <li key={line} className="py-5 text-primary/90 leading-relaxed">
                 {line}
               </li>
             ))}
           </ul>
         </div>
-      </Section>
-
-      {/* SECTION 4 — POSITIONERING */}
-      <Section eyebrow="Positionering" title="Geen losse werken. Wel één logisch geheel.">
-        <p className="max-w-3xl text-lg text-muted-foreground leading-relaxed mb-14" data-reveal>
-          Dimac pakt renovatie- en bouwprojecten gestructureerd aan: niet elk onderdeel apart, maar
-          vooraf begrijpen hoe alles samenkomt.
+        <p className="mt-12 max-w-3xl font-display text-2xl md:text-3xl leading-snug text-primary" data-reveal>
+          Daarom bewaakt Dimac de samenhang tussen planning, technieken en uitvoering.
         </p>
-        <div className="stagger-list grid gap-6 md:grid-cols-3" data-reveal>
-          {positioningCards.map((c, i) => (
-            <div key={c.title} className="card-interactive group/card border border-border p-8 md:p-10 bg-background">
-              <span className="font-display text-accent text-sm inline-block transition-transform duration-300 ease-out origin-left motion-safe:fine:lg:group-hover/card:scale-110">{String(i + 1).padStart(2, "0")}</span>
-              <h3 className="font-display text-2xl mt-4 mb-3 text-primary leading-tight">{c.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{c.text}</p>
-            </div>
-          ))}
-        </div>
-        <div className="mt-14">
+      </Section>
+
+      {/* 3 — DIMAC-AANPAK */}
+      <Section eyebrow="De aanpak" title="Eén aanspreekpunt. Meerdere disciplines. Eén plan.">
+        <p className="max-w-3xl text-lg text-muted-foreground leading-relaxed mb-12" data-reveal>
+          Jij hebt één aanspreekpunt. Wij zorgen dat de verschillende werken op elkaar aansluiten.
+        </p>
+        <PhaseStrip phases={phases} />
+        <div className="mt-10">
           <Button asChild variant="outline" size="lg">
-            <Link to="/werkwijze">Bekijk onze werkwijze <ArrowRight className="w-4 h-4" /></Link>
+            <Link to="/werkwijze">Bekijk onze aanpak <ArrowRight className="w-4 h-4" /></Link>
           </Button>
         </div>
       </Section>
 
-      {/* SECTION 5 — TWEE INSTAPPADEN */}
-      <Section eyebrow="Twee instappaden" title="Wat is voor u de juiste eerste stap?" bg="surface">
+      {/* 4 — TWEE KLANTPADEN */}
+      <Section eyebrow="Instappen" title="Waar sta je vandaag?" bg="surface">
         <div className="stagger-list grid gap-px bg-border border border-border md:grid-cols-2" data-reveal>
-          {entryPaths.map((p) => (
-            <div key={p.n} className="card-flush group/card bg-background p-10 md:p-14">
-              <span className="font-display text-accent text-2xl inline-block transition-transform duration-300 ease-out origin-left motion-safe:fine:lg:group-hover/card:scale-110">{p.n}</span>
-              <h3 className="font-display text-2xl md:text-3xl mt-4 mb-4 text-primary leading-tight">{p.title}</h3>
-              <p className="text-muted-foreground leading-relaxed mb-8">{p.text}</p>
-              <Button asChild variant="ghost" className="px-0 h-auto text-accent fine:hover:bg-transparent fine:hover:text-primary">
-                <Link to={p.to}>{p.cta} <ArrowRight className="w-4 h-4" /></Link>
-              </Button>
+          {paths.map((p) => (
+            <div key={p.title} className="card-flush group/card bg-background p-10 md:p-14 flex flex-col">
+              <h3 className="font-display text-2xl md:text-3xl text-primary leading-tight">{p.title}</h3>
+              <p className="mt-4 text-muted-foreground leading-relaxed flex-1">{p.text}</p>
+              <div className="mt-8">
+                <Button asChild variant="solid" size="lg">
+                  <Link
+                    to={p.to}
+                    onClick={() => track(p.event, { page_type: "home", cta_label: p.cta })}
+                  >
+                    {p.cta} <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </Button>
+              </div>
             </div>
           ))}
         </div>
       </Section>
 
-      {/* SECTION 6 — DIENSTEN */}
-      <Section eyebrow="Diensten" title="Voor renovatie- en bouwprojecten waar alles moet kloppen.">
-        <div className="stagger-list grid gap-px bg-border border border-border md:grid-cols-2 lg:grid-cols-3" data-reveal>
-          {homeServices.map((s, i) => (
-            <Link
-              key={s.slug}
-              to={`/diensten/${s.slug}`}
-              className="focus-ring-inset card-flush group/card bg-background p-8 md:p-10 flex flex-col"
-            >
-              <span className="font-display text-accent text-sm inline-block transition-transform duration-300 ease-out origin-left motion-safe:fine:lg:group-hover/card:scale-110">{String(i + 1).padStart(2, "0")}</span>
-              <h3 className="font-display text-2xl mt-4 mb-3 text-primary leading-tight">{s.overviewTitle}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed flex-1">{serviceSummaries[s.slug]}</p>
-              <span className="mt-8 inline-flex items-center gap-2 text-sm text-accent">
-                Meer over deze dienst <ArrowRight className="w-4 h-4 transition-transform duration-300 ease-out motion-safe:fine:lg:group-hover/card:translate-x-1" />
-              </span>
-            </Link>
-          ))}
-        </div>
-        <div className="mt-14">
-          <Button asChild variant="outline" size="lg">
-            <Link to="/diensten">Bekijk alle diensten</Link>
-          </Button>
+      {/* 5 — CAPABILITIES */}
+      <Section eyebrow="Disciplines" title="Wat Dimac binnen één renovatie kan verbinden">
+        <DisciplineGrid
+          items={capabilities.map((c) => ({
+            label: c.label,
+            text: c.text,
+            slug: c.slug,
+            to: `/diensten/${c.slug}`,
+          }))}
+        />
+        <div className="mt-10">
+          <Link to="/diensten" className="link-underline text-accent focus-ring text-sm">
+            Alle diensten bekijken
+          </Link>
         </div>
       </Section>
 
-      {/* SECTION 7 — WONINGSCAN */}
+      {/* 6 — WONINGSCAN */}
       <section className="py-24 md:py-36 bg-surface">
         <div className="container-tight grid gap-14 lg:grid-cols-[1fr_1.1fr] items-start">
           <div className="lg:sticky lg:top-28 lg:self-start" data-reveal>
-            <ImagePlaceholder label="Voorbereiding en analyse van een woning" src={prep} aspect="portrait" />
+            <ImagePlaceholder label="Analyse van een woning tijdens de woningscan" src={prep} aspect="portrait" />
           </div>
           <div>
             <span className="eyebrow mb-5" data-reveal>Woningscan</span>
             <h2 className="font-display text-3xl md:text-5xl leading-[1.05] text-primary mb-6" data-reveal data-reveal-delay="1">
-              Twijfelt u over de juiste aanpak? Begin met inzicht.
+              Wel plannen om te renoveren, maar geen idee wat eerst moet?
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed mb-10 max-w-xl" data-reveal data-reveal-delay="2">
-              Met de woningscan krijgt u een helder beeld van de staat van uw volledige woning, de technische
-              aandachtspunten en de logische volgorde van uw werken.
+              Met de woningscan bekijken we de volledige woning en vertalen we de aandachtspunten
+              naar een logische volgorde van werken.
             </p>
             <ol className="stagger-list space-y-6 mb-10" data-reveal>
-              {woningscanPoints.map((p, i) => (
-                <li key={p.title} className="group/point flex gap-5 pb-6 border-b border-border last:border-0">
-                  <span className="font-display text-accent text-lg leading-none pt-1 min-w-[2rem] transition-transform duration-300 ease-out origin-left motion-safe:fine:lg:group-hover/point:scale-110">
+              {scanPoints.map((p, i) => (
+                <li key={p.title} className="flex gap-5 pb-6 border-b border-border last:border-0">
+                  <span className="font-display text-accent text-lg leading-none pt-1 min-w-[2rem]">
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   <div>
@@ -320,74 +314,83 @@ const Index = () => {
               ))}
             </ol>
             <Button asChild variant="solid" size="lg">
-              <Link to="/woningscan">Plan uw woningscan <ArrowRight className="w-4 h-4" /></Link>
+              <Link
+                to="/woningscan"
+                onClick={() => track("woningscan_click", { page_type: "home", cta_label: "Bekijk hoe de woningscan werkt" })}
+              >
+                Bekijk hoe de woningscan werkt <ArrowRight className="w-4 h-4" />
+              </Link>
             </Button>
           </div>
         </div>
       </section>
 
-      {/* SECTION 8 — REALISATIES */}
-      <Section eyebrow="Realisaties" title="Projecten waar voorbereiding en afwerking samenkomen.">
-        <div className="stagger-list grid gap-6 md:grid-cols-2" data-reveal>
-          {realisations.map((p) => (
-            <figure key={p.title} className="group/real">
-              <ImagePlaceholder src={p.src} label={p.label} aspect="landscape" showLabelOverlay={false} />
-              <figcaption className="mt-4 max-w-md transition-transform duration-300 ease-out motion-safe:fine:lg:group-hover/real:-translate-y-1">
-                <span className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">{p.type}</span>
-                <h3 className="font-display text-lg text-primary leading-snug mt-2 transition-colors duration-300 fine:lg:group-hover/real:text-accent">{p.title}</h3>
-                <span className="mt-3 block h-px w-8 bg-accent transition-[width] duration-500 ease-out fine:lg:group-hover/real:w-16" aria-hidden="true" />
-              </figcaption>
-            </figure>
+      {/* 7 — REALISATIES */}
+      <Section eyebrow="Realisaties" title="Zo ziet die aanpak eruit in de praktijk.">
+        <div className="stagger-list grid gap-10 md:grid-cols-2 lg:grid-cols-3" data-reveal>
+          {featured.map((p) => (
+            <ProjectCard key={p.slug} project={p} pageType="home" />
           ))}
         </div>
         <div className="mt-14">
           <Button asChild variant="outline" size="lg">
-            <Link to="/realisaties">Bekijk realisaties <ArrowRight className="w-4 h-4" /></Link>
+            <Link to="/realisaties">Bekijk alle realisaties <ArrowRight className="w-4 h-4" /></Link>
           </Button>
         </div>
       </Section>
 
-      {/* SECTION 9 — VERTROUWENSSECTIE */}
-      <Section eyebrow="Waarom Dimac" title="Duidelijkheid tijdens het volledige traject." bg="surface">
-        <div className="stagger-list grid gap-px bg-border border border-border sm:grid-cols-2 lg:grid-cols-4" data-reveal>
-          {trustElements.map((t) => (
-            <div key={t.title} className="card-flush bg-background p-8">
-              <span className="accent-rule mb-6" />
-              <h3 className="font-display text-lg text-primary leading-snug mb-3">{t.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{t.text}</p>
-            </div>
+      {/* 8 — WERKWIJZE */}
+      <Section eyebrow="Werkwijze" title="Wat gebeurt er nadat je contact opneemt?" bg="surface">
+        <ol className="stagger-list grid gap-px bg-border border border-border sm:grid-cols-2 lg:grid-cols-3" data-reveal>
+          {werkwijze.map((s, i) => (
+            <li key={s.title} className="bg-background p-8">
+              <span className="font-display text-accent text-sm">{String(i + 1).padStart(2, "0")}</span>
+              <h3 className="font-display text-xl text-primary leading-snug mt-3">{s.title}</h3>
+              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{s.text}</p>
+            </li>
           ))}
-        </div>
+        </ol>
       </Section>
 
-      {/* SECTION 10 — OVER DIMAC */}
-      <Section eyebrow="Over Dimac" title="Uw aannemer voor renovatie en nieuwbouw in regio Diest.">
-        <div className="max-w-2xl space-y-5 text-lg text-muted-foreground leading-relaxed" data-reveal>
+      {/* 9 — TEAM (rendert enkel bij echte data) */}
+      <TeamSection />
+
+      {/* 10 — REVIEWS (rendert enkel bij echte data) */}
+      <ReviewsSection />
+
+      {/* 11 — WERKINGSGEBIED */}
+      <Section eyebrow="Werkingsgebied" title="Lokaal actief in en rond Diest.">
+        <div className="max-w-3xl space-y-5 text-lg text-muted-foreground leading-relaxed" data-reveal>
           <p>
-            Dimac is een lokale bouwpartner voor renovatie- en nieuwbouwprojecten in ruime regio
-            Diest. We combineren vakmanschap met duidelijke communicatie, technische voorbereiding
-            en praktische opvolging van de werken.
+            Dimac werkt in Diest, Scherpenheuvel-Zichem, Halen, Tessenderlo-Ham en de omliggende
+            gemeenten. Kort bij de werf zijn maakt opvolging eenvoudiger: overleg gebeurt ter plaatse
+            en bijsturen kan snel.
           </p>
           <p>
-            U staat niet tussen verschillende partijen die elk hun eigen onderdeel uitvoeren. U
-            heeft één aanspreekpunt dat het project mee bewaakt, van eerste analyse tot oplevering.
+            We kennen de lokale bouwcontext, de gangbare woningtypes in de regio en de partners
+            waarmee we samenwerken.
           </p>
-          <div className="pt-4">
-            <Button asChild variant="outline" size="lg">
-              <Link to="/over">Leer Dimac kennen</Link>
-            </Button>
-          </div>
         </div>
+        {activeRegions.length > 0 && (
+          <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-3" data-reveal>
+            {activeRegions.map((r) => (
+              <li key={r.slug}>
+                <Link to={`/regio/${r.slug}`} className="link-underline text-accent focus-ring text-sm">
+                  Aannemer in {r.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </Section>
 
-      {/* SECTION 11 — FINALE CTA */}
+      {/* 12 — SLOTCONVERSIE */}
       <CTABlock
         eyebrow="Volgende stap"
-        title="Klaar om uw renovatie of bouwproject juist aan te pakken?"
-        text="Vertel ons kort wat u wil bouwen of renoveren. Dan bekijken we samen welke aanpak logisch is: meteen richting uitvoering of eerst meer duidelijkheid via de woningscan."
-        primary={{ label: "Bespreek uw project", to: "/contact" }}
-        secondary={{ label: "Plan uw woningscan", to: "/woningscan" }}
-        microcopy="Geen verplichting. Eerst een duidelijk gesprek over uw plannen, vragen en volgende stap."
+        title="Een renovatie gepland?"
+        text="Vertel ons kort wat je wilt aanpakken. We bekijken samen wat een logische volgende stap is."
+        primary={{ label: "Bespreek je project", to: "/contact" }}
+        secondary={{ label: "Start met een woningscan", to: "/woningscan" }}
       />
     </>
   );
