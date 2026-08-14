@@ -7,9 +7,10 @@ Centrale boodschap: Dimac bewaakt de samenhang tussen planning, technieken en ui
 ## Inhoudelijke integriteit
 
 - Geen verzonnen bedrijfsfeiten, reviews, teamleden, attesten of commerciële voorwaarden.
-- De vijf aangeleverde cases krijgen `confirmed: false` in de datalaag met een duidelijke commentaarwaarschuwing dat ze vóór livegang bevestigd of vervangen moeten worden. Publiek wordt niets als "test" gelabeld; ze blijven wel uit de sitemap en krijgen `noindex` tot `confirmed: true`.
+- De vijf aangeleverde cases komen in één projectdatamodel (`title`, `slug`, `municipality`, `projectType`, `summary`, `situation`, `challenge`, `approach`, `result`, `images`, `relatedServices`, `confirmed`, `isTestContent`) met `confirmed: false` en `isTestContent: true`, plus een developer comment dat verificatie vereist is. Ze zijn zichtbaar in preview, maar krijgen `noindex`, staan niet in de sitemap en leveren geen publieke structured data. Bij `confirmed: true` schakelt dat alles vanzelf om. Publiek verschijnt nergens een label.
 - Team en reviews: lege data-arrays. Is de array leeg, dan rendert de sectie niet. Geen placeholderpersonen, geen stockportretten, geen verzonnen citaten.
-- Woningscan: geen korting of verrekening. Het datamodel krijgt een optioneel, uitgeschakeld veld voor die commerciële voorwaarde.
+- Woningscan: geen korting of verrekening. Het datamodel krijgt `commercialCondition: null`; zolang dat leeg is, rendert er niets.
+
 
 ## Homepage, nieuwe volgorde
 
