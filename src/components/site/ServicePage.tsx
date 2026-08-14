@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,11 @@ import { Breadcrumbs } from "./Breadcrumbs";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { activeRegions } from "@/data/regions";
 import { publishedArticles } from "@/data/articles";
+import { projectsForService } from "@/data/projects";
+import { services as allServices } from "@/data/services";
+import { DisciplineGrid } from "./DisciplineGrid";
+import { ProjectCard } from "./ProjectCard";
+import { track } from "@/lib/analytics";
 import {
   COMPANY,
   absoluteUrl,
@@ -30,6 +36,18 @@ export const ServicePage = ({ service: s }: Props) => {
     { label: "Diensten", to: "/diensten" },
     { label: s.navLabel },
   ];
+
+  useEffect(() => {
+    track("view_service", { page_type: "service", item_id: s.slug });
+  }, [s.slug]);
+
+  // Disciplines die binnen ditzelfde traject vaak samen aangepakt worden.
+  const relatedDisciplines = allServices
+    .filter((o) => o.slug !== s.slug)
+    .filter((o) => projectsForService(s.slug).some((p) => p.relatedServices.includes(o.slug)))
+    .slice(0, 4);
+
+  const relatedProject = projectsForService(s.slug)[0];
 
   // Artikels die deze dienst als gerelateerd opgeven.
   const relatedArticles = publishedArticles
@@ -74,10 +92,32 @@ export const ServicePage = ({ service: s }: Props) => {
             </p>
             <div className="mt-9 flex flex-wrap gap-4">
               <Button asChild variant="solid" size="lg">
-                <Link to="/contact">Vraag een offerte aan <ArrowRight className="w-4 h-4" /></Link>
+                <Link
+                  to="/contact"
+                  onClick={() =>
+                    track("project_contact_start", {
+                      page_type: "service",
+                      item_id: s.slug,
+                      cta_label: "Bespreek je project",
+                    })
+                  }
+                >
+                  Bespreek je project <ArrowRight className="w-4 h-4" />
+                </Link>
               </Button>
               <Button asChild variant="outline" size="lg">
-                <Link to="/contact">Contacteer ons</Link>
+                <Link
+                  to="/woningscan"
+                  onClick={() =>
+                    track("woningscan_click", {
+                      page_type: "service",
+                      item_id: s.slug,
+                      cta_label: "Start met een woningscan",
+                    })
+                  }
+                >
+                  Start met een woningscan
+                </Link>
               </Button>
             </div>
           </div>
@@ -154,6 +194,36 @@ export const ServicePage = ({ service: s }: Props) => {
       <Section eyebrow="Werkwijze" title={s.workflow.h2}>
         <WorkflowSteps steps={s.workflow.steps} />
       </Section>
+
+      {/* Samenhang met andere disciplines */}
+      {relatedDisciplines.length > 0 && (
+        <Section
+          eyebrow="Samenhang"
+          title="Werken die hier vaak bij horen"
+        >
+          <p className="max-w-3xl text-lg text-muted-foreground leading-relaxed mb-10" data-reveal>
+            Deze werken beïnvloeden elkaar. Dimac stemt ze binnen één project op elkaar af.
+          </p>
+          <DisciplineGrid
+            pageType="service"
+            compact
+            items={relatedDisciplines.map((o) => ({
+              label: o.navLabel,
+              slug: o.slug,
+              to: `/diensten/${o.slug}`,
+            }))}
+          />
+        </Section>
+      )}
+
+      {/* Relevante realisatie */}
+      {relatedProject && (
+        <Section eyebrow="Realisatie" title="Zo pakten we dit aan" bg="surface">
+          <div className="max-w-xl" data-reveal>
+            <ProjectCard project={relatedProject} pageType="service" />
+          </div>
+        </Section>
+      )}
 
       {/* Outcome */}
       <section className="py-24 md:py-32 bg-surface border-y border-border">
