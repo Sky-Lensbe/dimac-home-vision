@@ -71,8 +71,12 @@ Compacte hero-hoogte, leesbare typografie, duidelijke CTA-hiërarchie, stapelend
 
 - Nieuw: `src/data/projects.ts`, `src/data/team.ts`, `src/data/reviews.ts`, `src/pages/RealisatieDetail.tsx`, `src/lib/analytics.ts`, componenten `PhaseStrip`, `DisciplineGrid`, `ProjectCard`, `CaseStudy`, `ProjectGallery`, `TeamCard`, `ReviewCard`.
 - Aangepast: `Index.tsx`, `Realisaties.tsx`, `Woningscan.tsx`, `Werkwijze.tsx`, `Contact.tsx`, `Navbar.tsx`, `ServicePage.tsx`, `services.ts`, `App.tsx`, `scripts/generate-sitemap.ts`.
-- Ongewijzigd: `index.css`, `tailwind.config.ts`, kleuren, fonts, logo, reveal-systeem.
-- Niet publiceren. Controle met typecheck en Playwright-screenshots op 390, 768 en 1280 px.
+- Ongewijzigd: `index.css`, `tailwind.config.ts`, kleuren, fonts, logo, bestaande werkende animaties en responsive basis.
+
+## Validatie vóór oplevering
+
+Niet publiceren. Controle op: typecheck, productionbuild, alle routes en interne links, ontbrekende assets, console errors, noindex-status van de testcases, sitemap, lege team- en reviewarrays, formulier en event-hooks. Visuele controle op 390, 768 en 1280 px van hero, navigatie, probleemsectie, werkmodel, klantpaden, woningscan, casekaarten, dienstpagina, casepagina, contactformulier en footer. Regressies worden vóór oplevering opgelost.
+
 
 ## Nog nodig van jou
 
