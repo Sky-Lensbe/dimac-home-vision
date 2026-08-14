@@ -102,11 +102,11 @@ const RealisatieDetail = () => {
                   <Link
                     to={`/diensten/${s.slug}`}
                     onClick={() =>
-                      track("view_service", { page_type: "project", item_id: s.slug, cta_label: s.title })
+                      track("view_service", { page_type: "project", item_id: s.slug, cta_label: s.navLabel })
                     }
                     className="link-underline text-accent focus-ring text-sm"
                   >
-                    {s.title}
+                    {s.navLabel}
                   </Link>
                 </li>
               ))}
