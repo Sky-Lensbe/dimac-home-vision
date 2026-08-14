@@ -5,16 +5,33 @@ import { Section } from "@/components/site/Section";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { organizationSchema } from "@/lib/site";
 import { toast } from "sonner";
+import { track } from "@/lib/analytics";
+
+/** Wat er na het versturen gebeurt: verwachtingen expliciet maken. */
+const nextSteps = [
+  "We nemen contact op om je vraag te overlopen.",
+  "We bekijken samen welke werken bij elkaar horen.",
+  "Je krijgt een voorstel voor de aanpak en de volgorde.",
+];
 
 const inputCls =
   "w-full bg-transparent border-b border-border py-3 text-primary placeholder:text-muted-foreground/60 transition-[border-color,background-color,box-shadow] duration-300 ease-out fine:hover:border-primary/30 focus:outline-none focus:border-accent focus:bg-accent-soft/40 autofill:bg-transparent";
 
 const Contact = () => {
   const [sending, setSending] = useState(false);
+  const [started, setStarted] = useState(false);
+
+  // Eén keer registreren zodra iemand effectief begint in te vullen.
+  const onStart = () => {
+    if (started) return;
+    setStarted(true);
+    track("project_contact_start", { page_type: "contact", cta_label: "Contactformulier" });
+  };
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
     setSending(true);
+    track("project_contact_submit", { page_type: "contact", cta_label: "Verstuur bericht" });
     setTimeout(() => {
       setSending(false);
       toast.success("Bedankt, we nemen zo snel mogelijk contact op.");
@@ -34,17 +51,18 @@ const Contact = () => {
         <div className="container-tight fade-up max-w-3xl">
           <span className="eyebrow mb-6">Contact</span>
           <h1 className="font-display text-4xl md:text-6xl leading-[1.02] tracking-tight text-primary">
-            Vertel ons over uw project
+            Vertel ons over je project
           </h1>
           <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
-            Vertel ons kort wat u wil aanpakken. Dan bekijken we samen welke stappen we best nemen voor uw project.
+            Vertel ons kort wat je wilt aanpakken. Dan bekijken we samen welke stappen logisch zijn en
+            hoe de werken op elkaar aansluiten.
           </p>
         </div>
       </section>
 
       <Section>
         <div className="grid gap-16 lg:grid-cols-[1.4fr_1fr]">
-          <form onSubmit={onSubmit} className="space-y-8" data-reveal>
+          <form onSubmit={onSubmit} onFocusCapture={onStart} className="space-y-8" data-reveal>
             <div className="grid gap-8 sm:grid-cols-2">
               <label className="block">
                 <span className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Naam</span>
@@ -96,7 +114,7 @@ const Contact = () => {
                 name="bericht"
                 rows={5}
                 className={inputCls + " resize-none"}
-                placeholder="Vertel ons in enkele zinnen wat u wil aanpakken."
+                placeholder="Vertel ons in enkele zinnen wat je wilt aanpakken."
               />
             </label>
             <div className="pt-4">
@@ -106,6 +124,17 @@ const Contact = () => {
               <p className="mt-4 text-xs text-muted-foreground">
                 Prototype formulier. Berichten worden nog niet effectief verzonden.
               </p>
+              <div className="mt-8 border-t border-border pt-6">
+                <span className="eyebrow mb-4">Wat gebeurt er daarna?</span>
+                <ol className="space-y-3">
+                  {nextSteps.map((step, i) => (
+                    <li key={step} className="flex gap-4 text-sm text-muted-foreground leading-relaxed">
+                      <span className="font-display text-accent">{String(i + 1).padStart(2, "0")}</span>
+                      <span>{step}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
             </div>
           </form>
 
@@ -115,7 +144,13 @@ const Contact = () => {
               <ul className="space-y-4 text-primary">
                 <li className="flex items-start gap-3">
                   <Mail className="w-4 h-4 mt-1 text-accent" />
-                  <a href="mailto:info@dimac.be" className="link-underline focus-ring">info@dimac.be</a>
+                  <a
+                    href="mailto:info@dimac.be"
+                    className="link-underline focus-ring"
+                    onClick={() => track("email_click", { page_type: "contact", cta_label: "info@dimac.be" })}
+                  >
+                    info@dimac.be
+                  </a>
                 </li>
                 <li className="flex items-start gap-3">
                   <MapPin className="w-4 h-4 mt-1 text-accent" />
