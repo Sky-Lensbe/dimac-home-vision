@@ -8,7 +8,7 @@ import { resolve } from "path";
  * Daarom lezen we de slugs rechtstreeks uit de bron, zodat de sitemap
  * altijd synchroon blijft met de data.
  */
-function slugsFrom(file: string, opts: { requireEnabled?: boolean; requirePublished?: boolean } = {}) {
+function slugsFrom(file: string, opts: { requireEnabled?: boolean; requirePublished?: boolean; requireConfirmed?: boolean } = {}) {
   const src = readFileSync(resolve(file), "utf8");
   const blocks = src.split(/\n\s*\{\s*\n/).slice(1);
   const found: string[] = [];
@@ -17,6 +17,7 @@ function slugsFrom(file: string, opts: { requireEnabled?: boolean; requirePublis
     if (!slug || found.includes(slug)) continue;
     if (opts.requireEnabled && /^\s*enabled:\s*false/m.test(block)) continue;
     if (opts.requirePublished && !/^\s*status:\s*"published"/m.test(block)) continue;
+    if (opts.requireConfirmed && !/^\s*confirmed:\s*true/m.test(block)) continue;
     found.push(slug);
   }
   return found;
@@ -25,6 +26,8 @@ function slugsFrom(file: string, opts: { requireEnabled?: boolean; requirePublis
 const services = slugsFrom("src/data/services.ts").map((slug) => ({ slug }));
 const activeRegions = slugsFrom("src/data/regions.ts", { requireEnabled: true }).map((slug) => ({ slug }));
 const publishedArticles = slugsFrom("src/data/articles.ts", { requirePublished: true }).map((slug) => ({ slug }));
+// Alleen bevestigde realisaties horen in de sitemap; testcases blijven eruit.
+const confirmedProjects = slugsFrom("src/data/projects.ts", { requireConfirmed: true }).map((slug) => ({ slug }));
 
 const BASE_URL = "https://www.dimac.be";
 
@@ -57,6 +60,11 @@ const entries: SitemapEntry[] = [
   })),
   { path: "/werkwijze", changefreq: "yearly", priority: "0.7" },
   { path: "/realisaties", changefreq: "monthly", priority: "0.7" },
+  ...confirmedProjects.map((p) => ({
+    path: `/realisaties/${p.slug}`,
+    changefreq: "yearly" as const,
+    priority: "0.6",
+  })),
   { path: "/reviews", changefreq: "yearly", priority: "0.5" },
   { path: "/over", changefreq: "yearly", priority: "0.6" },
   { path: "/contact", changefreq: "yearly", priority: "0.8" },

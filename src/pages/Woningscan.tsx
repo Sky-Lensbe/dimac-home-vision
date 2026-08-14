@@ -7,6 +7,7 @@ import { WorkflowSteps } from "@/components/site/WorkflowSteps";
 import { FAQ } from "@/components/site/FAQ";
 import { CTABlock } from "@/components/site/CTABlock";
 import { ImagePlaceholder } from "@/components/site/ImagePlaceholder";
+import { woningscanCommercialCondition } from "@/data/projects";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { organizationSchema, breadcrumbSchema } from "@/lib/site";
 import prep from "@/assets/preparation.jpg";
@@ -151,11 +152,17 @@ const Woningscan = () => {
       <section className="py-24 md:py-32 bg-surface border-y border-border">
         <div className="container-tight max-w-3xl">
           <span className="eyebrow mb-6" data-reveal>Voordeel</span>
-          <h2 className="font-display text-3xl md:text-5xl leading-tight mb-6 text-primary" data-reveal data-reveal-delay="1">Slim starten zonder dubbel te betalen</h2>
+          <h2 className="font-display text-3xl md:text-5xl leading-tight mb-6 text-primary" data-reveal data-reveal-delay="1">Eerst inzicht, daarna pas investeren</h2>
           <p className="text-lg text-muted-foreground leading-relaxed">
-            Beslist u om uw renovatie door Dimac te laten uitvoeren? Dan wordt het bedrag van de woningscan
-            verrekend op de eerste factuur van de werken. Zo investeert u enkel in advies dat u effectief verder helpt.
+            De woningscan geeft u een onderbouwd beeld van uw volledige woning voordat u grote keuzes maakt.
+            Zo weet u welke werken prioritair zijn en vermijdt u dat afgewerkte ruimtes later opnieuw
+            opengebroken moeten worden.
           </p>
+          {woningscanCommercialCondition && (
+            <p className="mt-5 text-lg text-muted-foreground leading-relaxed">
+              {woningscanCommercialCondition}
+            </p>
+          )}
         </div>
       </section>
 
@@ -184,7 +191,7 @@ const Woningscan = () => {
           </div>
           <div className="space-y-4 text-muted-foreground leading-relaxed">
             <p><strong className="text-primary">Kiest u voor Dimac?</strong></p>
-            <p>Dan begeleiden wij u van A tot Z en wordt de scan verrekend.</p>
+            <p>Dan begeleiden wij u van A tot Z, met één aanspreekpunt voor alle werken.</p>
           </div>
         </div>
       </Section>
@@ -202,7 +209,6 @@ const Woningscan = () => {
           items={[
             { q: "Wat kost een woningscan?", a: "De prijs hangt af van de grootte en situatie van uw woning. U ontvangt steeds een duidelijke prijs vooraf." },
             { q: "Is de scan verplicht om met Dimac samen te werken?", a: "Nee. De scan is een aparte dienst. U beslist nadien zelf hoe u verder gaat." },
-            { q: "Wordt de scan altijd verrekend?", a: "De scan wordt verrekend wanneer u beslist om de renovatie door Dimac te laten uitvoeren." },
             { q: "Hoe lang duurt een woningscan?", a: "Gemiddeld duurt een scan ongeveer 1,5 tot 2 uur, afhankelijk van de woning." },
           ]}
         />
