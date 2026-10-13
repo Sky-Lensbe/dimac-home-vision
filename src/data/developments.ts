@@ -82,7 +82,13 @@ export const developments: Development[] = [
     slug: "schaffen",
     name: "Project Schaffen",
     location: "Schaffen",
-    coverAlt: "Schaffen",
+    cover: schaffenGevel.url,
+    coverAlt: "Gevel van het project in Schaffen",
+    gallery: [
+      { src: schaffenBadkamer.url, alt: "Badkamer van het project in Schaffen" },
+      { src: schaffenWoonruimte.url, alt: "Woonruimte van het project in Schaffen" },
+      { src: schaffenTrap.url, alt: "Traphal van het project in Schaffen" },
+    ],
   },
   {
     slug: "schulen",
