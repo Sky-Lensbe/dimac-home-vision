@@ -79,7 +79,7 @@ const Over = () => (
           "Praktische bouwervaring",
           "Doordachte keuzes",
           "Duidelijke communicatie",
-          "Een resultaat waar je op kan rekenen, vandaag en in de toekomst ",
+          "Een bouwtechnische partner waar je op kan rekenen, vandaag en in de toekomst ",
         ].map((p, i) => (
           <li key={p} className="bg-background p-6 text-primary" data-reveal data-reveal-delay={String((i % 4) + 1)}>
             <span className="block h-px w-8 bg-accent mb-5" />
