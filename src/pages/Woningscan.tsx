@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Section } from "@/components/site/Section";
 import { FAQ } from "@/components/site/FAQ";
 import { PageHero } from "@/components/site/PageHero";
-import { ImagePlaceholder } from "@/components/site/ImagePlaceholder";
 import {
   ConsentField,
   HandoffMessage,
