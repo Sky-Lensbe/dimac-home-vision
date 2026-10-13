@@ -66,7 +66,7 @@ const SITUATIONS: Record<Situation, { label: string; icon: typeof Home; heading:
 const CHECKS = [
   "Dak en zichtbare dakonderdelen",
   "Gevels en buitenschil",
-  "Zichtbare vochtproblemen",
+  "Vochtproblemen",
   "Ramen en buitenschrijnwerk",
   "Isolatie, voor zover visueel beoordeelbaar",
   "Zichtbare elektrische installatieonderdelen",
@@ -75,7 +75,7 @@ const CHECKS = [
   "Vloeren, muren en plafonds",
   "Algemene afwerking",
   "Zichtbare scheurvorming en vervormingen",
-  "Mogelijke renovatieprioriteiten",
+  "Etc",
 ];
 
 const STEPS = [
@@ -353,7 +353,7 @@ const Woningscan = () => {
           ))}
         </ul>
         <p className="mt-6 text-sm text-muted-foreground max-w-2xl">
-          Wat we kunnen beoordelen, hangt ook af van de bereikbaarheid en zichtbaarheid van de verschillende onderdelen.
+          Wat we kunnen beoordelen, hangt ook af van de bereikbaarheid en zichtbaarheid van de verschillende onderdelen. Indien u twijfelt over de staat van het dak kan een drone inspectie nuttig zijn.{"\u00a0"}
         </p>
       </Section>
 
