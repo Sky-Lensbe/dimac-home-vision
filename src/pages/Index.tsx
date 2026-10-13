@@ -99,7 +99,6 @@ const Index = () => {
               Een volledige renovatie plannen? Bekijk onze totaalrenovaties <ArrowUpRight className="w-4 h-4" />
             </Link>
           </div>
-        </div>
       </section>
 
       {/* EXPERTISE */}
