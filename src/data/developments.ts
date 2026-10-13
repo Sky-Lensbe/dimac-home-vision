@@ -29,6 +29,8 @@ export interface Development {
 import diestLiving from "@/assets/diest-woonruimte.jpg.asset.json";
 import diestLivingTwo from "@/assets/diest-woonruimte-2.jpg.asset.json";
 import diestKitchen from "@/assets/diest-keuken.jpg.asset.json";
+import herkGevel from "@/assets/herk-de-stad-gevel.jpg.asset.json";
+import herkBadkamer from "@/assets/herk-de-stad-badkamer.jpg.asset.json";
 
 export const developments: Development[] = [
   {
