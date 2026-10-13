@@ -36,23 +36,23 @@ const NotFound = () => {
           </div>
           <ul className="mt-12 space-y-3 text-muted-foreground">
             <li>
-              <Link to="/diensten" className="link-underline text-accent focus-ring">
-                Alle diensten van Dimac
+              <Link to="/totaalrenovaties" className="link-underline text-accent focus-ring">
+                Totaalrenovaties
               </Link>
             </li>
             <li>
               <Link to="/woningscan" className="link-underline text-accent focus-ring">
-                De woningscan van kelder tot dak
+                De Woningscan en pakketten
               </Link>
             </li>
             <li>
-              <Link to="/regio" className="link-underline text-accent focus-ring">
-                Ons werkgebied rond Diest
+              <Link to="/projecten" className="link-underline text-accent focus-ring">
+                Onze projecten
               </Link>
             </li>
             <li>
-              <Link to="/blog" className="link-underline text-accent focus-ring">
-                Advies over renovatie en nieuwbouw
+              <Link to="/over" className="link-underline text-accent focus-ring">
+                Over Dimac
               </Link>
             </li>
           </ul>
