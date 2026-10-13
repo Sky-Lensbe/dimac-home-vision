@@ -260,7 +260,7 @@ const Index = () => {
               <p className="mt-4 font-display text-2xl leading-snug flex-1">
                 U wilt weten hoe een woning ervoor staat en wat ze nodig heeft.
               </p>
-              <Button asChild size="lg" className="mt-8 w-full sm:w-auto self-start">
+              <Button asChild size="lg" className="mt-8 w-full sm:w-auto sm:self-start whitespace-normal text-center h-auto min-h-14 py-4">
                 <Link to="/woningscan" onClick={() => track("woningscan_click", { page_type: "home", cta_label: "Slot Woningscan" })}>
                   Ontdek de Woningscan <ArrowRight />
                 </Link>
@@ -271,7 +271,7 @@ const Index = () => {
               <p className="mt-4 font-display text-2xl leading-snug flex-1">
                 U plant een grondige renovatie en zoekt een doordachte aanpak.
               </p>
-              <Button asChild variant="outline" size="lg" className="mt-8 w-full sm:w-auto self-start">
+              <Button asChild variant="outline" size="lg" className="mt-8 w-full sm:w-auto sm:self-start whitespace-normal text-center h-auto min-h-14 py-4">
                 <Link to="/totaalrenovaties#intake" onClick={cta("Slot renovatie")}>
                   Bespreek uw renovatieplannen <ArrowRight />
                 </Link>
