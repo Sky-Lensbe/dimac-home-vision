@@ -9,7 +9,7 @@ import { organizationSchema, websiteSchema } from "@/lib/site";
 import { developments } from "@/data/developments";
 import { formatEuro } from "@/data/woningscan";
 import { track } from "@/lib/analytics";
-import heroAsset from "@/assets/hero-dimac.jpg.asset.json";
+import heroAsset from "@/assets/dimac-woning.jpg.asset.json";
 import renoAsset from "@/assets/total-realisation.jpg.asset.json";
 
 const expertise = [
