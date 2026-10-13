@@ -252,8 +252,7 @@ const Woningscan = () => {
           <>
             <p className="font-display text-2xl md:text-3xl text-primary leading-snug">Weet waar u aan begint.</p>
             <p>
-              Een woning kopen of renoveren? Met de DIMAC Woningscan krijgt u professioneel inzicht in de zichtbare
-              bouwtechnische staat van een pand, de belangrijkste aandachtspunten en de renovatieprioriteiten. Kiest u
+              Een woning kopen of renoveren? Met de DIMAC Woningscan krijgt u professioneel inzicht in de bouwtechnische staat van een pand, de belangrijkste aandachtspunten en de renovatieprioriteiten. Kiest u
               voor Woningscan Compleet, dan ontvangt u ook een indicatieve inschatting van de renovatiekosten.
             </p>
             <p className="text-base">DIMAC voert vanuit Diest Woningscans uit in Limburg en Vlaams-Brabant.</p>
