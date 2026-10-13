@@ -15,15 +15,14 @@ export const DevelopmentGrid = ({ items }: { items: Development[] }) => (
       >
         <ImagePlaceholder src={d.cover} label={d.coverAlt} aspect="portrait" showLabelOverlay={false} />
         <div className="mt-5 flex items-center gap-3 text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
-          <span>{d.type}</span>
-          <span aria-hidden="true">·</span>
+          {d.type && <><span>{d.type}</span><span aria-hidden="true">·</span></>}
           <span>{d.location}</span>
           {d.status && <span className="ml-auto text-accent">{d.status}</span>}
         </div>
         <h3 className="mt-3 font-display text-2xl text-primary fine:group-hover/card:text-accent transition-colors">
           {d.name}
         </h3>
-        <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{d.summary}</p>
+        {d.summary && <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{d.summary}</p>}
         <span className="mt-4 inline-flex items-center gap-2 text-sm text-primary">
           Bekijk project <ArrowRight className="w-4 h-4" />
         </span>

@@ -296,12 +296,12 @@ const Index = () => (
     <section className="py-20 md:py-32 bg-background" aria-labelledby="ontwikkeling-title">
       <div className="container-tight">
         <div className="max-w-3xl">
-          <span className="eyebrow mb-5" data-reveal>Eigen vastgoedontwikkeling</span>
+          <span className="eyebrow mb-5" data-reveal>{developments.length ? "Onze projecten" : "Eigen vastgoedontwikkeling"}</span>
           <h2 id="ontwikkeling-title" className={H2} data-reveal data-reveal-delay="1">
             Van vastgoedpotentieel naar duurzame meerwaarde.
           </h2>
           <p className="mt-6 text-lg text-muted-foreground leading-relaxed" data-reveal data-reveal-delay="2">
-            DIMAC ontwikkelt vastgoed voor eigen rekening. Zo verloopt een ontwikkeling bij ons.
+            {developments.length ? "Ontdek onze projecten en bekijk onze bouwexpertise in de praktijk." : "DIMAC ontwikkelt vastgoed voor eigen rekening. Zo verloopt een ontwikkeling bij ons."}
           </p>
         </div>
         <div className="mt-12">
@@ -321,10 +321,10 @@ const Index = () => (
         </div>
         <Link
           to="/projecten"
-          onClick={cta("Ontdek onze ontwikkelingsaanpak")}
+          onClick={cta(developments.length ? "Bekijk onze projecten" : "Ontdek onze ontwikkelingsaanpak")}
           className="focus-ring mt-10 inline-flex items-center gap-2 text-sm text-primary fine:hover:text-accent transition-colors"
         >
-          Ontdek onze ontwikkelingsaanpak <ArrowRight className="w-4 h-4" aria-hidden="true" />
+          {developments.length ? "Bekijk onze projecten" : "Ontdek onze ontwikkelingsaanpak"} <ArrowRight className="w-4 h-4" aria-hidden="true" />
         </Link>
       </div>
     </section>

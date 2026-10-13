@@ -30,39 +30,39 @@ const ProjectDetail = () => {
       <PageSEO
         path={`/projecten/${d.slug}`}
         title={`${d.name}, ${d.location} | Dimac`}
-        description={d.summary}
+        description={d.summary ?? `${d.name}. Bekijk het project van Dimac in ${d.location}.`}
         ogImage={d.cover}
         schemas={[organizationSchema(), breadcrumbSchema(crumbs)]}
       />
-      <PageHero crumbs={crumbs} eyebrow={`${d.type} · ${d.location}${d.status ? ` · ${d.status}` : ""}`} title={d.name} intro={<p>{d.summary}</p>} />
-      <div className="container-wide -mt-px">
-        <ImagePlaceholder src={d.cover} label={d.coverAlt} aspect="wide" showLabelOverlay={false} />
-      </div>
+      <PageHero crumbs={crumbs} eyebrow={`${d.type ? `${d.type} · ` : ""}${d.location}${d.status ? ` · ${d.status}` : ""}`} title={d.name} intro={d.summary ? <p>{d.summary}</p> : undefined} />
+      {d.cover && <div className="container-wide -mt-px">
+        <ImagePlaceholder src={d.cover} label={d.coverAlt} aspect="wide" fit="contain" showLabelOverlay={false} />
+      </div>}
       <Section>
         <div className="grid gap-12 md:grid-cols-2 max-w-5xl">
           {[
             ["Oorspronkelijke situatie", d.originalSituation],
             ["Ontwikkelingsvisie", d.vision],
             ["Resultaat", d.result],
-          ].map(([t, x]) => (
+          ].filter(([, x]) => Boolean(x)).map(([t, x]) => (
             <div key={t}>
               <h2 className="eyebrow mb-4">{t}</h2>
               <p className="text-muted-foreground leading-relaxed">{x}</p>
             </div>
           ))}
-          <div>
+           {d.interventions && d.interventions.length > 0 && <div>
             <h2 className="eyebrow mb-4">Technische en esthetische ingrepen</h2>
             <ul className="space-y-2 text-muted-foreground">
               {d.interventions.map((i) => (
                 <li key={i}>— {i}</li>
               ))}
             </ul>
-          </div>
+           </div>}
         </div>
         {d.gallery && (
           <div className="mt-16 grid gap-4 md:grid-cols-2">
             {d.gallery.map((g) => (
-              <ImagePlaceholder key={g.src} src={g.src} label={g.alt} showLabelOverlay={false} />
+              <ImagePlaceholder key={g.src} src={g.src} label={g.alt} fit="contain" showLabelOverlay={false} />
             ))}
           </div>
         )}
