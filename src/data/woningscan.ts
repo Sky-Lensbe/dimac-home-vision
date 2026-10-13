@@ -27,7 +27,7 @@ export const DRONE_OPTION = {
   name: "Drone-dakscreening",
   price: DRONE_PRICE,
   text: "Zichtbare delen van het dak van bovenaf bekeken: dakbedekking, nokken, schouwen, zichtbare aansluitingen en andere bereikbare aandachtspunten. Relevante beelden en bevindingen komen in uw rapport, ook bij Basis.",
-  condition: "Uitvoering is afhankelijk van weersomstandigheden, vliegveiligheid, privacy en de geldende droneregels. Vervangt geen fysieke dakinspectie.",
+  condition: "Uitvoering is afhankelijk van weersomstandigheden, vliegveiligheid, privacy en de geldende droneregels.",
 };
 
 export const SCAN_PACKAGES: ScanPackage[] = [
