@@ -442,7 +442,31 @@ const Woningscan = () => {
               );
             })}
           </div>
+
+          <h3 className="sr-only">Optionele drone-dakscreening</h3>
+          <label
+            className={cn(
+              "mt-8 flex items-start gap-3 p-4 border bg-background cursor-pointer transition-colors duration-300 max-w-3xl",
+              drone ? "border-accent" : "border-border"
+            )}
+          >
+            <input
+              type="checkbox"
+              checked={drone}
+              onChange={(e) => toggleDrone(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 accent-[hsl(var(--accent))]"
+            />
+            <span className="text-sm">
+              <span className="block text-primary font-medium">
+                Voeg {DRONE_OPTION.name.toLowerCase()} toe{" "}
+                <span className="text-accent">+ {formatEuro(DRONE_OPTION.price)} incl. btw</span>
+              </span>
+              <span className="block mt-0.5 text-xs text-muted-foreground leading-relaxed">{DRONE_OPTION.text}</span>
+              <span className="block mt-0.5 text-xs text-muted-foreground">{DRONE_OPTION.condition}</span>
+            </span>
+          </label>
         </div>
+
       </section>
 
       {/* Aanvraag */}
