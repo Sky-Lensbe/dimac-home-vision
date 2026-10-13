@@ -389,7 +389,7 @@ const Woningscan = () => {
               )}
             </div>
             <div className="mt-8 hidden lg:block">
-              <ImagePlaceholder src={prep} label="Leidingwerk tijdens een totaalrenovatie" aspect="landscape" />
+              <ImagePlaceholder src={prep.url} label="Leidingwerk tijdens een totaalrenovatie" aspect="landscape" />
             </div>
           </div>
 
