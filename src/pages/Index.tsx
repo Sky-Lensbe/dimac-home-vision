@@ -48,31 +48,27 @@ const Index = () => {
         schemas={[organizationSchema(), websiteSchema()]}
       />
 
-      {/* HERO — één h1; foto als achtergrond onder lg, aparte kolom vanaf lg */}
+      {/* HERO — volledige foto boven de tekst onder lg, aparte kolom vanaf lg */}
       <section className="relative pt-20 lg:pt-32 pb-0 lg:pb-24 bg-background overflow-hidden">
         <div className="relative lg:container-wide lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:items-center">
-          <div className="absolute inset-0 lg:relative lg:inset-auto lg:order-2">
+          <div className="relative lg:order-2">
             <img
               src={heroAsset.url}
               alt="Hedendaagse woning, ontwikkeld met oog voor architectuur en materiaal"
-              className="absolute inset-0 h-full w-full object-cover object-[60%_35%] lg:relative lg:aspect-[4/5] lg:h-auto"
+              className="block h-auto w-full object-contain lg:aspect-[4/5] lg:object-cover lg:object-[60%_35%]"
               fetchPriority="high"
-            />
-            <span
-              aria-hidden="true"
-              className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/55 to-primary/10 lg:hidden"
             />
           </div>
 
-          <div className="relative container-wide lg:px-0 pt-56 sm:pt-72 pb-10 lg:p-0 lg:order-1 fade-up">
-            <span className="inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-primary-foreground/85 lg:text-accent mb-6 lg:mb-8">
+          <div className="relative container-wide lg:px-0 pt-10 pb-10 lg:p-0 lg:order-1 fade-up">
+            <span className="inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-accent mb-6 lg:mb-8">
               <span className="h-px w-8 bg-accent" />
               Vastgoedontwikkeling & bouwexpertise
             </span>
-            <h1 className="font-display text-[2.3rem] sm:text-5xl lg:text-[4rem] xl:text-[4.6rem] leading-[1.03] tracking-tight text-primary-foreground lg:text-primary max-w-[15ch] text-balance">
+            <h1 className="font-display text-[2.3rem] sm:text-5xl lg:text-[4rem] xl:text-[4.6rem] leading-[1.03] tracking-tight text-primary max-w-[15ch] text-balance">
               Vastgoed met potentieel. Ontwikkeld met inzicht.
             </h1>
-            <p className="mt-6 lg:mt-8 text-base md:text-lg lg:text-xl text-primary-foreground/85 lg:text-muted-foreground max-w-xl leading-relaxed">
+            <p className="mt-6 lg:mt-8 text-base md:text-lg lg:text-xl text-muted-foreground max-w-xl leading-relaxed">
               Bij Dimac kijken we verder dan de bestaande staat van een woning. We herkennen mogelijkheden,
               ontwikkelen eigen vastgoedprojecten en stellen onze bouwexpertise ook ter beschikking van wie een
               woning wil kopen of renoveren.
@@ -87,7 +83,7 @@ const Index = () => {
                 asChild
                 variant="outline"
                 size="lg"
-                className="border-primary-foreground/60 text-primary-foreground bg-primary-foreground/10 lg:bg-transparent lg:border-primary/80 lg:text-primary"
+                className="bg-transparent border-primary/80 text-primary"
               >
                 <Link to="/woningscan" onClick={() => track("woningscan_click", { page_type: "home", cta_label: "Ontdek de Woningscan" })}>
                   Ontdek de Woningscan
@@ -97,7 +93,7 @@ const Index = () => {
             <Link
               to="/totaalrenovaties"
               onClick={cta("Hero totaalrenovaties")}
-              className="focus-ring mt-6 inline-flex items-center gap-2 text-sm text-primary-foreground/85 lg:text-muted-foreground fine:hover:text-accent transition-colors"
+              className="focus-ring mt-6 inline-flex items-center gap-2 text-sm text-muted-foreground fine:hover:text-accent transition-colors"
             >
               Een volledige renovatie plannen? Bekijk onze totaalrenovaties <ArrowUpRight className="w-4 h-4" />
             </Link>
