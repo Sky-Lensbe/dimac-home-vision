@@ -116,9 +116,9 @@ export const MailtoNotice = ({ children }: { children?: ReactNode }) => (
 
 export const HandoffMessage = () => (
   <div role="status" className="border-l-2 border-accent bg-accent-soft/50 p-5 text-sm text-primary leading-relaxed">
-    <strong className="block mb-1">Uw e-mailprogramma werd geopend.</strong>
-    Verstuur het voorbereide bericht daar om uw aanvraag af te ronden. Zonder verzending ontvangen wij niets.
-    Opende er niets? Mail dan naar{" "}
+    <strong className="block mb-1">Uw bericht is voorbereid.</strong>
+    Het voorbereide bericht kan in uw e-mailprogramma geopend worden. Controleer en verzend het bericht om uw
+    aanvraag af te ronden. Zonder verzending ontvangen wij niets. Opende er niets? Mail dan naar{" "}
     <a href={`mailto:${COMPANY.email}`} className="text-accent underline underline-offset-2">
       {COMPANY.email}
     </a>

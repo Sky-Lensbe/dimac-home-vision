@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { ArrowRight, Check, Home, KeyRound } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
+import { ArrowRight, Check, Home, KeyRound, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Section } from "@/components/site/Section";
 import { FAQ } from "@/components/site/FAQ";
@@ -15,89 +15,134 @@ import {
   TextField,
 } from "@/components/site/FormFields";
 import { PageSEO } from "@/components/seo/PageSEO";
-import { breadcrumbSchema, faqSchema, organizationSchema, absoluteUrl } from "@/lib/site";
+import { AREA_SERVED, breadcrumbSchema, faqSchema, organizationSchema, absoluteUrl } from "@/lib/site";
 import {
   DRONE_OPTION,
   SCAN_PACKAGES,
   formatEuro,
   getPackage,
   scanTotal,
+  parseScanParams,
   type PackageId,
+  type Situation,
 } from "@/data/woningscan";
 import { buildMailto, openMailto } from "@/lib/mailto";
 import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 import prep from "@/assets/leidingwerk.jpg.asset.json";
 
-type Situation = "kopen" | "renoveren";
-
-const SITUATIONS: Record<Situation, { label: string; icon: typeof Home; title: string; questions: string[]; advice: string }> = {
+const SITUATIONS: Record<Situation, { label: string; icon: typeof Home; heading: string; title: string; text: string; questions: string[]; advice: string }> = {
   kopen: {
     label: "Ik wil een woning kopen",
     icon: KeyRound,
-    title: "U overweegt een aankoop.",
+    heading: "Woninginspectie vóór aankoop",
+    title: "U overweegt een woning te kopen.",
+    text: "Een woning kan er verzorgd uitzien en toch bouwtechnische aandachtspunten hebben. Met een Woningscan krijgt u beter inzicht in de zichtbare toestand van het pand en de mogelijke renovatiebehoeften. Zo bereidt u de aankoop en een eventuele renovatie realistischer voor.",
     questions: [
-      "Wat is de technische staat?",
-      "Welke renovaties zijn mogelijk nodig?",
-      "Welke extra investering moet ik voorzien?",
+      "Welke zichtbare aandachtspunten zijn er?",
+      "Welke werken verdienen prioriteit?",
+      "Welke renovaties moet ik mogelijk voorzien?",
+      "Wat kan dit ongeveer kosten, wanneer ik Compleet kies?",
     ],
     advice:
-      "Wilt u vooral weten hoe het pand ervoor staat, dan volstaat Basis vaak. Wilt u vóór uw bod ook een idee van het renovatiebudget, dan past Compleet beter.",
+      "Wilt u vooral weten hoe het pand ervoor staat, dan geeft Basis een eerste overzicht. Wilt u vóór uw beslissing ook een indicatie van het renovatiebudget, dan is Compleet relevant.",
   },
   renoveren: {
-    label: "Ik wil mijn huidige woning renoveren",
+    label: "Ik wil mijn woning renoveren",
     icon: Home,
-    title: "U plant een renovatie.",
+    heading: "Renovatieadvies voor uw bestaande woning",
+    title: "U wilt uw woning renoveren.",
+    text: "Een goede renovatie begint met inzicht in de huidige toestand en de volgorde van de werken. De Woningscan helpt om prioriteiten en de samenhang tussen bouwdisciplines beter te begrijpen.",
     questions: [
-      "Welke werken hebben prioriteit?",
-      "Wat is de juiste volgorde?",
-      "Hoe bereid ik mijn renovatie voor?",
+      "Wat moet eerst aangepakt worden?",
+      "Welke werken beïnvloeden elkaar?",
+      "Welke ingrepen zijn prioritair?",
+      "Welk pakket helpt bij mijn renovatieplanning?",
     ],
     advice:
-      "Plus geeft u een renovatievolgorde en stappenplan. Wilt u daarnaast een indicatie van de kosten per onderdeel, kies dan Compleet.",
+      "Zoekt u vooral een renovatievolgorde en stappenplan, dan is Plus relevant. Wilt u daarnaast een indicatie van de kosten, kies dan Compleet.",
   },
 };
 
+const CHECKS = [
+  "Dak en zichtbare dakonderdelen",
+  "Gevels en buitenschil",
+  "Zichtbare vochtproblemen",
+  "Ramen en buitenschrijnwerk",
+  "Isolatie, voor zover visueel beoordeelbaar",
+  "Zichtbare elektrische installatieonderdelen",
+  "Sanitair en zichtbare leidingen",
+  "Verwarming en technische installaties",
+  "Vloeren, muren en plafonds",
+  "Algemene afwerking",
+  "Zichtbare scheurvorming en vervormingen",
+  "Mogelijke renovatieprioriteiten",
+];
+
+const STEPS = [
+  { t: "Kies uw Woningscan", d: "Selecteer Basis, Plus of Compleet en voeg eventueel de drone-dakscreening toe." },
+  { t: "Plan het woningbezoek", d: "Na uw aanvraag stemmen we de locatie en een geschikt bezoekmoment af." },
+  { t: "Visuele inspectie ter plaatse", d: "We bekijken de woning en brengen de zichtbare aandachtspunten volgens het gekozen pakket in kaart." },
+  { t: "Ontvang uw digitaal rapport", d: "U ontvangt de afgesproken rapportage en gebruikt de bevindingen om uw volgende stappen te bepalen." },
+];
+
+const LIMITS = [
+  "Geen destructief onderzoek",
+  "Geen garantie dat verborgen gebreken ontdekt worden",
+  "Geen vervanging van wettelijke keuringen of het EPC",
+  "Geen vervanging van een verplicht asbestattest",
+  "Geen gespecialiseerde stabiliteitsstudie of architectenonderzoek",
+  "Geen bindende renovatieofferte of vastgoedwaardebepaling",
+];
+
+const [basis, plus, compleet] = SCAN_PACKAGES;
+
 const faq = [
   {
-    q: "Wanneer laat ik een Woningscan uitvoeren?",
-    a: "Wanneer u een woning wilt kopen of een renovatie voorbereidt en eerst wilt weten hoe het pand er bouwtechnisch voor staat, welke werken voorrang verdienen en (in Compleet) wat die ongeveer kosten.",
+    q: "Wat is een Woningscan?",
+    a: "Een visuele bouwtechnische beoordeling van een woning door DIMAC, met een digitaal rapport waarvan de inhoud afhangt van het gekozen pakket: Basis, Plus of Compleet.",
   },
   {
-    q: "Kan ik de scan vóór de aankoop van een woning laten uitvoeren?",
-    a: "Ja, mits toestemming van de eigenaar of makelaar om het pand te bezoeken. Plan de scan het best vóór u een bindend bod uitbrengt.",
+    q: "Wanneer laat ik een woning inspecteren vóór aankoop?",
+    a: "Bij voorkeur voordat u een bindend bod uitbrengt. Zo kent u de zichtbare aandachtspunten en mogelijke renovatiebehoeften wanneer u uw beslissing neemt.",
+  },
+  {
+    q: "Wat kost een Woningscan in Limburg of Vlaams-Brabant?",
+    a: `Basis kost ${formatEuro(basis.price)}, Plus ${formatEuro(plus.price)} en Compleet ${formatEuro(compleet.price)}, telkens incl. btw. De drone-dakscreening kunt u bij elk pakket toevoegen voor ${formatEuro(DRONE_OPTION.price)} incl. btw.`,
   },
   {
     q: "Wat is het verschil tussen Basis, Plus en Compleet?",
-    a: "Basis geeft een overzicht van de zichtbare staat en de prioriteiten. Plus voegt een uitgebreidere inspectie, fotodocumentatie, renovatievolgorde en stappenplan toe. Compleet voegt daar een indicatieve kostenraming en budgetverdeling aan toe.",
+    a: "Basis geeft inzicht in de zichtbare toestand en de prioriteiten. Plus voegt een uitgebreidere inspectie, fotodocumentatie en een renovatievolgorde met stappenplan toe. Compleet voegt daar een indicatieve kostenraming en budgetverdeling aan toe.",
   },
   {
-    q: "Krijg ik een kostenraming?",
-    a: "Alleen in het pakket Compleet. Die raming is indicatief: ze is geen bindende aannemersofferte en geen vastgoedtaxatie.",
+    q: "Krijg ik een renovatiekostenraming?",
+    a: "Uitsluitend bij Compleet. Die raming is indicatief: ze is geen bindende aannemersofferte en geen vastgoedtaxatie.",
   },
   {
-    q: "Kan ik een drone-inspectie toevoegen?",
-    a: `Ja, bij elk pakket kunt u de drone-dakscreening toevoegen voor ${formatEuro(DRONE_OPTION.price)} incl. btw. ${DRONE_OPTION.condition}`,
+    q: "Kan ik een Woningscan laten uitvoeren in een woning die nog niet van mij is?",
+    a: "Ja, mits de eigenaar of makelaar toestemming geeft en het pand praktisch toegankelijk is.",
   },
   {
-    q: "Moet Dimac mijn renovatie uitvoeren?",
-    a: "Nee. De Woningscan is een zelfstandige dienst. Het rapport is van u en blijft bruikbaar, ongeacht wie de werken uitvoert.",
+    q: "Kan ik een drone-inspectie laten toevoegen?",
+    a: `Ja, voor ${formatEuro(DRONE_OPTION.price)} incl. btw bij elk pakket. ${DRONE_OPTION.condition}`,
   },
   {
-    q: "Welke zaken vallen buiten de Woningscan?",
-    a: "De Woningscan is een visuele, niet-destructieve beoordeling. Verborgen gebreken kunnen niet uitgesloten worden. De scan vervangt geen wettelijke keuring, EPC, asbestattest, gespecialiseerde stabiliteitsstudie of architectenadvies.",
+    q: "Moet ik DIMAC inschakelen voor mijn renovatie?",
+    a: "Nee. De Woningscan is een zelfstandige dienst. U gebruikt het advies, ongeacht wie later de werken uitvoert.",
   },
   {
-    q: "Hoe ontvang ik het rapport?",
+    q: "Vervangt een Woningscan een officiële keuring?",
+    a: "Nee. De Woningscan is een visuele, niet-destructieve screening. Ze vervangt geen wettelijke keuring, EPC, asbestattest, stabiliteitsstudie of architectenonderzoek.",
+  },
+  {
+    q: "Hoe en wanneer ontvang ik mijn rapport?",
     a: "U ontvangt het rapport digitaal. Het tijdstip van oplevering spreken we af bij het inplannen van de scan.",
   },
 ];
 
 const Woningscan = () => {
   const [params] = useSearchParams();
-  const initial = getPackage(params.get("pakket"))?.id ?? null;
-  const sitParam = params.get("situatie");
-  const initialSituation: Situation | null = sitParam === "kopen" || sitParam === "renoveren" ? sitParam : null;
+  const { pakket: initial, situatie: initialSituation } = parseScanParams(params);
   const [situation, setSituation] = useState<Situation | null>(initialSituation);
   const [selected, setSelected] = useState<PackageId | null>(initial);
   const [drone, setDrone] = useState(false);
@@ -114,6 +159,20 @@ const Woningscan = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Navigatie tussen queryvarianten werkt de keuze bij zonder het formulier te wissen.
+  const paramKey = params.toString();
+  const firstParams = useRef(true);
+  useEffect(() => {
+    if (firstParams.current) {
+      firstParams.current = false;
+      return;
+    }
+    const { pakket, situatie } = parseScanParams(params);
+    if (pakket) setSelected(pakket);
+    if (situatie) setSituation(situatie);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paramKey]);
 
   const set = (k: keyof typeof form) => (v: string) => {
     if (!started.current) {
@@ -161,8 +220,8 @@ const Woningscan = () => {
     <>
       <PageSEO
         path="/woningscan"
-        title="Woningscan Diest | Inspectie vóór aankoop of renovatie | Dimac"
-        description="Een woning kopen of renoveren? De Dimac Woningscan geeft professioneel inzicht in de staat, prioriteiten en (indicatieve) kosten. Basis €299, Plus €449, Compleet €649 incl. btw."
+        title="Woningscan Limburg & Vlaams-Brabant | DIMAC"
+        description="Een woning kopen of renoveren? DIMAC voert vanuit Diest Woningscans uit in Limburg en Vlaams-Brabant. Vergelijk pakketten vanaf €299 incl. btw."
         schemas={[
           organizationSchema(),
           breadcrumbSchema([{ label: "Home", to: "/" }, { label: "Woningscan" }]),
@@ -170,15 +229,17 @@ const Woningscan = () => {
           {
             "@context": "https://schema.org",
             "@type": "Service",
-            name: "Dimac Woningscan",
+            name: "DIMAC Woningscan",
+            serviceType: "Bouwtechnische woninginspectie",
             provider: { "@id": organizationSchema()["@id"] },
             url: absoluteUrl("/woningscan"),
-            areaServed: "Diest",
+            areaServed: AREA_SERVED,
             offers: SCAN_PACKAGES.map((p) => ({
               "@type": "Offer",
               name: `Woningscan ${p.name}`,
               price: p.price,
               priceCurrency: "EUR",
+              url: absoluteUrl("/woningscan"),
             })),
           },
         ]}
@@ -186,69 +247,116 @@ const Woningscan = () => {
 
       <PageHero
         crumbs={[{ label: "Home", to: "/" }, { label: "Woningscan" }]}
-        eyebrow="Dimac Woningscan"
-        title="Een woning kopen of renoveren? Weet waar u aan begint."
+        eyebrow="Vanuit Diest · Limburg & Vlaams-Brabant"
+        title="Woningscan vóór aankoop of renovatie."
         intro={
           <>
+            <p className="font-display text-2xl md:text-3xl text-primary leading-snug">Weet waar u aan begint.</p>
             <p>
-              Hoe staat het pand er technisch voor? Welke werken verdienen aandacht? Wat pakt u best eerst aan?
-              En welk renovatiebudget moet u ongeveer voorzien?
+              Een woning kopen of renoveren? Met de DIMAC Woningscan krijgt u professioneel inzicht in de zichtbare
+              bouwtechnische staat van een pand, de belangrijkste aandachtspunten en de renovatieprioriteiten. Kiest u
+              voor Woningscan Compleet, dan ontvangt u ook een indicatieve inschatting van de renovatiekosten.
             </p>
-            <p>Met de Dimac Woningscan krijgt u professioneel inzicht om onderbouwde vastgoedbeslissingen te nemen.</p>
+            <p className="text-base">DIMAC voert vanuit Diest Woningscans uit in Limburg en Vlaams-Brabant.</p>
           </>
         }
       >
-        <div className="mt-10 flex flex-col sm:flex-row gap-3">
-          <Button asChild size="lg">
+        <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:items-center">
+          <Button asChild size="lg" variant="accent">
             <a href="#pakketten">
-              Bekijk de pakketten <ArrowRight />
+              Vergelijk de Woningscans <ArrowRight />
             </a>
           </Button>
-          <p className="text-sm text-muted-foreground sm:self-center sm:ml-4">Vanaf {formatEuro(299)} incl. btw</p>
+          <p className="text-sm text-primary sm:ml-4">Vanaf {formatEuro(basis.price)} incl. btw</p>
         </div>
+        <ul className="mt-10 grid gap-3 sm:grid-cols-3 border-t border-border pt-6 text-sm text-primary/85">
+          {[
+            "Visuele controle van 25 bouwtechnische aandachtspunten",
+            "Een duidelijk digitaal rapport",
+            "Praktische bouwexpertise vanuit vastgoedontwikkeling",
+          ].map((t) => (
+            <li key={t} className="flex gap-2.5">
+              <Check className="w-4 h-4 text-accent shrink-0 mt-0.5" aria-hidden="true" />
+              {t}
+            </li>
+          ))}
+        </ul>
       </PageHero>
 
-      {/* Keuzehulp */}
-      <Section eyebrow="Keuzehulp" title="Wat is uw situatie?">
+      {/* Voor wie */}
+      <Section eyebrow="Voor wie" title="Een woning kopen of renoveren? Eerst inzicht, dan beslissen.">
         <div className="grid gap-4 md:grid-cols-2" role="radiogroup" aria-label="Uw situatie">
           {(Object.keys(SITUATIONS) as Situation[]).map((key) => {
             const s = SITUATIONS[key];
             const Icon = s.icon;
             const active = situation === key;
             return (
-              <button
+              <div
                 key={key}
-                type="button"
-                role="radio"
-                aria-checked={active}
-                onClick={() => {
-                  setSituation(key);
-                  track("woningscan_situation_select", { page_type: "woningscan", item_id: key });
-                }}
                 className={cn(
-                  "focus-ring text-left p-6 md:p-8 border transition-colors duration-300 min-h-[44px]",
-                  active ? "border-accent bg-accent-soft/50" : "border-border bg-background fine:hover:border-primary/40"
+                  "flex flex-col p-6 md:p-8 border transition-colors duration-300",
+                  active ? "border-accent bg-accent-soft/50" : "border-border bg-background"
                 )}
               >
-                <Icon className={cn("w-6 h-6 mb-5", active ? "text-accent" : "text-primary/60")} strokeWidth={1.5} />
-                <span className="block font-display text-2xl text-primary">{s.label}.</span>
-                <ul className="mt-4 space-y-1.5 text-sm text-muted-foreground">
+                <Icon className={cn("w-6 h-6 mb-5", active ? "text-accent" : "text-primary/60")} strokeWidth={1.5} aria-hidden="true" />
+                <h3 className="text-xs uppercase tracking-[0.22em] text-accent">{s.heading}</h3>
+                <p className="mt-3 font-display text-2xl text-primary">{s.title}</p>
+                <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{s.text}</p>
+                <ul className="mt-4 space-y-1.5 text-sm text-primary/85 flex-1">
                   {s.questions.map((q) => (
-                    <li key={q}>{q}</li>
+                    <li key={q} className="flex gap-2">
+                      <span className="text-accent" aria-hidden="true">—</span>
+                      {q}
+                    </li>
                   ))}
                 </ul>
-              </button>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  onClick={() => {
+                    setSituation(key);
+                    track("woningscan_situation_select", { page_type: "woningscan", item_id: key });
+                  }}
+                  className={cn(
+                    "focus-ring mt-6 min-h-[44px] px-4 py-2.5 border text-sm text-left flex items-center gap-2 transition-colors",
+                    active ? "border-accent text-primary" : "border-border text-primary fine:hover:border-primary/40"
+                  )}
+                >
+                  {active && <Check className="w-4 h-4 text-accent" aria-hidden="true" />}
+                  {s.label}.
+                </button>
+              </div>
             );
           })}
         </div>
         <div aria-live="polite">
           {situation && (
             <p className="mt-8 max-w-3xl border-l-2 border-accent pl-5 text-primary leading-relaxed">
-              <strong className="font-medium">{SITUATIONS[situation].title}</strong> {SITUATIONS[situation].advice} U
-              kiest uiteraard zelf.
+              {SITUATIONS[situation].advice} U kiest uiteraard zelf.{" "}
+              <a href="#pakketten" className="text-accent underline underline-offset-2">Bekijk de pakketten</a>
             </p>
           )}
         </div>
+      </Section>
+
+      {/* Wat onderzoeken we */}
+      <Section bg="surface" eyebrow="Inhoud" title="Wat bekijken we tijdens een bouwtechnische Woningscan?">
+        <p className="-mt-8 mb-10 max-w-2xl text-muted-foreground leading-relaxed">
+          Tijdens een visuele inspectie beoordelen we ongeveer 25 bouwtechnische aandachtspunten, verdeeld over onder
+          meer deze onderdelen:
+        </p>
+        <ul className="grid gap-px bg-border border border-border sm:grid-cols-2 lg:grid-cols-3">
+          {CHECKS.map((c, i) => (
+            <li key={c} className="bg-background p-5 flex gap-4 text-sm text-primary">
+              <span className="font-display text-accent tabular-nums">{String(i + 1).padStart(2, "0")}</span>
+              {c}
+            </li>
+          ))}
+        </ul>
+        <p className="mt-6 text-sm text-muted-foreground max-w-2xl">
+          Wat we kunnen beoordelen, hangt ook af van de bereikbaarheid en zichtbaarheid van de verschillende onderdelen.
+        </p>
       </Section>
 
       {/* Pakketten */}
@@ -257,11 +365,15 @@ const Woningscan = () => {
           <header className="max-w-3xl mb-12 md:mb-16">
             <span className="eyebrow mb-5">Pakketten</span>
             <h2 className="font-display text-3xl md:text-5xl leading-[1.05] tracking-tight">
-              Drie pakketten. Eén heldere keuze.
+              Welke Woningscan past bij uw woning?
             </h2>
-            <p className="mt-5 text-muted-foreground">Alle prijzen inclusief btw.</p>
+            <p className="mt-5 text-muted-foreground leading-relaxed">
+              Van een eerste bouwtechnisch overzicht tot een indicatieve renovatiebegroting. Kies het niveau van inzicht
+              dat bij uw plannen past. Alle prijzen inclusief btw.
+            </p>
           </header>
 
+          <h3 className="sr-only">Optionele drone-dakscreening</h3>
           <label
             className={cn(
               "mb-10 flex items-start gap-4 p-5 md:p-6 border bg-background cursor-pointer transition-colors duration-300 max-w-3xl",
@@ -301,7 +413,10 @@ const Woningscan = () => {
                       Aanbevolen bij renovatieplanning
                     </span>
                   )}
-                  <h3 className="text-xs uppercase tracking-[0.24em] text-accent">{p.name}</h3>
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-xs uppercase tracking-[0.24em] text-accent">Woningscan {p.name}</h3>
+                    <span className="text-[11px] text-muted-foreground">{p.result}</span>
+                  </div>
                   <p className="mt-4 font-display text-2xl leading-snug text-primary min-h-[4rem]">{p.tagline}</p>
                   <p className="mt-6 flex items-baseline gap-2">
                     <span className="font-display text-5xl text-primary tabular-nums" aria-live="polite">
@@ -322,7 +437,20 @@ const Woningscan = () => {
                         </li>
                       ))}
                     </ul>
-                    {p.note && <p className="mt-4 text-xs text-muted-foreground">{p.note}</p>}
+                    {p.excludes && (
+                      <>
+                        <p className="mt-5 text-xs uppercase tracking-[0.18em] text-muted-foreground">Niet standaard inbegrepen</p>
+                        <ul className="mt-2 space-y-2">
+                          {p.excludes.map((i) => (
+                            <li key={i} className="flex gap-3 text-sm text-muted-foreground">
+                              <Minus className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
+                              {i}
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                    {p.note && <p className="mt-4 text-xs text-primary/80 font-medium">{p.note}</p>}
                     <p className="mt-6 text-sm text-muted-foreground leading-relaxed">{p.audience}</p>
                   </div>
                   <Button
@@ -346,9 +474,10 @@ const Woningscan = () => {
         <div ref={formRef} className="container-tight scroll-mt-24 grid gap-12 lg:grid-cols-[1fr_1.3fr]">
           <div>
             <span className="eyebrow mb-5">Aanvraag</span>
-            <h2 className="font-display text-3xl md:text-4xl leading-tight">Vraag uw Woningscan aan</h2>
+            <h2 className="font-display text-3xl md:text-4xl leading-tight">Vraag uw Woningscan aan.</h2>
             <p className="mt-5 text-muted-foreground leading-relaxed">
-              Wij nemen contact op om een moment voor het bezoek af te spreken. Betalen gebeurt niet online.
+              Een aanvraag is nog geen bevestigde afspraak of betaling. Na ontvangst stemmen we met u het bezoek af.
+              Betalen gebeurt niet online.
             </p>
 
             <div className="mt-8 border border-border bg-surface p-6">
@@ -434,22 +563,57 @@ const Woningscan = () => {
         </div>
       </section>
 
-      {/* Wat de scan niet is */}
-      <Section bg="surface" eyebrow="Goed om te weten" title="Wat u van een Woningscan mag verwachten">
-        <div className="grid gap-10 md:grid-cols-2 max-w-5xl">
-          <p className="text-muted-foreground leading-relaxed">
-            De Woningscan is een visuele, niet-destructieve beoordeling door mensen met praktische bouwervaring. U
-            krijgt een helder beeld van zichtbare vaststellingen, aandachtspunten en prioriteiten. Het rapport blijft
-            waardevol, ook als u later met een andere partij werkt.
+      {/* Verloop */}
+      <Section eyebrow="Verloop" title="Hoe verloopt een Woningscan?">
+        <ol className="grid gap-8 md:grid-cols-4">
+          {STEPS.map((s, i) => (
+            <li key={s.t} className="border-t border-border pt-6">
+              <span className="font-display text-accent text-lg tabular-nums">{i + 1}.</span>
+              <h3 className="mt-2 font-display text-xl text-primary">{s.t}</h3>
+              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{s.d}</p>
+            </li>
+          ))}
+        </ol>
+      </Section>
+
+      {/* Regio */}
+      <Section bg="surface" eyebrow="Werkgebied" title="Woningscan in Limburg en Vlaams-Brabant">
+        <div className="grid gap-8 md:grid-cols-2 max-w-5xl text-muted-foreground leading-relaxed">
+          <p>
+            DIMAC voert vanuit Diest bouwtechnische Woningscans uit bij kandidaat-kopers en eigenaars in Limburg en
+            Vlaams-Brabant. Of u nu een woning overweegt te kopen of renovatieplannen heeft voor uw huidige woning: met
+            een Woningscan krijgt u meer inzicht in de zichtbare bouwtechnische aandachtspunten en de stappen die
+            mogelijk volgen.
           </p>
-          <p className="text-muted-foreground leading-relaxed">
-            Verborgen gebreken kunnen niet uitgesloten worden. De scan vervangt geen wettelijke keuring, EPC,
-            asbestattest, gespecialiseerde stabiliteitsstudie of architectenadvies.
+          <p>
+            Een Woningscan kan ook vóór aankoop, mits toestemming voor toegang tot het pand. De praktische planning
+            stemmen we af op de ligging van de woning en het gekozen pakket. Ook een{" "}
+            <Link to="/totaalrenovaties" className="text-accent underline underline-offset-2">totaalrenovatie</Link>{" "}
+            kan DIMAC achteraf beoordelen, zonder verplichting.
           </p>
         </div>
       </Section>
 
-      <Section eyebrow="Veelgestelde vragen" title="Vragen over de Woningscan">
+      {/* Verwachtingen */}
+      <Section eyebrow="Goed om te weten" title="Wat mag u van een Woningscan verwachten?">
+        <div className="grid gap-10 md:grid-cols-[1fr_1.2fr] max-w-5xl">
+          <p className="text-muted-foreground leading-relaxed">
+            De Woningscan is een visuele, niet-destructieve screening van de woning, uitgevoerd vanuit praktische
+            bouwervaring. U krijgt een helder beeld van zichtbare vaststellingen en prioriteiten. Gebreken kunnen
+            daarmee niet uitgesloten worden.
+          </p>
+          <ul className="grid gap-2.5 text-sm text-muted-foreground">
+            {LIMITS.map((l) => (
+              <li key={l} className="flex gap-3">
+                <Minus className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
+                {l}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </Section>
+
+      <Section bg="surface" eyebrow="Veelgestelde vragen" title="Veelgestelde vragen over een Woningscan">
         <FAQ items={faq} className="max-w-3xl" />
       </Section>
     </>

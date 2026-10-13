@@ -14,6 +14,10 @@ export interface ScanPackage {
   items: string[];
   audience: string;
   note?: string;
+  /** Wat niet standaard inbegrepen is. */
+  excludes?: string[];
+  /** Kernresultaat in één oogopslag. */
+  result: string;
   cta: string;
 }
 
@@ -22,8 +26,8 @@ export const DRONE_PRICE = 125;
 export const DRONE_OPTION = {
   name: "Drone-dakscreening",
   price: DRONE_PRICE,
-  text: "Visuele screening van bereikbare dakvlakken, dakbedekking, nokken, schouwen en zichtbare aandachtspunten. Detailbeelden en bevindingen worden in het rapport opgenomen.",
-  condition: "Uitvoering is afhankelijk van weersomstandigheden, veiligheid en toegestane vliegmogelijkheden.",
+  text: "Zichtbare delen van het dak van bovenaf bekeken: dakbedekking, nokken, schouwen, zichtbare aansluitingen en andere bereikbare aandachtspunten. Relevante beelden en bevindingen komen in uw rapport, ook bij Basis.",
+  condition: "Uitvoering is afhankelijk van weersomstandigheden, vliegveiligheid, privacy en de geldende droneregels. Vervangt geen fysieke dakinspectie.",
 };
 
 export const SCAN_PACKAGES: ScanPackage[] = [
@@ -39,7 +43,9 @@ export const SCAN_PACKAGES: ScanPackage[] = [
       "Overzicht van zichtbare vaststellingen",
       "Renovatieprioriteiten",
     ],
-    audience: "Voor kandidaat-kopers en eigenaars die een eerste bouwtechnisch overzicht willen.",
+    audience: "Voor kandidaat-kopers en eigenaars die een eerste technisch overzicht wensen.",
+    excludes: ["Uitgebreide fotodocumentatie", "Renovatiestappenplan zoals bij Plus", "Indicatieve kostenraming"],
+    result: "Inzicht",
     cta: "Kies Basis",
   },
   {
@@ -49,14 +55,16 @@ export const SCAN_PACKAGES: ScanPackage[] = [
     tagline: "Weet wat u moet aanpakken. En vooral: wat eerst.",
     includesFrom: "Alles uit Basis, aangevuld met:",
     items: [
-      "Uitgebreidere inspectie en fotodocumentatie",
+      "Uitgebreidere visuele inspectie van circa twee uur",
+      "Fotodocumentatie",
       "Gerichte aanbevelingen",
       "Logische renovatievolgorde",
       "Onderscheid tussen prioritaire en latere werken",
       "Praktisch renovatiestappenplan",
     ],
-    audience: "Voor kopers en eigenaars die een renovatie willen plannen.",
-    note: "Zonder kostenraming.",
+    audience: "Voor wie inzicht wil in de aanpak en volgorde van een renovatie.",
+    note: "Plus bevat geen renovatiekostenraming.",
+    result: "Inzicht + plan",
     cta: "Kies Plus",
   },
   {
@@ -67,13 +75,14 @@ export const SCAN_PACKAGES: ScanPackage[] = [
     includesFrom: "Alles uit Plus, aangevuld met:",
     items: [
       "Analyse van de geplande renovatie",
-      "Indicatieve kostenraming",
+      "Indicatieve renovatiekostenraming",
       "Budgetverdeling per belangrijke renovatiecategorie",
-      "Inzicht in financiële haalbaarheid en eventuele premies",
-      "Mogelijkheid om een totaalrenovatie door Dimac te laten beoordelen",
+      "Inzicht in de financiële haalbaarheid van de geplande werken",
+      "Mogelijkheid om een totaalrenovatie door DIMAC te laten beoordelen, zonder verplichting",
     ],
-    audience: "Voor wie een substantiële renovatie overweegt en de mogelijke investering beter wil inschatten.",
-    note: "De kostenraming is indicatief en geen bindende offerte of vastgoedtaxatie.",
+    audience: "Voor kandidaat-kopers en eigenaars die ook een inschatting van hun mogelijke investering willen.",
+    result: "Inzicht + plan + budgetindicatie",
+    note: "Een kostenraming is indicatief, niet bindend en vormt geen gedetailleerde aannemersofferte of vastgoedtaxatie.",
     cta: "Kies Compleet",
   },
 ];
@@ -90,4 +99,13 @@ export function scanTotal(id: PackageId, drone: boolean): number {
 
 export function formatEuro(value: number): string {
   return `€${value.toLocaleString("nl-BE")}`;
+}
+
+export type Situation = "kopen" | "renoveren";
+
+/** Leest pakket- en situatieparameters uit de URL; ongeldige waarden worden genegeerd. */
+export function parseScanParams(params: URLSearchParams): { pakket: PackageId | null; situatie: Situation | null } {
+  const pakket = getPackage(params.get("pakket"))?.id ?? null;
+  const s = params.get("situatie");
+  return { pakket, situatie: s === "kopen" || s === "renoveren" ? s : null };
 }

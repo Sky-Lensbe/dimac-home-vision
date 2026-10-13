@@ -44,6 +44,12 @@ export const COMPANY = {
 export const ALLOW_INDEXING =
   typeof import.meta !== "undefined" && import.meta.env?.VITE_ALLOW_INDEXING === "true";
 
+/** Werkgebied: vanuit Diest, in de provincies Limburg en Vlaams-Brabant. */
+export const AREA_SERVED = [
+  { "@type": "AdministrativeArea", name: "Limburg", containedInPlace: { "@type": "Country", name: "België" } },
+  { "@type": "AdministrativeArea", name: "Vlaams-Brabant", containedInPlace: { "@type": "Country", name: "België" } },
+];
+
 export const DEFAULT_OG_IMAGE = COMPANY.image;
 
 /** Structured data voor de onderneming. Wordt op elke pagina hergebruikt via @id. */
@@ -59,7 +65,7 @@ export function organizationSchema() {
     logo: COMPANY.logo,
     image: COMPANY.image,
     email: COMPANY.email,
-    areaServed: { "@type": "City", name: COMPANY.region },
+    areaServed: AREA_SERVED,
   };
 }
 
