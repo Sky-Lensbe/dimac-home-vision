@@ -96,7 +96,9 @@ const faq = [
 const Woningscan = () => {
   const [params] = useSearchParams();
   const initial = getPackage(params.get("pakket"))?.id ?? null;
-  const [situation, setSituation] = useState<Situation | null>(null);
+  const sitParam = params.get("situatie");
+  const initialSituation: Situation | null = sitParam === "kopen" || sitParam === "renoveren" ? sitParam : null;
+  const [situation, setSituation] = useState<Situation | null>(initialSituation);
   const [selected, setSelected] = useState<PackageId | null>(initial);
   const [drone, setDrone] = useState(false);
   const [sent, setSent] = useState(false);
@@ -107,6 +109,10 @@ const Woningscan = () => {
 
   useEffect(() => {
     track("woningscan_view", { page_type: "woningscan" });
+    if (initial) {
+      requestAnimationFrame(() => document.getElementById("pakketten")?.scrollIntoView({ block: "start" }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const set = (k: keyof typeof form) => (v: string) => {
