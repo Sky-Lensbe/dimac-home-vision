@@ -65,7 +65,7 @@ const Index = () => {
             <img
               src={heroAsset.url}
               alt="Lichte living met eetkamer, opgeleverd door Dimac"
-              className="h-full w-full object-cover object-[60%_35%]"
+              className="h-full w-full object-cover"
               fetchPriority="high"
             />
           </div>
