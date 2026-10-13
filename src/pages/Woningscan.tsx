@@ -27,7 +27,7 @@ import {
 import { buildMailto, openMailto } from "@/lib/mailto";
 import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
-import prep from "@/assets/preparation.jpg";
+import prep from "@/assets/leidingwerk.jpg.asset.json";
 
 type Situation = "kopen" | "renoveren";
 
@@ -389,7 +389,7 @@ const Woningscan = () => {
               )}
             </div>
             <div className="mt-8 hidden lg:block">
-              <ImagePlaceholder src={prep} label="Technische inspectie van een woning" aspect="landscape" />
+              <ImagePlaceholder src={prep} label="Leidingwerk tijdens een totaalrenovatie" aspect="landscape" />
             </div>
           </div>
 
