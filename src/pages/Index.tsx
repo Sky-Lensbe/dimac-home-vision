@@ -102,7 +102,7 @@ const Index = () => (
         </h1>
         <p className="mt-5 lg:mt-8 text-base md:text-lg text-muted-foreground max-w-xl leading-relaxed">
           Een woning kopen of renoveren? Maak onderbouwde keuzes dankzij onze praktijkervaring in
-          vastgoedontwikkeling. Met de DIMAC Woningscan ontdekt u de zichtbare aandachtspunten,
+          vastgoedontwikkeling. Met de Woningscan ontdekt u de zichtbare aandachtspunten,
           renovatieprioriteiten en, afhankelijk van het pakket, de indicatieve renovatiekosten.
         </p>
         <div className="mt-7 lg:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4">
