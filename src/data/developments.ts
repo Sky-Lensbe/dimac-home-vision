@@ -31,6 +31,12 @@ import diestLivingTwo from "@/assets/diest-woonruimte-2.jpg.asset.json";
 import diestKitchen from "@/assets/diest-keuken.jpg.asset.json";
 import herkGevel from "@/assets/herk-de-stad-gevel.jpg.asset.json";
 import herkBadkamer from "@/assets/herk-de-stad-badkamer.jpg.asset.json";
+import paalGevel from "@/assets/paal-gevel.jpg.asset.json";
+import paalBadkamer from "@/assets/paal-badkamer.jpg.asset.json";
+import paalBadkamerTwee from "@/assets/paal-badkamer-2.jpg.asset.json";
+import paalKeuken from "@/assets/paal-keuken.jpg.asset.json";
+import paalTerras from "@/assets/paal-terras.jpg.asset.json";
+import paalTerrasTwee from "@/assets/paal-terras-2.jpg.asset.json";
 
 export const developments: Development[] = [
   {
@@ -58,7 +64,15 @@ export const developments: Development[] = [
     slug: "paal",
     name: "Project Paal",
     location: "Paal",
-    coverAlt: "Paal",
+    cover: paalGevel.url,
+    coverAlt: "Gevel van het project in Paal",
+    gallery: [
+      { src: paalBadkamer.url, alt: "Badkamer van het project in Paal" },
+      { src: paalBadkamerTwee.url, alt: "Tweede zicht op de badkamer in Paal" },
+      { src: paalKeuken.url, alt: "Keuken van het project in Paal" },
+      { src: paalTerras.url, alt: "Overdekt terras van het project in Paal" },
+      { src: paalTerrasTwee.url, alt: "Tweede zicht op het overdekte terras in Paal" },
+    ],
   },
   {
     slug: "schaffen",
