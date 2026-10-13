@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Section } from "@/components/site/Section";
 import { FAQ } from "@/components/site/FAQ";
 import { PageHero } from "@/components/site/PageHero";
-import { ImagePlaceholder } from "@/components/site/ImagePlaceholder";
 import {
   ConsentField,
   HandoffMessage,
@@ -29,7 +28,7 @@ import {
 import { buildMailto, openMailto } from "@/lib/mailto";
 import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
-import prep from "@/assets/leidingwerk.jpg.asset.json";
+import inspectie from "@/assets/inspecteur-inkomhal.png.asset.json";
 
 const SITUATIONS: Record<Situation, { label: string; icon: typeof Home; heading: string; title: string; text: string; questions: string[]; advice: string }> = {
   kopen: {
@@ -518,7 +517,18 @@ const Woningscan = () => {
               )}
             </div>
             <div className="mt-8 hidden lg:block">
-              <ImagePlaceholder src={prep.url} label="Leidingwerk tijdens een totaalrenovatie" aspect="landscape" />
+              <div className="relative overflow-hidden">
+                <img
+                  src={inspectie.url}
+                  alt="Inspecteur met tablet tijdens een Woningscan in een moderne inkomhal"
+                  loading="lazy"
+                  className="w-full aspect-[4/5] object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/85 via-primary/25 to-transparent" aria-hidden="true" />
+                <p className="absolute inset-x-0 bottom-0 p-6 font-display text-xl md:text-2xl leading-snug text-primary-foreground">
+                  Duidelijkheid in uw project, meerwaarde garanderen in uw toekomst.
+                </p>
+              </div>
             </div>
           </div>
 
