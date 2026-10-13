@@ -37,7 +37,7 @@ const steps = [
   { title: "Aankopen en analyseren", text: "Elke aankoop vertrekt vanuit een grondige technische en ruimtelijke analyse." },
   { title: "Mogelijkheden onderzoeken", text: "Renoveren, transformeren of nieuw bouwen: we kiezen wat het pand en de plek toelaten." },
   { title: "Realiseren", text: "Nieuwbouw of grondige renovatie, met aandacht voor volgorde, techniek en afwerking." },
-  { title: "Waarde creëren", text: "Kwaliteit en levensduur gaan voor snelle winst. Dat bepaalt de waarde van morgen." },
+  { title: "Waarde creëren", text: "Kwaliteit en levensduur garanderen. Dat bepaalt de waarde van morgen." },
 ];
 
 /** Uitleg over de ontwikkelingsaanpak, zolang er geen bevestigde projecten getoond worden. */
