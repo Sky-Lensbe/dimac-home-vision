@@ -37,6 +37,10 @@ import paalBadkamerTwee from "@/assets/paal-badkamer-2.jpg.asset.json";
 import paalKeuken from "@/assets/paal-keuken.jpg.asset.json";
 import paalTerras from "@/assets/paal-terras.jpg.asset.json";
 import paalTerrasTwee from "@/assets/paal-terras-2.jpg.asset.json";
+import schaffenGevel from "@/assets/schaffen-gevel.jpg.asset.json";
+import schaffenBadkamer from "@/assets/schaffen-badkamer.jpg.asset.json";
+import schaffenWoonruimte from "@/assets/schaffen-woonruimte.jpg.asset.json";
+import schaffenTrap from "@/assets/schaffen-trap.jpg.asset.json";
 
 export const developments: Development[] = [
   {
