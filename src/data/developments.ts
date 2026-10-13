@@ -41,6 +41,15 @@ import schaffenGevel from "@/assets/schaffen-gevel.jpg.asset.json";
 import schaffenBadkamer from "@/assets/schaffen-badkamer.jpg.asset.json";
 import schaffenWoonruimte from "@/assets/schaffen-woonruimte.jpg.asset.json";
 import schaffenTrap from "@/assets/schaffen-trap.jpg.asset.json";
+import schulenGevel from "@/assets/schulen-gevel.jpg.asset.json";
+import schulenWoonruimte from "@/assets/schulen-woonruimte.jpg.asset.json";
+import schulenBadkamer from "@/assets/schulen-badkamer.jpg.asset.json";
+import schulenBadkamerTwee from "@/assets/schulen-badkamer-2.jpg.asset.json";
+import schulenKeuken from "@/assets/schulen-keuken.jpg.asset.json";
+import schulenKeukenTwee from "@/assets/schulen-keuken-2.jpg.asset.json";
+import schulenTrap from "@/assets/schulen-trap.jpg.asset.json";
+import schulenGevelTwee from "@/assets/schulen-gevel-2.jpg.asset.json";
+import schulenGevelDrie from "@/assets/schulen-gevel-3.jpg.asset.json";
 
 export const developments: Development[] = [
   {
@@ -94,7 +103,18 @@ export const developments: Development[] = [
     slug: "schulen",
     name: "Project Schulen",
     location: "Schulen",
-    coverAlt: "Schulen",
+    cover: schulenGevel.url,
+    coverAlt: "Vooraanzicht van het project in Schulen",
+    gallery: [
+      { src: schulenWoonruimte.url, alt: "Woonruimte van het project in Schulen" },
+      { src: schulenBadkamer.url, alt: "Badkamer van het project in Schulen" },
+      { src: schulenBadkamerTwee.url, alt: "Tweede zicht op de badkamer in Schulen" },
+      { src: schulenKeuken.url, alt: "Keuken van het project in Schulen" },
+      { src: schulenKeukenTwee.url, alt: "Tweede zicht op de keuken in Schulen" },
+      { src: schulenTrap.url, alt: "Traphal van het project in Schulen" },
+      { src: schulenGevelTwee.url, alt: "Tweede zicht op de gevel in Schulen" },
+      { src: schulenGevelDrie.url, alt: "Derde zicht op de gevel in Schulen" },
+    ],
   },
 ];
 
