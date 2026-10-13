@@ -48,29 +48,20 @@ const Index = () => {
         schemas={[organizationSchema(), websiteSchema()]}
       />
 
-      {/* HERO — mobiel: full-bleed foto met tekst-overlay; vanaf lg: aparte kolom */}
+      {/* HERO — full-bleed foto met tekst-overlay op alle schermformaten */}
       <section className="relative bg-background overflow-hidden">
-        <div className="absolute inset-0 lg:hidden" aria-hidden="true">
-          <img
-            src={heroAsset.url}
-            alt=""
-            className="h-full w-full object-cover"
-            fetchPriority="high"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/10" />
-        </div>
+        <img
+          src={heroAsset.url}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+          fetchPriority="high"
+        />
+        <div
+          className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/10 lg:bg-gradient-to-r lg:from-background lg:via-background/85 lg:to-background/20"
+          aria-hidden="true"
+        />
 
-        <div className="relative lg:container-wide lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:items-center lg:pt-32 lg:pb-24">
-          <div className="relative hidden lg:block lg:order-2 lg:aspect-[4/5]">
-            <img
-              src={heroAsset.url}
-              alt="Lichte living met eetkamer, opgeleverd door Dimac"
-              className="h-full w-full object-cover"
-              fetchPriority="high"
-            />
-          </div>
-
-          <div className="relative container-wide lg:px-0 pt-56 sm:pt-72 pb-16 sm:pb-20 lg:p-0 lg:order-1 fade-up">
+        <div className="relative container-wide pt-56 sm:pt-72 pb-16 sm:pb-20 lg:pt-48 lg:pb-48 fade-up">
             <span className="inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-accent mb-6 lg:mb-8">
               <span className="h-px w-8 bg-accent" />
               Vastgoedontwikkeling & bouwexpertise
@@ -108,7 +99,6 @@ const Index = () => {
               Een volledige renovatie plannen? Bekijk onze totaalrenovaties <ArrowUpRight className="w-4 h-4" />
             </Link>
           </div>
-        </div>
       </section>
 
       {/* EXPERTISE */}
