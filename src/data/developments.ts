@@ -103,7 +103,18 @@ export const developments: Development[] = [
     slug: "schulen",
     name: "Project Schulen",
     location: "Schulen",
-    coverAlt: "Schulen",
+    cover: schulenGevel.url,
+    coverAlt: "Vooraanzicht van het project in Schulen",
+    gallery: [
+      { src: schulenWoonruimte.url, alt: "Woonruimte van het project in Schulen" },
+      { src: schulenBadkamer.url, alt: "Badkamer van het project in Schulen" },
+      { src: schulenBadkamerTwee.url, alt: "Tweede zicht op de badkamer in Schulen" },
+      { src: schulenKeuken.url, alt: "Keuken van het project in Schulen" },
+      { src: schulenKeukenTwee.url, alt: "Tweede zicht op de keuken in Schulen" },
+      { src: schulenTrap.url, alt: "Traphal van het project in Schulen" },
+      { src: schulenGevelTwee.url, alt: "Tweede zicht op de gevel in Schulen" },
+      { src: schulenGevelDrie.url, alt: "Derde zicht op de gevel in Schulen" },
+    ],
   },
 ];
 
