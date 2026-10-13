@@ -366,7 +366,7 @@ const Woningscan = () => {
               Welke Woningscan past bij uw woning?
             </h2>
             <p className="mt-5 text-muted-foreground leading-relaxed">
-              Van een eerste bouwtechnisch overzicht tot een indicatieve renovatiebegroting. Kies het niveau van inzicht
+              Van een eerste bouwtechnisch overzicht tot een volledige road-map op uw maat met indicatieve renovatiebegroting. Kies het niveau van inzicht
               dat bij uw plannen past. Alle prijzen inclusief btw.
             </p>
           </header>
