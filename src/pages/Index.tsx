@@ -9,7 +9,7 @@ import { organizationSchema, websiteSchema } from "@/lib/site";
 import { developments } from "@/data/developments";
 import { formatEuro } from "@/data/woningscan";
 import { track } from "@/lib/analytics";
-import heroAsset from "@/assets/dimac-woning.jpg.asset.json";
+import heroAsset from "@/assets/hero-living.jpg.asset.json";
 import renoAsset from "@/assets/total-realisation.jpg.asset.json";
 
 const expertise = [
@@ -54,7 +54,7 @@ const Index = () => {
           <img
             src={heroAsset.url}
             alt=""
-            className="h-full w-full object-cover object-[60%_35%]"
+            className="h-full w-full object-cover"
             fetchPriority="high"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/10" />
@@ -64,7 +64,7 @@ const Index = () => {
           <div className="relative hidden lg:block lg:order-2 lg:aspect-[4/5]">
             <img
               src={heroAsset.url}
-              alt="Hedendaagse woning, ontwikkeld met oog voor architectuur en materiaal"
+              alt="Lichte living met eetkamer, opgeleverd door Dimac"
               className="h-full w-full object-cover object-[60%_35%]"
               fetchPriority="high"
             />
