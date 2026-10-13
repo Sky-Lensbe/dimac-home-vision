@@ -29,6 +29,8 @@ export interface Development {
 import diestLiving from "@/assets/diest-woonruimte.jpg.asset.json";
 import diestLivingTwo from "@/assets/diest-woonruimte-2.jpg.asset.json";
 import diestKitchen from "@/assets/diest-keuken.jpg.asset.json";
+import herkGevel from "@/assets/herk-de-stad-gevel.jpg.asset.json";
+import herkBadkamer from "@/assets/herk-de-stad-badkamer.jpg.asset.json";
 
 export const developments: Development[] = [
   {
@@ -46,7 +48,11 @@ export const developments: Development[] = [
     slug: "herk-de-stad",
     name: "Project Herk-de-Stad",
     location: "Herk-de-Stad",
-    coverAlt: "Herk-de-Stad",
+    cover: herkGevel.url,
+    coverAlt: "Gevel van het project in Herk-de-Stad",
+    gallery: [
+      { src: herkBadkamer.url, alt: "Badkamer van het project in Herk-de-Stad" },
+    ],
   },
   {
     slug: "paal",
