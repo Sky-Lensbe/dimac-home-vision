@@ -50,8 +50,8 @@ const Index = () => {
 
       {/* HERO — één h1; foto als achtergrond onder lg, aparte kolom vanaf lg */}
       <section className="relative pt-20 lg:pt-32 pb-0 lg:pb-24 bg-background overflow-hidden">
-        <div className="lg:container-wide lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:items-center">
-          <div className="relative lg:order-2 min-h-[34rem] sm:min-h-[38rem] lg:min-h-0 flex items-end lg:block">
+        <div className="relative lg:container-wide lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:items-center">
+          <div className="absolute inset-0 lg:relative lg:inset-auto lg:order-2">
             <img
               src={heroAsset.url}
               alt="Hedendaagse woning, ontwikkeld met oog voor architectuur en materiaal"
@@ -64,7 +64,7 @@ const Index = () => {
             />
           </div>
 
-          <div className="absolute inset-x-0 bottom-0 lg:static container-wide lg:px-0 pb-10 lg:pb-0 lg:order-1 fade-up">
+          <div className="relative container-wide lg:px-0 pt-56 sm:pt-72 pb-10 lg:p-0 lg:order-1 fade-up">
             <span className="inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-primary-foreground/85 lg:text-accent mb-6 lg:mb-8">
               <span className="h-px w-8 bg-accent" />
               Vastgoedontwikkeling & bouwexpertise
