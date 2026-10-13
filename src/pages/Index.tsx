@@ -178,8 +178,7 @@ const Index = () => {
               Professioneel inzicht, vóór u beslist.
             </h2>
             <p className="mt-6 text-lg text-primary-foreground/75 leading-relaxed" data-reveal data-reveal-delay="2">
-              Drie heldere pakketten, vanaf {formatEuro(299)} incl. btw. Bruikbaar, ook als u later met een andere
-              partij werkt.
+              Drie heldere pakketten, vanaf {formatEuro(299)} incl. btw. De toegang tot uw onafhankelijke partner om uw huidige of toekomstige woning te inspecteren.
             </p>
           </div>
           <div className="mt-14 grid gap-px bg-primary-foreground/15 md:grid-cols-2">
