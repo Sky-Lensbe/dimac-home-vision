@@ -31,6 +31,12 @@ import diestLivingTwo from "@/assets/diest-woonruimte-2.jpg.asset.json";
 import diestKitchen from "@/assets/diest-keuken.jpg.asset.json";
 import herkGevel from "@/assets/herk-de-stad-gevel.jpg.asset.json";
 import herkBadkamer from "@/assets/herk-de-stad-badkamer.jpg.asset.json";
+import paalGevel from "@/assets/paal-gevel.jpg.asset.json";
+import paalBadkamer from "@/assets/paal-badkamer.jpg.asset.json";
+import paalBadkamerTwee from "@/assets/paal-badkamer-2.jpg.asset.json";
+import paalKeuken from "@/assets/paal-keuken.jpg.asset.json";
+import paalTerras from "@/assets/paal-terras.jpg.asset.json";
+import paalTerrasTwee from "@/assets/paal-terras-2.jpg.asset.json";
 
 export const developments: Development[] = [
   {
