@@ -292,7 +292,7 @@ const Woningscan = () => {
                 >
                   {featured && (
                     <span className="absolute -top-3 left-7 bg-primary text-primary-foreground text-[10px] uppercase tracking-[0.2em] px-3 py-1">
-                      Meest gekozen voor renovatieplanning
+                      Aanbevolen bij renovatieplanning
                     </span>
                   )}
                   <h3 className="text-xs uppercase tracking-[0.24em] text-accent">{p.name}</h3>

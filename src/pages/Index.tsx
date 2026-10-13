@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, ArrowUpRight, KeyRound, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,6 @@ import { formatEuro } from "@/data/woningscan";
 import { track } from "@/lib/analytics";
 import heroAsset from "@/assets/hero-dimac.jpg.asset.json";
 import renoAsset from "@/assets/total-realisation.jpg.asset.json";
-import prep from "@/assets/preparation.jpg";
 
 const expertise = [
   {
@@ -41,10 +39,6 @@ const expertise = [
 const cta = (label: string) => () => track("cta_click", { page_type: "home", cta_label: label });
 
 const Index = () => {
-  useEffect(() => {
-    document.documentElement.dataset.page = "home";
-  }, []);
-
   return (
     <>
       <PageSEO
@@ -68,7 +62,6 @@ const Index = () => {
               aria-hidden="true"
               className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/55 to-primary/10 lg:hidden"
             />
-            <div className="relative w-full container-wide pb-10 pt-40 lg:hidden" aria-hidden="true" />
           </div>
 
           <div className="absolute inset-x-0 bottom-0 lg:static container-wide lg:px-0 pb-10 lg:pb-0 lg:order-1 fade-up">
@@ -287,7 +280,6 @@ const Index = () => {
           </div>
         </div>
       </section>
-      <span hidden>{prep}</span>
     </>
   );
 };
