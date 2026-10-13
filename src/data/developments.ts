@@ -37,6 +37,10 @@ import paalBadkamerTwee from "@/assets/paal-badkamer-2.jpg.asset.json";
 import paalKeuken from "@/assets/paal-keuken.jpg.asset.json";
 import paalTerras from "@/assets/paal-terras.jpg.asset.json";
 import paalTerrasTwee from "@/assets/paal-terras-2.jpg.asset.json";
+import schaffenGevel from "@/assets/schaffen-gevel.jpg.asset.json";
+import schaffenBadkamer from "@/assets/schaffen-badkamer.jpg.asset.json";
+import schaffenWoonruimte from "@/assets/schaffen-woonruimte.jpg.asset.json";
+import schaffenTrap from "@/assets/schaffen-trap.jpg.asset.json";
 
 export const developments: Development[] = [
   {
@@ -78,7 +82,13 @@ export const developments: Development[] = [
     slug: "schaffen",
     name: "Project Schaffen",
     location: "Schaffen",
-    coverAlt: "Schaffen",
+    cover: schaffenGevel.url,
+    coverAlt: "Gevel van het project in Schaffen",
+    gallery: [
+      { src: schaffenBadkamer.url, alt: "Badkamer van het project in Schaffen" },
+      { src: schaffenWoonruimte.url, alt: "Woonruimte van het project in Schaffen" },
+      { src: schaffenTrap.url, alt: "Traphal van het project in Schaffen" },
+    ],
   },
   {
     slug: "schulen",

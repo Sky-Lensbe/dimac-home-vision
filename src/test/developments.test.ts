@@ -8,7 +8,7 @@ describe("confirmed projects", () => {
     ]);
   });
 
-  it("assigns the supplied photographs to Diest, Herk-de-Stad and Paal", () => {
+  it("assigns the supplied photographs to Diest, Herk-de-Stad, Paal and Schaffen", () => {
     const diest = getDevelopment("diest");
     expect(diest?.name).toBe("Vrijstaande woning Diest");
     expect(diest?.cover).toBeTruthy();
@@ -24,6 +24,11 @@ describe("confirmed projects", () => {
     expect(paal?.cover).toBeTruthy();
     expect(paal?.gallery).toHaveLength(5);
 
-    expect(developments.filter((project) => project.slug !== "diest" && project.slug !== "herk-de-stad" && project.slug !== "paal").every((project) => !project.cover && !project.gallery)).toBe(true);
+    const schaffen = getDevelopment("schaffen");
+    expect(schaffen?.name).toBe("Project Schaffen");
+    expect(schaffen?.cover).toBeTruthy();
+    expect(schaffen?.gallery).toHaveLength(3);
+
+    expect(developments.filter((project) => project.slug !== "diest" && project.slug !== "herk-de-stad" && project.slug !== "paal" && project.slug !== "schaffen").every((project) => !project.cover && !project.gallery)).toBe(true);
   });
 });
