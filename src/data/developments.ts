@@ -48,7 +48,11 @@ export const developments: Development[] = [
     slug: "herk-de-stad",
     name: "Project Herk-de-Stad",
     location: "Herk-de-Stad",
-    coverAlt: "Herk-de-Stad",
+    cover: herkGevel.url,
+    coverAlt: "Gevel van het project in Herk-de-Stad",
+    gallery: [
+      { src: herkBadkamer.url, alt: "Badkamer van het project in Herk-de-Stad" },
+    ],
   },
   {
     slug: "paal",
