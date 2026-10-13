@@ -12,27 +12,22 @@ const Projecten = () => (
   <>
     <PageSEO
       path="/projecten"
-      title="Onze projecten | Vastgoedontwikkeling in regio Diest | Dimac"
-      description="Dimac ontwikkelt eigen vastgoed: van nieuwbouw tot de volledige transformatie van bestaande woningen. Ontdek onze aanpak en projecten."
+      title="Onze projecten | Diest, Herk-de-Stad, Paal, Schaffen en Schulen | Dimac"
+      description="Bekijk de projecten van Dimac in Diest, Herk-de-Stad, Paal, Schaffen en Schulen."
       schemas={[organizationSchema(), breadcrumbSchema([{ label: "Home", to: "/" }, { label: "Onze projecten" }])]}
     />
     <PageHero
       crumbs={[{ label: "Home", to: "/" }, { label: "Onze projecten" }]}
-      eyebrow="Vastgoedontwikkeling"
-      title="Wij zien mogelijkheden waar anderen alleen een gebouw zien."
+      eyebrow="Onze projecten"
+      title="Bouwexpertise in de praktijk."
       intro={
         <p>
-          Dimac investeert in eigen vastgoed. We kopen panden met potentieel, ontwikkelen eigen nieuwbouw en
-          transformeren bestaande woningen via grondige renovaties. Die praktijk is de bron van onze bouwexpertise.
+          Ontdek onze projecten in Diest, Herk-de-Stad, Paal, Schaffen en Schulen.
         </p>
       }
     />
 
-    <Section eyebrow="Onze ontwikkelingsaanpak" title="Van potentieel tot blijvende waarde">
-      <DevelopmentApproach />
-    </Section>
-
-    <Section bg="surface" eyebrow="Projecten" title={developments.length ? "Eigen ontwikkelingen" : "Projecten volgen binnenkort"}>
+    <Section bg="surface" eyebrow="Projecten" title={developments.length ? "Onze projecten" : "Projecten volgen binnenkort"}>
       {developments.length ? (
         <DevelopmentGrid items={developments} />
       ) : (
