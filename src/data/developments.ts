@@ -64,7 +64,15 @@ export const developments: Development[] = [
     slug: "paal",
     name: "Project Paal",
     location: "Paal",
-    coverAlt: "Paal",
+    cover: paalGevel.url,
+    coverAlt: "Gevel van het project in Paal",
+    gallery: [
+      { src: paalBadkamer.url, alt: "Badkamer van het project in Paal" },
+      { src: paalBadkamerTwee.url, alt: "Tweede zicht op de badkamer in Paal" },
+      { src: paalKeuken.url, alt: "Keuken van het project in Paal" },
+      { src: paalTerras.url, alt: "Overdekt terras van het project in Paal" },
+      { src: paalTerrasTwee.url, alt: "Tweede zicht op het overdekte terras in Paal" },
+    ],
   },
   {
     slug: "schaffen",
