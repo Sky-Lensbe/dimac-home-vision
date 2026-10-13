@@ -48,19 +48,29 @@ const Index = () => {
         schemas={[organizationSchema(), websiteSchema()]}
       />
 
-      {/* HERO — volledige foto boven de tekst onder lg, aparte kolom vanaf lg */}
-      <section className="relative pt-20 lg:pt-32 pb-0 lg:pb-24 bg-background overflow-hidden">
-        <div className="relative lg:container-wide lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:items-center">
-          <div className="relative lg:order-2">
+      {/* HERO — mobiel: full-bleed foto met tekst-overlay; vanaf lg: aparte kolom */}
+      <section className="relative bg-background overflow-hidden">
+        <div className="absolute inset-0 lg:hidden" aria-hidden="true">
+          <img
+            src={heroAsset.url}
+            alt=""
+            className="h-full w-full object-cover object-[60%_35%]"
+            fetchPriority="high"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/10" />
+        </div>
+
+        <div className="relative lg:container-wide lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:items-center lg:pt-32 lg:pb-24">
+          <div className="relative hidden lg:block lg:order-2 lg:aspect-[4/5]">
             <img
               src={heroAsset.url}
               alt="Hedendaagse woning, ontwikkeld met oog voor architectuur en materiaal"
-              className="block h-auto w-full object-contain lg:aspect-[4/5] lg:object-cover lg:object-[60%_35%]"
+              className="h-full w-full object-cover object-[60%_35%]"
               fetchPriority="high"
             />
           </div>
 
-          <div className="relative container-wide lg:px-0 pt-10 pb-10 lg:p-0 lg:order-1 fade-up">
+          <div className="relative container-wide lg:px-0 pt-56 sm:pt-72 pb-16 sm:pb-20 lg:p-0 lg:order-1 fade-up">
             <span className="inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-accent mb-6 lg:mb-8">
               <span className="h-px w-8 bg-accent" />
               Vastgoedontwikkeling & bouwexpertise
