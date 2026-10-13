@@ -54,7 +54,7 @@ import schulenGevelDrie from "@/assets/schulen-gevel-3.jpg.asset.json";
 export const developments: Development[] = [
   {
     slug: "diest",
-    name: "Vrijstaande woning Diest",
+    name: "Project Diest",
     location: "Diest",
     cover: diestLiving.url,
     coverAlt: "Woonruimte van de vrijstaande woning in Diest",
