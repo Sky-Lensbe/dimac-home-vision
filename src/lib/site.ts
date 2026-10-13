@@ -34,11 +34,15 @@ export const COMPANY = {
   id: `${SITE_URL}/#organisatie`,
   logo: absoluteUrl("/logo-dimac.png"),
   image: absoluteUrl("/og-dimac.jpg"),
-  areaServed: ["Diest", "Scherpenheuvel-Zichem", "Halen", "Tessenderlo", "Ham", "Bekkevoort"],
-  openingHours: [
-    { days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], opens: "08:00", closes: "17:00" },
-  ],
+  region: "Diest",
 } as const;
+
+/**
+ * Indexering staat uit tot de livegang expliciet bevestigd is.
+ * Zet VITE_ALLOW_INDEXING=true bij publicatie op het definitieve domein.
+ */
+export const ALLOW_INDEXING =
+  typeof import.meta !== "undefined" && import.meta.env?.VITE_ALLOW_INDEXING === "true";
 
 export const DEFAULT_OG_IMAGE = COMPANY.image;
 
@@ -46,20 +50,16 @@ export const DEFAULT_OG_IMAGE = COMPANY.image;
 export function organizationSchema() {
   return {
     "@context": "https://schema.org",
-    "@type": "GeneralContractor",
+    "@type": "Organization",
     "@id": COMPANY.id,
     name: COMPANY.name,
+    description:
+      "Vastgoedontwikkelaar met praktische bouwexpertise. Eigen vastgoedprojecten, totaalrenovaties en Woningscans.",
     url: `${SITE_URL}/`,
     logo: COMPANY.logo,
     image: COMPANY.image,
     email: COMPANY.email,
-    areaServed: COMPANY.areaServed.map((name) => ({ "@type": "City", name })),
-    openingHoursSpecification: COMPANY.openingHours.map((o) => ({
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: o.days,
-      opens: o.opens,
-      closes: o.closes,
-    })),
+    areaServed: { "@type": "City", name: COMPANY.region },
   };
 }
 

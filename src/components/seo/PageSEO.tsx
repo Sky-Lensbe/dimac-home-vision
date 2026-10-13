@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { DEFAULT_OG_IMAGE, SITE_URL, absoluteUrl } from "@/lib/site";
+import { ALLOW_INDEXING, DEFAULT_OG_IMAGE, SITE_URL, absoluteUrl } from "@/lib/site";
 
 export interface PageSEOProps {
   title: string;
@@ -29,7 +29,7 @@ export function resolveSEO(props: PageSEOProps) {
     title: props.title,
     description: props.description,
     url,
-    robots: props.robots ?? "index, follow",
+    robots: ALLOW_INDEXING ? props.robots ?? "index, follow" : "noindex, nofollow",
     ogType: props.ogType ?? "website",
     ogImage: absoluteUrl(props.ogImage ?? DEFAULT_OG_IMAGE),
     schemas: props.schemas ?? [],

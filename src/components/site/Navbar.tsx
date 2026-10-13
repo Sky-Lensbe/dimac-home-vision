@@ -3,20 +3,14 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { services } from "@/data/services";
 import { track } from "@/lib/analytics";
 import logoAsset from "@/assets/dimac-logo.jpg.asset.json";
 
 const NAV: { to: string; label: string; children?: { to: string; label: string }[] }[] = [
   { to: "/", label: "Home" },
-  {
-    to: "/diensten",
-    label: "Diensten",
-    children: services.map((s) => ({ to: `/diensten/${s.slug}`, label: s.navLabel })),
-  },
+  { to: "/projecten", label: "Onze projecten" },
+  { to: "/totaalrenovaties", label: "Totaalrenovaties" },
   { to: "/woningscan", label: "Woningscan" },
-  { to: "/realisaties", label: "Realisaties" },
-  { to: "/werkwijze", label: "Werkwijze" },
   { to: "/over", label: "Over Dimac" },
   { to: "/contact", label: "Contact" },
 ];
@@ -161,12 +155,12 @@ export const Navbar = () => {
         <div className="hidden lg:block">
           <Button asChild variant="solid" size="sm">
             <Link
-              to="/contact"
+              to="/woningscan#pakketten"
               onClick={() =>
-                track("navigation_cta_click", { page_type: "navigatie", cta_label: "Bespreek je project" })
+                track("navigation_cta_click", { page_type: "navigatie", cta_label: "Vraag een Woningscan aan" })
               }
             >
-              Bespreek je project
+              Vraag een Woningscan aan
             </Link>
           </Button>
         </div>
@@ -254,12 +248,12 @@ export const Navbar = () => {
           )}
           <Button asChild variant="solid" className="mt-6 w-full">
             <Link
-              to="/contact"
+              to="/woningscan#pakketten"
               onClick={() =>
-                track("navigation_cta_click", { page_type: "navigatie", cta_label: "Bespreek je project" })
+                track("navigation_cta_click", { page_type: "navigatie", cta_label: "Vraag een Woningscan aan" })
               }
             >
-              Bespreek je project
+              Vraag een Woningscan aan
             </Link>
           </Button>
         </div>

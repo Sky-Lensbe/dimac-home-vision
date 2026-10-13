@@ -1,94 +1,99 @@
-import { Link } from "react-router-dom";
 import { Section } from "@/components/site/Section";
 import { CTABlock } from "@/components/site/CTABlock";
+import { PageHero } from "@/components/site/PageHero";
 import { ImagePlaceholder } from "@/components/site/ImagePlaceholder";
-import { BulletList } from "@/components/site/BulletList";
 import { PageSEO } from "@/components/seo/PageSEO";
-import { organizationSchema } from "@/lib/site";
+import { breadcrumbSchema, organizationSchema } from "@/lib/site";
 import prep from "@/assets/preparation.jpg";
+
+const values = [
+  ["Doordachtheid", "Eerst begrijpen, dan handelen."],
+  ["Transparantie", "Duidelijkheid over mogelijkheden, beperkingen, kosten en verwachtingen."],
+  ["Vakmanschap", "Technische expertise gecombineerd met praktische bouwervaring."],
+  ["Eigenaarschap", "Verantwoordelijkheid nemen voor beslissingen, uitvoering en resultaten."],
+  ["Duurzame waardecreatie", "Verder kijken dan vandaag, met aandacht voor kwaliteit, levensduur en toekomstig vastgoedpotentieel."],
+];
 
 const Over = () => (
   <>
     <PageSEO
       path="/over"
-      title="Over Dimac | Aannemer in regio Diest"
-      description="Dimac is een lokale bouwpartner in regio Diest voor renovatie en nieuwbouw. Technische voorbereiding, coördinatie van de vakgebieden en opvolging op de werf."
-      schemas={[organizationSchema()]}
+      title="Over Dimac | Vastgoedontwikkelaar met bouwexpertise"
+      description="Dimac ontwikkelt eigen vastgoed en deelt die praktijkkennis via totaalrenovaties en Woningscans. Ontdek onze visie, missie en waarden."
+      schemas={[organizationSchema(), breadcrumbSchema([{ label: "Home", to: "/" }, { label: "Over Dimac" }])]}
+    />
+    <PageHero
+      crumbs={[{ label: "Home", to: "/" }, { label: "Over Dimac" }]}
+      eyebrow="Over Dimac"
+      title="Vastgoed ontwikkelen. Expertise delen. Waarde creëren."
+      intro={
+        <p>
+          Dimac is in de eerste plaats een vastgoedontwikkelaar. Wat we leren bij onze eigen projecten, maken we
+          toegankelijk voor wie belangrijke beslissingen neemt over de eigen woning.
+        </p>
+      }
     />
 
-    <section className="pt-32 md:pt-40 pb-16 md:pb-24 bg-surface">
-      <div className="container-tight max-w-3xl fade-up">
-        <span className="eyebrow mb-6">Over Dimac</span>
-        <h1 className="font-display text-4xl md:text-6xl leading-[1.02] tracking-tight text-primary">
-          Uw aannemer in regio Diest
-        </h1>
-        <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
-          Dimac is een lokale bouwpartner voor renovatie en nieuwbouw. Wij bereiden de werken technisch
-          voor, stemmen de vakgebieden op elkaar af en blijven aanspreekbaar tot de oplevering.
-        </p>
-      </div>
-    </section>
-
-    <Section eyebrow="Positie" title="Eén aanspreekpunt van eerste analyse tot oplevering">
-      <div className="grid gap-14 lg:grid-cols-2 max-w-5xl">
-        <div className="space-y-5 text-lg text-muted-foreground leading-relaxed" data-reveal>
-          <p>
-            U heeft één aanspreekpunt voor uw volledige project. Wij coördineren de verschillende vakgebieden
-            en zorgen dat de raakpunten tussen ruwbouw, technieken en afwerking vooraf zijn opgelost.
-          </p>
-          <p>
-            Zo blijft de rode draad bewaard van voorbereiding tot afwerking, met minder risico op herwerk
-            en betere afstemming tussen de mensen op de werf.
-          </p>
-          <p>
-            <Link to="/werkwijze" className="link-underline text-accent focus-ring">
-              Lees hoe een traject bij Dimac verloopt
-            </Link>
-          </p>
+    <Section>
+      <div className="grid gap-14 lg:grid-cols-2 lg:items-start">
+        <div className="space-y-12">
+          <div data-reveal>
+            <h2 className="eyebrow mb-4">Visie</h2>
+            <p className="font-display text-3xl md:text-4xl leading-tight">De juiste keuzes bepalen de waarde van morgen.</p>
+            <p className="mt-5 text-muted-foreground leading-relaxed">
+              Goed vastgoed begint met inzicht: in de mogelijkheden van een pand, de technische uitdagingen en de
+              keuzes die op lange termijn het verschil maken. Onze ambitie is om vastgoed met potentieel te
+              herkennen, doordacht te ontwikkelen en duurzame meerwaarde te realiseren.
+            </p>
+          </div>
+          <div data-reveal>
+            <h2 className="eyebrow mb-4">Missie</h2>
+            <p className="text-muted-foreground leading-relaxed">
+              Dimac ontwikkelt eigen vastgoedprojecten, van nieuwbouw tot de volledige transformatie van bestaande
+              woningen. Met diezelfde praktijkkennis helpen we eigenaars bij totaalrenovaties en ondersteunen we
+              kandidaat-kopers en woningeigenaars met deskundige Woningscans.
+            </p>
+          </div>
         </div>
-        <div>
-          <ImagePlaceholder label="Voorbereiding van technieken en materialen op de werf" src={prep} aspect="landscape" />
+        <div data-reveal>
+          <ImagePlaceholder src={prep} label="Technische voorbereiding van een project" aspect="portrait" showLabelOverlay={false} />
         </div>
       </div>
     </Section>
 
-    <Section eyebrow="Wat ons drijft" title="Vakmanschap, voorbereiding en heldere afspraken" bg="surface">
-      <BulletList
-        columns={2}
-        items={[
-          "Persoonlijke aanpak met korte communicatielijnen",
-          "Technisch correcte voorbereiding vóór uitvoering",
-          "Duidelijke offertes die de volledige scope beschrijven",
-          "Coördinatie van alle vakgebieden binnen één traject",
-          "Aandacht voor detail en afwerking",
-          "Lokale verankering in regio Diest",
-        ]}
-      />
+    <Section bg="surface" eyebrow="Waar we voor staan" title="Vijf principes, zichtbaar in ons werk">
+      <dl className="divide-y divide-border border-y border-border">
+        {values.map(([t, d]) => (
+          <div key={t} className="grid gap-2 md:grid-cols-[1fr_2fr] py-7" data-reveal>
+            <dt className="font-display text-2xl text-primary">{t}</dt>
+            <dd className="text-muted-foreground leading-relaxed md:pt-1">{d}</dd>
+          </div>
+        ))}
+      </dl>
     </Section>
 
-    <Section eyebrow="Organisatie" title="Hoe Dimac is opgebouwd">
-      <div className="max-w-3xl space-y-5 text-lg text-muted-foreground leading-relaxed" data-reveal>
-        <p>
-          Dimac werkt met een vaste equipe en met vaste partners per vakgebied. De projectleiding, de
-          werfopvolging en het contact met u blijven altijd bij Dimac zelf.
-        </p>
-        <p>
-          Wij werken bewust binnen een beperkte straal rond Diest, zodat een werfleider dezelfde dag kan
-          langsgaan wanneer een beslissing of een controle nodig is.{" "}
-          <Link to="/regio" className="link-underline text-accent focus-ring">
-            Bekijk ons werkgebied
-          </Link>
-          .
-        </p>
-      </div>
+    <Section eyebrow="In de praktijk" title="Hoe dat zich vertaalt">
+      <ul className="grid gap-px bg-border border border-border sm:grid-cols-2 lg:grid-cols-5">
+        {[
+          "Technische analyse vóór uitvoering",
+          "Praktische bouwervaring",
+          "Doordachte keuzes",
+          "Duidelijke communicatie",
+          "Verantwoordelijkheid voor het resultaat",
+        ].map((p, i) => (
+          <li key={p} className="bg-background p-6 text-primary" data-reveal data-reveal-delay={String((i % 4) + 1)}>
+            <span className="block h-px w-8 bg-accent mb-5" />
+            {p}
+          </li>
+        ))}
+      </ul>
     </Section>
 
     <CTABlock
-      eyebrow="Volgende stap"
-      title="Kennismaken?"
-      text="Vertel ons kort wat u wil aanpakken. Dan bekijken we samen welke stappen logisch zijn."
-      primary={{ label: "Neem contact op", to: "/contact" }}
-      secondary={{ label: "Plan uw woningscan", to: "/woningscan" }}
+      title="Benieuwd wat wij voor u kunnen betekenen?"
+      text="Wilt u inzicht in een woning, of plant u een volledige renovatie?"
+      primary={{ label: "Ontdek de Woningscan", to: "/woningscan" }}
+      secondary={{ label: "Bespreek uw renovatieplannen", to: "/totaalrenovaties#intake" }}
     />
   </>
 );
