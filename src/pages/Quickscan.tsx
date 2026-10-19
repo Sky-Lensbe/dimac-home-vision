@@ -284,7 +284,7 @@ const FinalReport = ({ report, meta, onRestart }: { report: QuickscanReport; met
   return (
     <section className="py-16 md:py-24 bg-background">
       <div className="container-tight max-w-3xl">
-        <span className="eyebrow mb-5">DIMAC Quickscan · {meta.reportNumber}</span>
+        <p className="mb-5 text-xs uppercase tracking-[0.24em] text-accent">DIMAC Quickscan · Rapport {meta.reportNumber}</p>
         <h1 className="font-display text-4xl md:text-5xl leading-tight text-primary">Uw persoonlijke woninganalyse</h1>
         <p className="mt-4 text-muted-foreground">{meta.name} · {meta.municipality} · {new Date(meta.date).toLocaleDateString("nl-BE")}</p>
         <div className="mt-8 flex flex-wrap gap-3 no-print">
