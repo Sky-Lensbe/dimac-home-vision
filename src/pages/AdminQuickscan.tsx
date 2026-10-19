@@ -150,7 +150,7 @@ const LeadDetail = ({ lead, onClose, onChange }: { lead: Lead; onClose: () => vo
     supabase.from("quickscan_events").select("*").eq("lead_id", lead.id).order("created_at").then(({ data }) => setEvents(data ?? []));
   }, [lead.id]);
 
-  const update = async (patch: Partial<Lead>, ev: string) => {
+  const update = async (patch: { status?: string; notes?: string }, ev: string) => {
     await supabase.from("quickscan_leads").update(patch).eq("id", lead.id);
     await supabase.from("quickscan_events").insert({ lead_id: lead.id, event_type: ev, detail: patch.status ?? null });
     onChange();
