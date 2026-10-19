@@ -7,6 +7,8 @@ import Projecten from "./pages/Projecten.tsx";
 import ProjectDetail from "./pages/ProjectDetail.tsx";
 import Totaalrenovaties from "./pages/Totaalrenovaties.tsx";
 import Woningscan from "./pages/Woningscan.tsx";
+import Quickscan from "./pages/Quickscan.tsx";
+import AdminQuickscan from "./pages/AdminQuickscan.tsx";
 import Over from "./pages/Over.tsx";
 import Contact from "./pages/Contact.tsx";
 import Privacy from "./pages/Privacy.tsx";
@@ -23,6 +25,8 @@ const App = () => (
           <Route path="/projecten/:slug" element={<ProjectDetail />} />
           <Route path="/totaalrenovaties" element={<Totaalrenovaties />} />
           <Route path="/woningscan" element={<Woningscan />} />
+          <Route path="/woningscan/quickscan" element={<Quickscan />} />
+          <Route path="/admin/quickscan" element={<AdminQuickscan />} />
           <Route path="/over" element={<Over />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy" element={<Privacy />} />

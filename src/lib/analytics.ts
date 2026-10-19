@@ -21,7 +21,20 @@ export type TrackEvent =
   | "view_project"
   | "email_click"
   | "cta_click"
-  | "navigation_cta_click";
+  | "navigation_cta_click"
+  | "quickscan_view"
+  | "quickscan_start"
+  | "quickscan_step_complete"
+  | "quickscan_result_preview"
+  | "quickscan_lead_form_view"
+  | "quickscan_lead_submit_attempt"
+  | "quickscan_lead_saved"
+  | "quickscan_report_generated"
+  | "quickscan_email_accepted"
+  | "quickscan_email_failed"
+  | "quickscan_report_view"
+  | "quickscan_report_download"
+  | "quickscan_paid_scan_click";
 
 export interface TrackPayload {
   page_type?: string;

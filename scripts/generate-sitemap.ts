@@ -11,6 +11,7 @@ const projectSlugs = [...src.matchAll(/^\s*slug:\s*"([^"]+)"/gm)].map((m) => m[1
 const paths = [
   "/",
   "/woningscan",
+  "/woningscan/quickscan",
   "/totaalrenovaties",
   "/projecten",
   ...projectSlugs.map((s) => `/projecten/${s}`),

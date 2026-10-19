@@ -1,15 +1,16 @@
 import { describe, it, expect } from "vitest";
 import { SCAN_PACKAGES, scanTotal, DRONE_PRICE } from "@/data/woningscan";
 import { buildMailto } from "@/lib/mailto";
+import { parseScanParams } from "@/data/woningscan";
 
 describe("woningscan prijzen", () => {
   it("Basis kost €299 en €424 met drone", () => {
     expect(scanTotal("basis", false)).toBe(299);
     expect(scanTotal("basis", true)).toBe(424);
   });
-  it("Plus kost €449 en €574 met drone", () => {
-    expect(scanTotal("plus", false)).toBe(449);
-    expect(scanTotal("plus", true)).toBe(574);
+  it("Plus bestaat niet meer en een oude Plus-link kiest geen pakket", () => {
+    expect(SCAN_PACKAGES.map((p) => p.id)).toEqual(["basis", "compleet"]);
+    expect(parseScanParams(new URLSearchParams("pakket=plus")).pakket).toBeNull();
   });
   it("Compleet kost €649 en €774 met drone", () => {
     expect(scanTotal("compleet", false)).toBe(649);
@@ -18,21 +19,18 @@ describe("woningscan prijzen", () => {
   it("drone-optie kost €125", () => {
     expect(DRONE_PRICE).toBe(125);
   });
-  it("Plus bevat geen kostenraming", () => {
-    const plus = SCAN_PACKAGES.find((p) => p.id === "plus")!;
-    expect(plus.items.some((i) => /kostenraming/i.test(i))).toBe(false);
-  });
+
 });
 
 describe("mailto", () => {
   it("stuurt naar info@dimac.be met onderwerp en velden", () => {
-    const url = buildMailto("Aanvraag", [["Pakket", "Plus"], ["Drone", "Ja"]]);
+    const url = buildMailto("Aanvraag", [["Pakket", "Basis"], ["Drone", "Ja"]]);
     expect(url.startsWith("mailto:info@dimac.be?subject=Aanvraag")).toBe(true);
-    expect(decodeURIComponent(url)).toContain("Pakket: Plus");
+    expect(decodeURIComponent(url)).toContain("Pakket: Basis");
   });
 });
 
-import { parseScanParams, getPackage } from "@/data/woningscan";
+import { getPackage } from "@/data/woningscan";
 describe("woningscan queryparameters en inhoud", () => {
   it("leest pakket en situatie samen", () => {
     expect(parseScanParams(new URLSearchParams("pakket=compleet&situatie=kopen"))).toEqual({ pakket: "compleet", situatie: "kopen" });

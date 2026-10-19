@@ -10,7 +10,7 @@ describe("confirmed projects", () => {
 
   it("assigns the supplied photographs to Diest, Herk-de-Stad, Paal, Schaffen and Schulen", () => {
     const diest = getDevelopment("diest");
-    expect(diest?.name).toBe("Vrijstaande woning Diest");
+    expect(diest?.name).toBe("Project Diest");
     expect(diest?.cover).toBeTruthy();
     expect(diest?.gallery).toHaveLength(2);
 
