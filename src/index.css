@@ -412,3 +412,9 @@ html.reveal-ready [data-reveal].stagger-list.is-visible > * {
   to { opacity: 1; }
 }
 
+
+@media print {
+  @page { size: A4; margin: 16mm; }
+  header, footer, nav, .no-print { display: none !important; }
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
