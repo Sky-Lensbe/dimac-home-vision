@@ -3,7 +3,7 @@
  * De drone-dakscreening is een losse optie en staat standaard uit.
  */
 
-export type PackageId = "basis" | "plus" | "compleet";
+export type PackageId = "basis" | "compleet";
 
 export interface ScanPackage {
   id: PackageId;
@@ -44,36 +44,22 @@ export const SCAN_PACKAGES: ScanPackage[] = [
       "Renovatieprioriteiten",
     ],
     audience: "Voor kandidaat-kopers en eigenaars die een eerste technisch overzicht wensen.",
-    excludes: ["Uitgebreide fotodocumentatie", "Renovatiestappenplan zoals bij Plus", "Indicatieve kostenraming"],
+    excludes: ["Uitgebreide fotodocumentatie", "Renovatiestappenplan", "Indicatieve kostenraming"],
     result: "Inzicht",
     cta: "Kies Basis",
-  },
-  {
-    id: "plus",
-    name: "Plus",
-    price: 449,
-    tagline: "Weet wat u moet aanpakken. En vooral: wat eerst.",
-    includesFrom: "Alles uit Basis, aangevuld met:",
-    items: [
-      "Uitgebreidere visuele inspectie van circa twee uur",
-      "Fotodocumentatie",
-      "Gerichte aanbevelingen",
-      "Logische renovatievolgorde",
-      "Onderscheid tussen prioritaire en latere werken",
-      "Praktisch renovatiestappenplan",
-    ],
-    audience: "Voor wie inzicht wil in de aanpak en volgorde van een renovatie.",
-    note: "Plus bevat geen renovatiekostenraming.",
-    result: "Inzicht + plan",
-    cta: "Kies Plus",
   },
   {
     id: "compleet",
     name: "Compleet",
     price: 649,
     tagline: "Zie het complete plaatje.",
-    includesFrom: "Alles uit Plus, aangevuld met:",
+    includesFrom: "Alles uit Basis, aangevuld met:",
     items: [
+      "Uitgebreidere visuele inspectie van circa twee uur",
+      "Fotodocumentatie",
+      "Gerichte aanbevelingen en logische renovatievolgorde",
+      "Onderscheid tussen prioritaire en latere werken",
+      "Praktisch renovatiestappenplan",
       "Analyse van de geplande renovatie",
       "Indicatieve renovatiekostenraming",
       "Budgetverdeling per belangrijke renovatiecategorie",

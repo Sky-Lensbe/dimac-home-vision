@@ -31,8 +31,7 @@ const paths = [
 
 const packageSummary: Record<string, string> = {
   basis: "Visuele inspectie, 25 bouwtechnische aandachtspunten en een beknopt digitaal rapport met vaststellingen en prioriteiten.",
-  plus: "Een uitgebreidere inspectie, fotodocumentatie, aanbevelingen en een concreet renovatiestappenplan.",
-  compleet: "Een uitgebreide analyse met renovatiestappenplan en een indicatieve kostenraming per belangrijke categorie.",
+  compleet: "Een uitgebreidere inspectie met fotodocumentatie, renovatiestappenplan en een indicatieve kostenraming per belangrijke categorie.",
 };
 
 const expertise = [
@@ -181,9 +180,9 @@ const Index = () => (
             dat past bij uw woning en uw plannen.
           </p>
         </div>
-        <div className="mt-12 grid gap-5 lg:grid-cols-3">
+        <div className="mt-12 grid gap-5 md:grid-cols-2">
           {SCAN_PACKAGES.map((pkg, i) => {
-            const featured = pkg.id === "plus";
+            const featured = pkg.id === "compleet";
             return (
               <article
                 key={pkg.id}
@@ -219,6 +218,14 @@ const Index = () => (
               </article>
             );
           })}
+        </div>
+        <div className="mt-8 flex flex-col gap-4 border border-border bg-background p-6 md:flex-row md:items-center md:justify-between">
+          <p className="font-display text-xl text-primary">Benieuwd welke onderdelen van uw woning aandacht verdienen?</p>
+          <Button asChild>
+            <Link to="/woningscan/quickscan" onClick={scanClick("Doe de gratis Quickscan")}>
+              Doe de gratis Quickscan <ArrowRight />
+            </Link>
+          </Button>
         </div>
         <p className="mt-6 text-sm text-muted-foreground">
           Optioneel bij elk pakket: drone-dakscreening (+€125). Elke Woningscan is een zelfstandige dienst, zonder

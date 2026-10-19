@@ -59,7 +59,7 @@ const SITUATIONS: Record<Situation, { label: string; icon: typeof Home; heading:
       "Welk pakket helpt bij mijn renovatieplanning?",
     ],
     advice:
-      "Zoekt u vooral een renovatievolgorde en stappenplan, dan is Plus relevant. Wilt u daarnaast een indicatie van de kosten, kies dan Compleet.",
+      "Wilt u vooral weten wat eerst moet, dan is Basis een goede start. Wilt u een renovatiestappenplan met een indicatie van de kosten, kies dan Compleet. Twijfelt u? Start met de gratis Quickscan.",
   },
 };
 
@@ -79,7 +79,7 @@ const CHECKS = [
 ];
 
 const STEPS = [
-  { t: "Kies uw Woningscan", d: "Selecteer Basis, Plus of Compleet en voeg eventueel de drone-dakscreening toe." },
+  { t: "Kies uw Woningscan", d: "Selecteer Basis of Compleet en voeg eventueel de drone-dakscreening toe." },
   { t: "Plan het woningbezoek", d: "Na uw aanvraag stemmen we de locatie en een geschikt bezoekmoment af." },
   { t: "Visuele inspectie ter plaatse", d: "We bekijken de woning en brengen de zichtbare aandachtspunten volgens het gekozen pakket in kaart." },
   { t: "Ontvang uw digitaal rapport", d: "U ontvangt de afgesproken rapportage en gebruikt de bevindingen om uw volgende stappen te bepalen." },
@@ -94,12 +94,12 @@ const LIMITS = [
   "Geen bindende renovatieofferte of vastgoedwaardebepaling",
 ];
 
-const [basis, plus, compleet] = SCAN_PACKAGES;
+const [basis, compleet] = SCAN_PACKAGES;
 
 const faq = [
   {
     q: "Wat is een Woningscan?",
-    a: "Een visuele bouwtechnische beoordeling van een woning door DIMAC, met een digitaal rapport waarvan de inhoud afhangt van het gekozen pakket: Basis, Plus of Compleet.",
+    a: "Een visuele bouwtechnische beoordeling van een woning door DIMAC, met een digitaal rapport waarvan de inhoud afhangt van het gekozen pakket: Basis of Compleet. Wilt u eerst zelf een indicatie, dan kunt u de gratis online Quickscan invullen.",
   },
   {
     q: "Wanneer laat ik een woning inspecteren vóór aankoop?",
@@ -107,11 +107,11 @@ const faq = [
   },
   {
     q: "Wat kost een Woningscan in Limburg of Vlaams-Brabant?",
-    a: `Basis kost ${formatEuro(basis.price)}, Plus ${formatEuro(plus.price)} en Compleet ${formatEuro(compleet.price)}, telkens incl. btw. De drone-dakscreening kunt u bij elk pakket toevoegen voor ${formatEuro(DRONE_OPTION.price)} incl. btw.`,
+    a: `Basis kost ${formatEuro(basis.price)} en Compleet ${formatEuro(compleet.price)}, telkens incl. btw. De drone-dakscreening kunt u bij elk pakket toevoegen voor ${formatEuro(DRONE_OPTION.price)} incl. btw.`,
   },
   {
-    q: "Wat is het verschil tussen Basis, Plus en Compleet?",
-    a: "Basis geeft inzicht in de zichtbare toestand en de prioriteiten. Plus voegt een uitgebreidere inspectie, fotodocumentatie en een renovatievolgorde met stappenplan toe. Compleet voegt daar een indicatieve kostenraming en budgetverdeling aan toe.",
+    q: "Wat is het verschil tussen Basis en Compleet?",
+    a: "Basis geeft inzicht in de zichtbare toestand en de prioriteiten. Compleet voegt een uitgebreidere inspectie, fotodocumentatie, een renovatiestappenplan en een indicatieve kostenraming met budgetverdeling toe.",
   },
   {
     q: "Krijg ik een renovatiekostenraming?",
@@ -373,9 +373,36 @@ const Woningscan = () => {
 
 
           <div className="grid gap-5 lg:grid-cols-3">
+            <article className="relative flex flex-col bg-background border border-border p-7 md:p-9">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-xs uppercase tracking-[0.24em] text-accent">Quickscan</h3>
+                <span className="text-[11px] text-muted-foreground">Online indicatie</span>
+              </div>
+              <p className="mt-4 font-display text-2xl leading-snug text-primary min-h-[4rem]">Hoe staat uw woning ervoor?</p>
+              <p className="mt-6 flex items-baseline gap-2">
+                <span className="font-display text-5xl text-primary">Gratis</span>
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground min-h-[1rem]">Circa 5 minuten</p>
+              <div className="mt-6 pt-6 border-t border-border flex-1">
+                <ul className="space-y-3">
+                  {["Online vragenlijst over uw woning", "Persoonlijke renovatiebarometer", "Belangrijkste aandachtspunten", "Praktische renovatieaanbevelingen"].map((i) => (
+                    <li key={i} className="flex gap-3 text-sm text-primary/85 leading-relaxed">
+                      <Check className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                      {i}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-4 text-xs text-primary/80 font-medium">Een eerste analyse op basis van uw antwoorden; geen inspectie ter plaatse.</p>
+              </div>
+              <Button asChild variant="outline" className="mt-8 w-full">
+                <Link to="/woningscan/quickscan" onClick={() => track("woningscan_click", { page_type: "woningscan", cta_label: "Start de gratis Quickscan", item_id: "quickscan" })}>
+                  Start de gratis Quickscan <ArrowRight />
+                </Link>
+              </Button>
+            </article>
             {SCAN_PACKAGES.map((p) => {
               const active = selected === p.id;
-              const featured = p.id === "plus";
+              const featured = p.id === "compleet";
               return (
                 <article
                   key={p.id}
@@ -386,7 +413,7 @@ const Woningscan = () => {
                 >
                   {featured && (
                     <span className="absolute -top-3 left-7 bg-primary text-primary-foreground text-[10px] uppercase tracking-[0.2em] px-3 py-1">
-                      Aanbevolen bij renovatieplanning
+                      Met renovatieplan en kostenraming
                     </span>
                   )}
                   <div className="flex items-center justify-between gap-3">
