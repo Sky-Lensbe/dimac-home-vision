@@ -35,6 +35,15 @@ Nieuwe vragen (met de exacte antwoordopties uit de brief):
 - Server herberekent en valideert met dezelfde regels.
 - Regressietests voor alle 36 scenario's uit de brief, plus testmailbeleid. Daarna een browserdoorloop voor woning en appartement tot het volledige rapport en PDF, met verwijdering van de testinzending.
 
+## Aanvullende acceptatievoorwaarden
+1. Echte prioritering van vervolgvragen: vaste, voorspelbare volgorde die per gemeld signaal alleen de belangrijkste vervolgvragen toont (niet alleen tonen/verbergen). Het aantal getoonde vragen wordt gemeten in vaste woning- en appartementscenario's en in het eindrapport vermeld.
+2. Knop "Overslaan" bij optionele vragen. Een overgeslagen vraag telt als ontbrekende informatie, nooit als gunstig. Veiligheidsvragen hebben geen overslaanknop en de server weigert ze leeg.
+3. Opgeslagen voortgang van versie 2.1 wordt veilig overgezet naar 2.2: eenduidig geldige antwoorden blijven, gewijzigde of ongeldige antwoorden worden opnieuw gevraagd.
+4. Oude rapporten zijn onveranderlijk: openen of downloaden toont altijd de oorspronkelijk berekende uitkomst met de oorspronkelijke versie, zonder herberekening met de nieuwe regels.
+5. De bestaande appartementvragen A01–A05 verhuizen naar het afgesproken onderdeel over mede-eigendom, zonder dubbele vragen; privatieve signalen en gemeenschappelijke (bouwtechnische of financiële) aandachtspunten blijven strikt gescheiden.
+6. Controleerbare scoringsmatrix voor alle nieuwe technische vragen: per antwoord het domein, de score, de motivatie en eventuele overlap met bestaande vragen. Bestaande domeingewichten blijven ongewijzigd. De matrix wordt mee opgeleverd als leesbaar document.
+- Voor elk van deze zes voorwaarden komen er regressietests; de resultaten staan in het eindrapport. Testmodus blijft actief, niets wordt gepubliceerd.
+
 ## Technische details
 - Alle regels in `supabase/functions/_shared/quickscan/engine.ts`; rapportweergave in `ReportView.tsx` en `quickscanPdf.ts`; sessiesleutel in `Quickscan.tsx` naar v2.2; `quickscan-submit` opnieuw uitrollen.
 - Contextvelden komen in een apart `context`-object in de rapportsnapshot (bestaande JSON-kolom); geen databasewijziging nodig tenzij inspectie anders uitwijst.
