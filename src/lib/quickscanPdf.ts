@@ -68,9 +68,19 @@ export function buildReportPdf(r: QuickscanReport, meta: ReportMeta): Blob {
   if (!r.points.length) text("Er zijn op basis van uw antwoorden geen uitgesproken aandachtspunten gemeld.");
   for (const p of r.points) { text(p.title, 11, INK, "bold", 1); text(p.text, 10, INK, "normal", 1); text(`Volgende stap: ${p.next}`, 9, MUTED); }
 
+  if (r.energy?.length) {
+    h2(ch(), "Energetische aandachtspunten");
+    for (const t of r.energy) text(t, 10, INK, "normal", 0.5);
+  }
+  if (r.notices?.length) {
+    h2(ch(), "Aandachtspunten zonder invloed op de barometer");
+    for (const n of r.notices) { text(n.title, 11, INK, "bold", 1); text(n.text, 10); }
+  }
+
   h2(ch(), "Wat weten we nog niet?");
   text(r.unknown.label, 11, INK, "bold", 1); text(r.unknown.text, 10);
   if (r.unknown.sentence) text(r.unknown.sentence, 10);
+  if (r.unknown.skipped?.length) text(`Overgeslagen vragen (ontbrekende informatie): ${r.unknown.skipped.map((s) => s.label).join("; ")}.`, 9, MUTED);
 
   if (r.combinations.length) {
     h2(ch(), "Renovaties slim combineren");
@@ -78,8 +88,20 @@ export function buildReportPdf(r: QuickscanReport, meta: ReportMeta): Blob {
   }
   if (r.apartment) {
     h2(ch(), r.apartment.title);
-    for (const i of r.apartment.items) text(`${i.label} ${i.value}`, 10, INK, "normal", 0.5);
-    for (const t of r.apartment.signals) text(t, 10);
+    if (r.apartment.groups) {
+      for (const g of r.apartment.groups) {
+        text(g.title, 11, INK, "bold", 1);
+        for (const i of g.items) text(`${i.label} ${i.value}`, 10, INK, "normal", 0.5);
+        for (const t of g.signals) text(t, 10);
+      }
+      if (r.apartment.syndic?.length) {
+        text("Vragen voor de syndicus", 11, INK, "bold", 1);
+        for (const t of r.apartment.syndic) text(`• ${t}`, 10, INK, "normal", 0.5);
+      }
+    } else {
+      for (const i of r.apartment.items) text(`${i.label} ${i.value}`, 10, INK, "normal", 0.5);
+      for (const t of r.apartment.signals) text(t, 10);
+    }
     for (const t of r.apartment.notes) text(t, 9, MUTED);
   }
   h2(ch(), "Samenvatting");
