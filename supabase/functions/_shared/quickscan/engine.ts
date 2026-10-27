@@ -97,7 +97,7 @@ export function followUpBudget(g: FollowUpGroup, a: Answers): number {
     case "dak": return has(a, "Q14", "lek", "los") ? 9 : has(a, "Q14", "beschadigd") ? 3 : has(a, "Q14", "slijtage") ? 2 : has(a, "Q14", "oud", "onbekend") ? 1 : 0;
     case "ramen": return has(a, "Q20", "tocht", "beschadigd") ? 2 : has(a, "Q20", "verouderd") ? 1 : 0;
     case "vocht": {
-      if (!moistureReported(a)) return has(a, "K01", "kelder", "beide") ? 0 : 0;
+      if (!moistureReported(a)) return 0;
       const base = has(a, "Q24", "vochtplekken") ? 4 : 3;
       return base + (has(a, "Q26", "regelmatig", "voortdurend") || has(a, "Q25", "meerdere") ? 1 : 0);
     }
@@ -159,7 +159,6 @@ export const QUESTIONS: Question[] = [
   { id: "Z01", step: 2, showIf: house, text: "Is er een zolderruimte aanwezig?", help: "Ook zonder zolder blijven de dakvragen van toepassing.", options: [o("bereikbaar", "Ja, bereikbaar"), o("moeilijk", "Ja, maar niet of moeilijk bereikbaar"), o("nee", "Nee"), unkCtx] },
   {
     id: "DI01", step: 2, main: true, showIf: house, text: "Weet u of het dak geïsoleerd is?",
-    help: has.length ? undefined : undefined,
     textFor: (a) => (has(a, "Z01", "nee") ? "Weet u of het dak (of het plafond onder het dak) geïsoleerd is?" : undefined),
     options: [o("degelijk", "Ja, recent of aantoonbaar degelijk", "E", 0), o("beperkt", "Ja, maar beperkt of ouder", "E", 3), o("gedeeltelijk", "Gedeeltelijk geïsoleerd", "E", 4), o("niet", "Niet geïsoleerd", "E", 7), unk("E")],
   },
