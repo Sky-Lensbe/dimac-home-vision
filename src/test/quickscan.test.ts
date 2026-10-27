@@ -5,7 +5,7 @@ import {
 } from "@/lib/quickscan";
 import { assertAllowedRecipient, resolveRecipients, MAIL_MODE } from "../../supabase/functions/_shared/quickscan/mail-policy";
 
-const base: Answers = { Q01: "eigenaar", Q02: "open", Q03: "1991-2010", Q04: ["geen"], Q14: "geen", Q18: "geen", Q20: "geen", Q24: "geen", Q30: "geen", Q34: "ab", H01: "gas", H02: "0-5", Q42: "normaal", Q44: "12m", Q40: "conform", Q41: "geen", Q46: ["geen"], Q48: "nee", Q49: "later" };
+const base: Answers = { Q01: "eigenaar", Q02: "open", Q03: "1991-2010", Q04: ["geen"], Q14: "geen", Q18: "geen", Q20: "geen", Q24: "geen", Q30: "geen", Q34: "ab", Q35: "lt5", H01: "gas", H02: "0-5", Q42: "normaal", Q44: "12m", Q40: "conform", Q41: "geen", Q46: ["geen"], Q48: "nee", Q49: "later" };
 const apt: Answers = { ...base, Q02: "appartement", A01: "geen", A02: "nee", A03: "nee" };
 const ids = (qid: string) => QUESTION_MAP[qid].options.map((o) => o.id);
 const order = (a: Answers) => visibleQuestions(a).map((q) => q.id);
@@ -39,7 +39,7 @@ describe("renovatieleeftijd", () => {
   });
   it("vraagt de verwarmingsleeftijd niet dubbel", () => {
     const v = order({ ...base, Q04: ["verwarming", "elektriciteit"] });
-    expect(v.filter((x) => QUESTION_MAP[x].text.toLowerCase().includes("verwarming") && QUESTION_MAP[x].text.includes("oud")).length).toBe(1);
+    expect(v.filter((x) => /verwarming.*(vernieuwd)|oud is de huidige verwarming/i.test(QUESTION_MAP[x].text)).length).toBe(1);
   });
 });
 
