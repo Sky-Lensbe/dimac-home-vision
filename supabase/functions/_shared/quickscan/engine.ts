@@ -485,7 +485,7 @@ function LABEL(qid: string, v: string | string[] | undefined) {
   if (v === undefined) return "Niet ingevuld";
   const q = QUESTION_MAP[qid];
   return (Array.isArray(v) ? v : [v]).map((id) => q.options.find((x) => x.id === id)?.label ?? id).join(", ");
-};
+}
 
 export const LIMITS_TEXT = "De Quickscan is een eerste analyse op basis van uw eigen antwoorden. Er vond geen inspectie ter plaatse plaats. Deze analyse vormt geen diagnose, keuring, attest of garantie en vervangt geen beoordeling door een vakpersoon. De barometer geeft de door u opgegeven signalen weer, niet een bewezen renovatienoodzaak. De gebruikte wegingen zijn ontwerpwaarden.";
 
