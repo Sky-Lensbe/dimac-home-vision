@@ -149,7 +149,7 @@ export const PRODUCTS: ScanProduct[] = [
       "Fotodocumentatie van relevante vaststellingen",
       "Gedetailleerdere aandachtspunten",
       "Prioriteiten en aanbevelingen",
-      "Logische renovatievolgorde",
+      "Renovatie stappenplan",
       "Uitgebreider digitaal rapport",
     ],
     excludes: ["Destructief onderzoek, wettelijke keuringen, asbest- of stabiliteitsonderzoek"],
