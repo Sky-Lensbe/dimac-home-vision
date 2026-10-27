@@ -6,7 +6,7 @@ import { PageSEO } from "@/components/seo/PageSEO";
 import { TextField } from "@/components/site/FormFields";
 import { Barometer, ReportView, SafetyAlerts } from "@/components/quickscan/ReportView";
 import {
-  activeAnswers, buildReport, questionText, safetyFlags, STEP_TITLES, visibleQuestions,
+  activeAnswers, buildReport, migrateAnswers, questionText, safetyFlags, stepTitle, visibleQuestions, SKIP, STEP_TITLES,
   type Answers, type Question, type QuickscanReport,
 } from "@/lib/quickscan";
 import { buildReportPdf, downloadBlob, type ReportMeta } from "@/lib/quickscanPdf";
@@ -14,22 +14,32 @@ import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 type Stage = "intro" | "questions" | "preview" | "form" | "report";
-const KEY = "dimac-quickscan-v2.1";
+const KEY = "dimac-quickscan-v2.2";
+const OLD_KEY = "dimac-quickscan-v2.1";
 
 interface Saved { stage: Stage; answers: Answers; index: number; startedAt: number }
-/** Laadt opgeslagen voortgang; antwoorden die niet meer geldig zijn vervallen en worden opnieuw gevraagd. */
-const load = (): Saved | null => {
+/** Leest opgeslagen voortgang (v2.2, of v2.1 veilig gemigreerd). */
+export const readSaved = (store: Pick<Storage, "getItem" | "removeItem">): Saved | null => {
   try {
-    sessionStorage.removeItem("dimac-quickscan-v1");
-    const raw = sessionStorage.getItem(KEY);
-    if (!raw) return null;
-    const s = JSON.parse(raw) as Saved;
-    const answers = activeAnswers(s.answers ?? {});
-    const vis = visibleQuestions(answers);
-    const firstOpen = vis.findIndex((q) => answers[q.id] === undefined);
-    if (firstOpen >= 0 && s.stage !== "intro") return { ...s, answers, stage: "questions", index: firstOpen };
-    return { ...s, answers, index: Math.min(s.index ?? 0, Math.max(vis.length - 1, 0)) };
+    store.removeItem("dimac-quickscan-v1");
+    const raw = store.getItem(KEY);
+    if (raw) return JSON.parse(raw) as Saved;
+    const old = store.getItem(OLD_KEY);
+    if (!old) return null;
+    store.removeItem(OLD_KEY);
+    const s = JSON.parse(old) as Saved;
+    return { ...s, answers: migrateAnswers(s.answers ?? {}, "2.1") };
   } catch { return null; }
+};
+/** Antwoorden die niet meer geldig zijn vervallen en worden opnieuw gevraagd. */
+const load = (): Saved | null => {
+  const s = readSaved(sessionStorage);
+  if (!s) return null;
+  const answers = activeAnswers(s.answers ?? {});
+  const vis = visibleQuestions(answers);
+  const firstOpen = vis.findIndex((q) => answers[q.id] === undefined);
+  if (firstOpen >= 0 && s.stage !== "intro") return { ...s, answers, stage: "questions", index: firstOpen };
+  return { ...s, answers, index: Math.min(s.index ?? 0, Math.max(vis.length - 1, 0)) };
 };
 
 const BENEFITS = [
@@ -76,9 +86,17 @@ export default function Quickscan() {
     setAnswers(copy);
   };
 
-  const next = () => {
+  const skip = () => {
+    if (!q || !q.optional || q.safety) return;
+    const withSkip = { ...active, [q.id]: SKIP };
+    setAnswers(withSkip);
+    advance(withSkip);
+  };
+
+  const next = () => advance(active);
+  const advance = (cur: Answers) => {
     if (!q) return;
-    const after = visibleQuestions(active);
+    const after = visibleQuestions(cur);
     const pos = after.findIndex((x) => x.id === q.id);
     if (after[pos + 1] && after[pos + 1].step !== q.step) track("quickscan_step_complete", { item_id: String(q.step) });
     if (pos + 1 >= after.length) { setStage("preview"); track("quickscan_result_preview"); return; }
