@@ -6,7 +6,7 @@ import { DevelopmentGrid } from "@/components/site/Developments";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { organizationSchema, websiteSchema } from "@/lib/site";
 import { developments } from "@/data/developments";
-import { SCAN_PACKAGES, formatEuro } from "@/data/woningscan";
+import { DRONE_PRICE, PRODUCTS, VAT_LABEL, formatEuro, formatPrice, getProduct } from "@/data/woningscan";
 import { track } from "@/lib/analytics";
 import heroAsset from "@/assets/hero-living.jpg.asset.json";
 import renoAsset from "@/assets/total-realisation.jpg.asset.json";
@@ -29,10 +29,6 @@ const paths = [
   },
 ];
 
-const packageSummary: Record<string, string> = {
-  basis: "Visuele inspectie, 25 bouwtechnische aandachtspunten en een beknopt digitaal rapport met vaststellingen en prioriteiten.",
-  compleet: "Een uitgebreidere inspectie met fotodocumentatie, renovatiestappenplan en een indicatieve kostenraming per belangrijke categorie.",
-};
 
 const expertise = [
   {
@@ -69,7 +65,7 @@ const Index = () => (
     <PageSEO
       path="/"
       title="DIMAC | Woningscan Diest, renovatie & vastgoedontwikkeling"
-      description="Een woning kopen of renoveren? DIMAC biedt deskundige Woningscans vanaf €299, totaalrenovaties en eigen vastgoedontwikkeling in regio Diest."
+      description="Een woning kopen of renoveren? DIMAC biedt een gratis online Quickscan, Woningscans ter plaatse, totaalrenovaties en eigen vastgoedontwikkeling in regio Diest."
       schemas={[organizationSchema(), websiteSchema()]}
     />
 
@@ -102,7 +98,7 @@ const Index = () => (
         <p className="mt-5 lg:mt-8 text-base md:text-lg text-muted-foreground max-w-xl leading-relaxed">
           Een woning kopen of renoveren? Maak onderbouwde keuzes dankzij onze praktijkervaring in
           vastgoedontwikkeling. Met de Woningscan ontdekt u de zichtbare aandachtspunten,
-          renovatieprioriteiten en, afhankelijk van het pakket, de indicatieve renovatiekosten.
+          renovatieprioriteiten en de stappen die mogelijk volgen.
         </p>
         <div className="mt-7 lg:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4">
           <Button asChild size="lg" className="w-full sm:w-auto">
@@ -115,7 +111,7 @@ const Index = () => (
           </Button>
         </div>
         <p className="mt-4 text-sm text-muted-foreground">
-          Vanaf {formatEuro(SCAN_PACKAGES[0].price)} incl. btw · Duidelijk digitaal rapport
+          Gratis online Quickscan · Woningscan ter plaatse {formatEuro(getProduct("woningscan")!.price)} {VAT_LABEL}
         </p>
         <Link
           to="/totaalrenovaties"
@@ -173,68 +169,56 @@ const Index = () => (
         <div className="max-w-3xl">
           <span className="eyebrow mb-5" data-reveal>DIMAC Woningscan</span>
           <h2 id="pakketten-title" className={H2} data-reveal data-reveal-delay="1">
-            Welke Woningscan past bij uw plannen?
+            Vier manieren om uw woning beter te begrijpen.
           </h2>
           <p className="mt-6 text-lg text-muted-foreground leading-relaxed" data-reveal data-reveal-delay="2">
-            Van een eerste bouwtechnisch overzicht tot een indicatieve renovatiebegroting. Kies het niveau van inzicht
-            dat past bij uw woning en uw plannen.
+            Van een gratis eerste analyse tot een uitgebreide inspectie ter plaatse.
           </p>
         </div>
-        <div className="mt-12 grid gap-5 md:grid-cols-2">
-          {SCAN_PACKAGES.map((pkg, i) => {
-            const featured = pkg.id === "compleet";
+        <div className="mt-12 grid gap-5 sm:grid-cols-2">
+          {PRODUCTS.map((p, i) => {
+            const soon = p.availability === "coming_soon";
             return (
               <article
-                key={pkg.id}
+                key={p.id}
                 data-reveal
-                data-reveal-delay={String(i + 1)}
-                className={
-                  "relative flex flex-col bg-background p-8 border " +
-                  (featured ? "border-accent" : "border-border")
-                }
+                data-reveal-delay={String((i % 2) + 1)}
+                className="relative flex flex-col bg-background p-7 md:p-8 border border-border transition-colors fine:hover:border-primary/30"
               >
-                {featured && (
-                  <span className="absolute -top-3 left-8 bg-accent px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-accent-foreground">
-                    Voor renovatieplanning
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="font-display text-2xl text-primary">{p.shortTitle}</h3>
+                  <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                    {p.delivery === "online" ? "Online" : "Ter plaatse"}
                   </span>
-                )}
-                <h3 className="font-display text-2xl text-primary">Woningscan {pkg.name}</h3>
+                </div>
                 <p className="mt-3">
-                  <span className="font-display text-4xl text-primary tabular-nums">{formatEuro(pkg.price)}</span>
-                  <span className="ml-2 text-sm text-muted-foreground">incl. btw</span>
+                  <span className="font-display text-4xl text-primary tabular-nums">{formatPrice(p)}</span>
+                  {p.price > 0 && <span className="ml-2 text-sm text-muted-foreground">{VAT_LABEL}</span>}
                 </p>
-                <p className="mt-5 font-medium text-primary">{pkg.tagline}</p>
-                <p className="mt-3 text-sm text-muted-foreground leading-relaxed flex-1">{packageSummary[pkg.id]}</p>
-                {pkg.note && <p className="mt-3 text-xs text-muted-foreground">{pkg.note}</p>}
-                <Button asChild variant={featured ? "default" : "outline"} className="mt-8 w-full">
-                  <Link
-                    to={`/woningscan?pakket=${pkg.id}`}
-                    onClick={() => track("woningscan_click", { page_type: "home", cta_label: `Ontdek ${pkg.name}`, item_id: pkg.id })}
-                    aria-label={`Ontdek Woningscan ${pkg.name}`}
-                  >
-                    Ontdek {pkg.name} <ArrowRight />
-                  </Link>
-                </Button>
+                <p className="mt-4 text-muted-foreground leading-relaxed flex-1">{p.summary}</p>
+                {soon || !p.ctaTo ? (
+                  <Button type="button" variant="outline" className="mt-6 w-full" disabled aria-disabled="true">
+                    Binnenkort beschikbaar
+                  </Button>
+                ) : (
+                  <Button asChild variant="outline" className="mt-6 w-full">
+                    <Link to={p.ctaTo} onClick={() => track("woningscan_click", { page_type: "home", cta_label: p.cta, item_id: p.id })}>
+                      {p.cta} <ArrowRight />
+                    </Link>
+                  </Button>
+                )}
               </article>
             );
           })}
         </div>
-        <div className="mt-8 flex flex-col gap-4 border border-border bg-background p-6 md:flex-row md:items-center md:justify-between">
-          <p className="font-display text-xl text-primary">Benieuwd welke onderdelen van uw woning aandacht verdienen?</p>
-          <Button asChild>
-            <Link to="/woningscan/quickscan" onClick={scanClick("Doe de gratis Quickscan")}>
-              Doe de gratis Quickscan <ArrowRight />
-            </Link>
-          </Button>
-        </div>
         <p className="mt-6 text-sm text-muted-foreground">
-          Optioneel bij elk pakket: drone-dakscreening (+€125). Elke Woningscan is een zelfstandige dienst, zonder
-          verplichting voor latere werken.
+          Optioneel bij Woningscan en Woningscan Plus: drone-dakscreening (+{formatEuro(DRONE_PRICE)} {VAT_LABEL}). Elke Woningscan
+          is een zelfstandige dienst, zonder verplichting voor latere werken.
         </p>
         <div className="mt-10 text-center" data-reveal>
           <Button asChild size="lg" variant="outline">
-            <Link to="/woningscan#pakketten" onClick={scanClick("Vergelijk alle Woningscans")}>
-              Vergelijk alle Woningscans <ArrowRight />
+            <Link to="/woningscan#pakketten" onClick={scanClick("Vergelijk de vier mogelijkheden")}>
+              Vergelijk de vier mogelijkheden <ArrowRight />
             </Link>
           </Button>
         </div>

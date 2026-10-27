@@ -59,7 +59,7 @@ const faq = [
   },
   {
     q: "Is een Woningscan nodig vóór een totaalrenovatie?",
-    a: "Niet verplicht. Een Woningscan Compleet geeft u wel vooraf een indicatie van de prioriteiten en kosten, wat helpt om uw renovatie realistisch te plannen.",
+    a: "Niet verplicht. Een Woningscan Plus geeft u wel vooraf inzicht in de prioriteiten en een logische renovatievolgorde, wat helpt om uw renovatie realistisch te plannen.",
   },
   {
     q: "Wat gebeurt er na mijn aanvraag?",
@@ -185,8 +185,8 @@ const Totaalrenovaties = () => {
         </ol>
         <p className="mt-10 text-sm text-muted-foreground max-w-2xl" data-reveal>
           Eerst inzicht in de staat en kosten?{" "}
-          <Link to="/woningscan?pakket=compleet" className="text-accent underline underline-offset-2">
-            Bekijk de Woningscan Compleet
+          <Link to="/woningscan?pakket=woningscan-plus#aanvraag" className="text-accent underline underline-offset-2">
+            Bekijk Woningscan Plus
           </Link>
           .
         </p>
