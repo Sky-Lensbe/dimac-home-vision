@@ -445,19 +445,29 @@ export function combinationAdvice(a: Answers) {
   return COMBINATIONS.filter((c) => c.test(a)).slice(0, 2).map(({ id, title, text }) => ({ id, title, text }));
 }
 
-// ---------- Pakket- en droneadvies (los van de barometer) ----------
-export const PACKAGE_ADVICE = {
-  basis: "U wilt vooral meer inzicht in de zichtbare bouwtechnische toestand van uw woning. Daarom kan Woningscan Basis een passende volgende stap zijn. Tijdens een bezoek ter plaatse beoordeelt DIMAC de woning visueel aan de hand van 25 bouwtechnische aandachtspunten. U ontvangt een beknopt rapport met bevindingen en prioriteiten.",
-  compleet: "U overweegt verschillende renovatiewerken en wilt ook inzicht in de mogelijke investering. Daarom kan Woningscan Compleet een passende vervolgstap zijn. Dit pakket combineert een uitgebreidere visuele woninginspectie met fotodocumentatie, renovatieplanning en een indicatieve renovatiekostenraming.",
-  twijfel: "Twijfelt u nog? Woningscan Basis is een goede eerste stap. Compleet is relevant wanneer u ook een renovatieplanning en een indicatie van de kosten wenst.",
+// ---------- Vervolgstap en droneadvies (los van de barometer) ----------
+/** Productneutraal zolang de definitieve commerciële koppeling niet vastligt. Geen prijzen of pakketnamen. */
+export const NEXT_STEP = {
+  title: "Een vrijblijvende professionele vervolgstap",
+  text: "Wilt u de aandachtspunten uit dit rapport laten bevestigen of beter begrijpen? Een beoordeling ter plaatse door DIMAC geeft u een onderbouwd beeld van de toestand van de woning. We bespreken graag vrijblijvend welke vervolgstap het best bij uw situatie past.",
 };
 
-export function packageAdvice(a: Answers): { pkg: "basis" | "compleet"; text: string; doubt: boolean } {
-  const many = plannedCount(a) >= 2 || has(a, "Q46", "volledig");
-  const compleet = has(a, "Q48", "ja") || (has(a, "Q47", "ja") && many && !has(a, "Q48", "nee"));
-  if (compleet) return { pkg: "compleet", text: PACKAGE_ADVICE.compleet, doubt: false };
-  const doubt = has(a, "Q48", "twijfel") || has(a, "Q47", "twijfel");
-  return { pkg: "basis", text: PACKAGE_ADVICE.basis, doubt };
+// ---------- Appartement: gemeenschappelijke delen ----------
+export const APARTMENT_TITLE = "Gemeenschappelijke delen en mogelijke toekomstige kosten";
+export const APARTMENT_NOTES = [
+  "Dit onderdeel is gebaseerd op de informatie die u zelf opgeeft. De gemeenschappelijke delen werden niet ter plaatse geïnspecteerd.",
+  "Een aangekondigde renovatie betekent niet automatisch dat u persoonlijk een bepaald bedrag verschuldigd bent.",
+  "De exacte financiële impact hangt onder andere af van de beslissingen van de VME, de kostenverdeling en de beschikbare middelen, zoals het reservefonds.",
+];
+export function apartmentSection(a: Answers) {
+  if (!isApartment(a)) return null;
+  const items = ["A01", "A02", "A03", "A04", "A05"].filter((q) => a[q] !== undefined).map((q) => ({ label: QUESTION_MAP[q].text, value: LABEL(q, a[q]) }));
+  const signals: string[] = [];
+  if (has(a, "A01", "enkele", "duidelijk")) signals.push("U vermeldt aandachtspunten aan de gemeenschappelijke delen. Vraag na of de VME hierover informatie of een onderhoudsplan heeft.");
+  if (has(a, "A02", "beslist", "besproken")) signals.push("Er zijn werken aan de gemeenschappelijke delen gepland of besproken. Raadpleeg de verslagen van de algemene vergadering voor de stand van zaken.");
+  if (has(a, "A03", "ja")) signals.push("Er werden bijzondere bijdragen gevraagd of aangekondigd. Vraag bij de syndicus na waarop deze betrekking hebben.");
+  if (has(a, "A01", "onbekend") || has(a, "A02", "onbekend")) signals.push("Over de gemeenschappelijke delen is nog weinig bekend. De syndicus en de verslagen van de algemene vergadering zijn de beste bron.");
+  return { title: APARTMENT_TITLE, items, signals, notes: APARTMENT_NOTES };
 }
 
 export const DRONE_ADVICE = "Omdat u aandachtspunten aan het dak vermeldt, kan een aanvullende drone-dakscreening nuttig zijn om zichtbare dakonderdelen vanuit de lucht te bekijken. De uitvoering is afhankelijk van de plaatselijke situatie, weersomstandigheden en toepasselijke regelgeving.";
@@ -471,7 +481,7 @@ export function droneAdvice(a: Answers): boolean {
 }
 
 // ---------- Rapport ----------
-const LABEL = (qid: string, v: string | string[] | undefined) => {
+function LABEL(qid: string, v: string | string[] | undefined) {
   if (v === undefined) return "Niet ingevuld";
   const q = QUESTION_MAP[qid];
   return (Array.isArray(v) ? v : [v]).map((id) => q.options.find((x) => x.id === id)?.label ?? id).join(", ");
@@ -485,7 +495,7 @@ export function buildReport(answers: Answers) {
   const points = attentionPoints(a);
   const unknown = unknownInformation(a);
   const combos = combinationAdvice(a);
-  const pkg = packageAdvice(a);
+  const apartment = apartmentSection(a);
   const drone = droneAdvice(a);
   const flags = b.flags.map((id) => ({ id, ...SAFETY_TEXT[id] }));
   const profile = [
@@ -526,7 +536,8 @@ export function buildReport(answers: Answers) {
     points,
     unknown,
     combinations: combos,
-    packageAdvice: pkg,
+    nextStep: NEXT_STEP,
+    apartment,
     drone,
     droneText: drone ? DRONE_ADVICE : null,
     profile,
