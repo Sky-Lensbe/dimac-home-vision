@@ -6,31 +6,13 @@ import { PageSEO } from "@/components/seo/PageSEO";
 import { TextField } from "@/components/site/FormFields";
 import { Barometer, ReportView, SafetyAlerts } from "@/components/quickscan/ReportView";
 import {
-  activeAnswers, buildReport, migrateAnswers, questionText, safetyFlags, stepTitle, visibleQuestions, SKIP, STEP_TITLES,
+  activeAnswers, buildReport, questionText, safetyFlags, stepTitle, visibleQuestions, SKIP, STEP_TITLES,
   type Answers, type Question, type QuickscanReport,
 } from "@/lib/quickscan";
 import { buildReportPdf, downloadBlob, type ReportMeta } from "@/lib/quickscanPdf";
+import { readSaved, SESSION_KEY as KEY, type Saved, type Stage } from "@/lib/quickscanSession";
 import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
-
-type Stage = "intro" | "questions" | "preview" | "form" | "report";
-const KEY = "dimac-quickscan-v2.2";
-const OLD_KEY = "dimac-quickscan-v2.1";
-
-interface Saved { stage: Stage; answers: Answers; index: number; startedAt: number }
-/** Leest opgeslagen voortgang (v2.2, of v2.1 veilig gemigreerd). */
-export const readSaved = (store: Pick<Storage, "getItem" | "removeItem">): Saved | null => {
-  try {
-    store.removeItem("dimac-quickscan-v1");
-    const raw = store.getItem(KEY);
-    if (raw) return JSON.parse(raw) as Saved;
-    const old = store.getItem(OLD_KEY);
-    if (!old) return null;
-    store.removeItem(OLD_KEY);
-    const s = JSON.parse(old) as Saved;
-    return { ...s, answers: migrateAnswers(s.answers ?? {}, "2.1") };
-  } catch { return null; }
-};
 /** Antwoorden die niet meer geldig zijn vervallen en worden opnieuw gevraagd. */
 const load = (): Saved | null => {
   const s = readSaved(sessionStorage);
