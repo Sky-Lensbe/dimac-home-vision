@@ -522,7 +522,7 @@ const Woningscan = () => {
               Het verschil tussen Woningscan en Woningscan Plus: Plus biedt een uitgebreidere beoordeling, fotodocumentatie,
               een gedetailleerder rapport en meer aandacht voor renovatieplanning en samenhang.
             </p>
-            <div className="overflow-x-auto border border-border bg-background">
+            <div className="relative overflow-x-auto border border-border bg-background">
               <table className="w-full min-w-[640px] text-sm">
                 <thead>
                   <tr className="border-b border-border">
