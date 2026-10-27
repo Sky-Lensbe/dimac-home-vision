@@ -6,6 +6,7 @@ import { TextField } from "@/components/site/FormFields";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { QUESTION_MAP, DOMAINS, type QuickscanReport } from "@/lib/quickscan";
 import { buildReportPdf, downloadBlob, type ReportMeta } from "@/lib/quickscanPdf";
+import { storedReport, reportVersionLabel } from "@/lib/quickscanSnapshot";
 
 const STATUSES = [
   ["nieuw", "Nieuw"], ["te_beoordelen", "Te beoordelen"], ["contact_toegelaten", "Contact toegelaten"],
@@ -160,7 +161,8 @@ const LeadDetail = ({ lead, onClose, onChange }: { lead: Lead; onClose: () => vo
     await supabase.from("quickscan_leads").delete().eq("id", lead.id);
     onClose(); onChange();
   };
-  const snap = r?.report_snapshot;
+  const snap = r?.report_snapshot ? storedReport(r.report_snapshot) : undefined;
+  const frozenLabels = (snap as { answerLabels?: Record<string, { q: string; a: string }> } | undefined)?.answerLabels;
 
   return (
     <div className="fixed inset-0 z-50 bg-primary/40 flex justify-end" onClick={onClose}>
@@ -179,7 +181,7 @@ const LeadDetail = ({ lead, onClose, onChange }: { lead: Lead; onClose: () => vo
 
         {r && snap && (
           <div className="mt-8 space-y-6 text-sm">
-            <p>Rapport {r.report_number} · versie {r.report_version} · verzendstatus: <strong>{DELIVERY[r.delivery_status] ?? r.delivery_status}</strong></p>
+            <p>Rapport {r.report_number} · {reportVersionLabel(snap)} (opgeslagen, niet herberekend) · verzendstatus: <strong>{DELIVERY[r.delivery_status] ?? r.delivery_status}</strong></p>
             <p>Categorie: <strong>{snap.category.label}</strong> · informatie: {snap.unknown.label}</p>
             <div><p className="font-medium">Domeinscores</p><ul className="mt-1">{DOMAINS.map((d) => <li key={d.code}>{d.name}: {snap.domainScores[d.code] ?? "onbekend"}</li>)}</ul></div>
             {snap.safety.length > 0 && <div><p className="font-medium text-destructive">Veiligheidsflags</p><ul>{snap.safety.map((s) => <li key={s.id}>{s.id} — {s.title}</li>)}</ul></div>}
@@ -191,7 +193,7 @@ const LeadDetail = ({ lead, onClose, onChange }: { lead: Lead; onClose: () => vo
         )}
 
         <div className="mt-8"><p className="font-medium text-sm">Antwoorden</p>
-          <dl className="mt-2 text-sm space-y-2">{responses.map((x) => <div key={x.question_id}><dt className="text-muted-foreground">{QUESTION_MAP[x.question_id]?.text ?? x.question_id}</dt><dd>{label(x.question_id, x.answer_value)}</dd></div>)}</dl>
+          <dl className="mt-2 text-sm space-y-2">{responses.map((x) => <div key={x.question_id}><dt className="text-muted-foreground">{frozenLabels?.[x.question_id]?.q ?? `${QUESTION_MAP[x.question_id]?.text ?? x.question_id}${frozenLabels ? "" : " (labels volgens huidige versie)"}`}</dt><dd>{frozenLabels?.[x.question_id]?.a ?? label(x.question_id, x.answer_value)}</dd></div>)}</dl>
         </div>
 
         <div className="mt-8"><label htmlFor="notes" className="font-medium text-sm">Interne notities</label>

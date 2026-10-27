@@ -76,19 +76,49 @@ export const ReportView = ({ report }: { report: QuickscanReport }) => {
           </ol>
         ) : <p className="text-primary/85">Er zijn op basis van uw antwoorden geen uitgesproken aandachtspunten gemeld.</p>}
       </Chapter>
+      {(report.energy?.length ?? 0) > 0 && (
+        <Chapter n={next()} title="Energetische aandachtspunten">
+          <ul className="space-y-2 text-primary/85 leading-relaxed">{report.energy.map((t) => <li key={t}>{t}</li>)}</ul>
+        </Chapter>
+      )}
+      {(report.notices?.length ?? 0) > 0 && (
+        <Chapter n={next()} title="Aandachtspunten zonder invloed op de barometer">
+          <ul className="space-y-4">{report.notices.map((x) => <li key={x.id}><p className="font-medium text-primary">{x.title}</p><p className="mt-1 text-primary/85 leading-relaxed">{x.text}</p></li>)}</ul>
+        </Chapter>
+      )}
       <Chapter n={next()} title="Wat weten we nog niet?">
         <p className="font-medium text-primary">{report.unknown.label}</p>
         <p className="mt-1 text-primary/85">{report.unknown.text}</p>
         {report.unknown.sentence && <p className="mt-3 text-primary/85 leading-relaxed">{report.unknown.sentence}</p>}
+        {(report.unknown.skipped?.length ?? 0) > 0 && (
+          <p className="mt-3 text-sm text-muted-foreground">Overgeslagen vragen (ontbrekende informatie): {report.unknown.skipped.map((s) => s.label).join("; ")}.</p>
+        )}
       </Chapter>
       {report.apartment && (
         <Chapter n={next()} title={report.apartment.title}>
-          {report.apartment.items.length > 0 && (
-            <dl className="grid gap-y-4">
-              {report.apartment.items.map((i) => (<div key={i.label}><dt className="text-sm text-muted-foreground">{i.label}</dt><dd className="mt-1 text-primary">{i.value}</dd></div>))}
-            </dl>
+          {report.apartment.groups ? (
+            <div className="space-y-8">
+              {report.apartment.groups.map((g) => (
+                <div key={g.title}>
+                  <p className="font-medium text-primary">{g.title}</p>
+                  {g.items.length > 0 && <dl className="mt-3 grid gap-y-3">{g.items.map((i) => (<div key={i.label}><dt className="text-sm text-muted-foreground">{i.label}</dt><dd className="mt-0.5 text-primary">{i.value}</dd></div>))}</dl>}
+                  {g.signals.length > 0 && <ul className="mt-3 space-y-2 text-primary/85 leading-relaxed">{g.signals.map((t) => <li key={t}>{t}</li>)}</ul>}
+                </div>
+              ))}
+              {report.apartment.syndic?.length > 0 && (
+                <div><p className="font-medium text-primary">Vragen voor de syndicus</p><ul className="mt-3 list-disc pl-5 space-y-1 text-primary/85">{report.apartment.syndic.map((t) => <li key={t}>{t}</li>)}</ul></div>
+              )}
+            </div>
+          ) : (
+            <>
+              {report.apartment.items.length > 0 && (
+                <dl className="grid gap-y-4">
+                  {report.apartment.items.map((i) => (<div key={i.label}><dt className="text-sm text-muted-foreground">{i.label}</dt><dd className="mt-1 text-primary">{i.value}</dd></div>))}
+                </dl>
+              )}
+              {report.apartment.signals.length > 0 && <ul className="mt-6 space-y-3 text-primary/85 leading-relaxed">{report.apartment.signals.map((t) => <li key={t}>{t}</li>)}</ul>}
+            </>
           )}
-          {report.apartment.signals.length > 0 && <ul className="mt-6 space-y-3 text-primary/85 leading-relaxed">{report.apartment.signals.map((t) => <li key={t}>{t}</li>)}</ul>}
           <ul className="mt-6 space-y-2 text-sm text-muted-foreground leading-relaxed">{report.apartment.notes.map((t) => <li key={t}>{t}</li>)}</ul>
         </Chapter>
       )}

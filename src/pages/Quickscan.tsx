@@ -6,30 +6,22 @@ import { PageSEO } from "@/components/seo/PageSEO";
 import { TextField } from "@/components/site/FormFields";
 import { Barometer, ReportView, SafetyAlerts } from "@/components/quickscan/ReportView";
 import {
-  activeAnswers, buildReport, questionText, safetyFlags, STEP_TITLES, visibleQuestions,
+  activeAnswers, buildReport, questionText, safetyFlags, stepTitle, visibleQuestions, SKIP, STEP_TITLES,
   type Answers, type Question, type QuickscanReport,
 } from "@/lib/quickscan";
 import { buildReportPdf, downloadBlob, type ReportMeta } from "@/lib/quickscanPdf";
+import { readSaved, SESSION_KEY as KEY, type Saved, type Stage } from "@/lib/quickscanSession";
 import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
-
-type Stage = "intro" | "questions" | "preview" | "form" | "report";
-const KEY = "dimac-quickscan-v2.1";
-
-interface Saved { stage: Stage; answers: Answers; index: number; startedAt: number }
-/** Laadt opgeslagen voortgang; antwoorden die niet meer geldig zijn vervallen en worden opnieuw gevraagd. */
+/** Antwoorden die niet meer geldig zijn vervallen en worden opnieuw gevraagd. */
 const load = (): Saved | null => {
-  try {
-    sessionStorage.removeItem("dimac-quickscan-v1");
-    const raw = sessionStorage.getItem(KEY);
-    if (!raw) return null;
-    const s = JSON.parse(raw) as Saved;
-    const answers = activeAnswers(s.answers ?? {});
-    const vis = visibleQuestions(answers);
-    const firstOpen = vis.findIndex((q) => answers[q.id] === undefined);
-    if (firstOpen >= 0 && s.stage !== "intro") return { ...s, answers, stage: "questions", index: firstOpen };
-    return { ...s, answers, index: Math.min(s.index ?? 0, Math.max(vis.length - 1, 0)) };
-  } catch { return null; }
+  const s = readSaved(sessionStorage);
+  if (!s) return null;
+  const answers = activeAnswers(s.answers ?? {});
+  const vis = visibleQuestions(answers);
+  const firstOpen = vis.findIndex((q) => answers[q.id] === undefined);
+  if (firstOpen >= 0 && s.stage !== "intro") return { ...s, answers, stage: "questions", index: firstOpen };
+  return { ...s, answers, index: Math.min(s.index ?? 0, Math.max(vis.length - 1, 0)) };
 };
 
 const BENEFITS = [
@@ -76,9 +68,17 @@ export default function Quickscan() {
     setAnswers(copy);
   };
 
-  const next = () => {
+  const skip = () => {
+    if (!q || !q.optional || q.safety) return;
+    const withSkip = { ...active, [q.id]: SKIP };
+    setAnswers(withSkip);
+    advance(withSkip);
+  };
+
+  const next = () => advance(active);
+  const advance = (cur: Answers) => {
     if (!q) return;
-    const after = visibleQuestions(active);
+    const after = visibleQuestions(cur);
     const pos = after.findIndex((x) => x.id === q.id);
     if (after[pos + 1] && after[pos + 1].step !== q.step) track("quickscan_step_complete", { item_id: String(q.step) });
     if (pos + 1 >= after.length) { setStage("preview"); track("quickscan_result_preview"); return; }
@@ -101,7 +101,7 @@ export default function Quickscan() {
         <section className="py-12 md:py-20 bg-background min-h-[70vh]">
           <div className="container-tight max-w-3xl">
             <StepBar step={q.step} />
-            <p className="mt-10 text-xs uppercase tracking-[0.24em] text-accent">Stap {q.step} van 4 — {STEP_TITLES[q.step - 1]}</p>
+            <p className="mt-10 text-xs uppercase tracking-[0.24em] text-accent">Stap {q.step} van 4 — {stepTitle(q.step, active)}</p>
             <h1 className="mt-3 font-display text-3xl md:text-4xl leading-tight text-primary">{questionText(q, active)}</h1>
             {q.help && <p className="mt-3 text-sm text-muted-foreground">{q.help}</p>}
             <div className="mt-8 grid gap-3 sm:grid-cols-2" role={q.multi ? "group" : "radiogroup"} aria-label={questionText(q, active)}>
@@ -131,10 +131,16 @@ export default function Quickscan() {
               <Button type="button" variant="ghost" onClick={() => (index === 0 ? setStage("intro") : setIndex(index - 1))}>
                 <ArrowLeft /> Vorige
               </Button>
-              <Button type="button" onClick={next} disabled={active[q.id] === undefined}>
-                Volgende <ArrowRight />
-              </Button>
+              <div className="flex items-center gap-2">
+                {q.optional && !q.safety && (
+                  <Button type="button" variant="outline" onClick={skip}>Overslaan</Button>
+                )}
+                <Button type="button" onClick={next} disabled={active[q.id] === undefined || active[q.id] === SKIP}>
+                  Volgende <ArrowRight />
+                </Button>
+              </div>
             </div>
+            {q.optional && !q.safety && <p className="mt-3 text-xs text-muted-foreground text-right">Optionele vraag. Overslaan telt als ontbrekende informatie.</p>}
             <p className="mt-8 text-xs text-muted-foreground">Het aantal vragen past zich aan uw antwoorden aan.</p>
           </div>
         </section>
