@@ -108,7 +108,7 @@ export const ReportView = ({ report }: { report: QuickscanReport }) => {
           {report.droneText && <p className="mt-3 text-sm text-muted-foreground">{report.droneText}</p>}
           <div className="mt-6 flex flex-wrap gap-3 no-print">
             <Button asChild>
-              <Link to="/contact" onClick={() => track("quickscan_next_step_click", { item_id: "contact" })}>Neem vrijblijvend contact op <ArrowRight /></Link>
+              <Link to="/contact" onClick={() => track("quickscan_next_step_click", { item_id: "quickscan_contact" })}>Neem vrijblijvend contact op <ArrowRight /></Link>
             </Button>
           </div>
         </div>
