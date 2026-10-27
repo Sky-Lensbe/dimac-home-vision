@@ -9,3 +9,8 @@
 - [x] Testmodus e-mail afgedwongen op de server (alleen info@sky-lens.be)
 - [ ] Rapport- en leadmails versturen — wacht op koppeling en verificatie van sky-lens.be als verzenddomein
 - [ ] Beheerdersaccount info@sky-lens.be aanmaken — wacht op gebruiker (wachtwoord)
+
+# Quickscan 2.2 (testmodus)
+- [x] Nieuwe vragen, appartement/VME-onderdeel, scoring, rapport en PDF (versie 2.2)
+- [x] Zes acceptatievoorwaarden: prioritering met gemeten vraagaantallen, Overslaan, sessiemigratie 2.1→2.2, onveranderlijke oude rapporten, VME-scheiding, scoringsmatrix (docs/quickscan-2.2-scoringsmatrix.md)
+- [x] 83 tests geslaagd; volledige doorloop appartement tot rapport en PDF; testinzending verwijderd
