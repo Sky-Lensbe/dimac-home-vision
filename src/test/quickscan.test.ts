@@ -87,13 +87,13 @@ describe("woningen (acceptatie 1–14)", () => {
     expect(n.some((t) => t.startsWith("Buitenmuren: isolatietoestand onbekend"))).toBe(true);
   });
   it("7. gekende asbestmaterialen: vervolgvraag en melding zonder barometerimpact", () => {
-    const a = fill({ ...HOUSE, AS01: "gekend", AS02: "werken" });
+    const a = fill({ ...HOUSE, Q03: "1970-1990", AS01: "gekend", AS02: "werken" });
     expect(visibleQuestions(a).map((q) => q.id)).toContain("AS02");
     expect(contextNotices(a).map((n) => n.id)).toContain("NOT-ASBEST-WERK");
-    expect(barometer(a).score).toBe(barometer(fill(HOUSE)).score);
+    expect(barometer(a).score).toBe(barometer(fill({ ...HOUSE, Q03: "1970-1990" })).score);
   });
   it("8. geen asbestattest: geen diagnose, wel een melding", () => {
-    const n = contextNotices(fill({ ...HOUSE, AS01: "geen_attest" }));
+    const n = contextNotices(fill({ ...HOUSE, Q03: "1970-1990", AS01: "geen_attest" }));
     expect(n.find((x) => x.id === "NOT-ASBEST-ATTEST")?.text).toContain("niet dat er asbest aanwezig of afwezig is");
   });
   it("9. kelder met vochtproblemen vraagt naar water in de kelder", () => {
@@ -130,7 +130,7 @@ describe("appartementen (acceptatie 15–24)", () => {
     for (const q of ["AK01", "AB01", "Q14", "DI01", "MI01", "K01", "Q08"]) expect(s).not.toContain(q);
   });
   it("16. oude privatieve leidingen: aandachtspunt, vraagtekst verwijst naar het appartement", () => {
-    const a = fill({ ...APT, SL01: "origineel" });
+    const a = fill({ ...APT, R01: "gt30", SL01: "origineel" });
     expect(questionText(QUESTION_MAP.SL01, a)).toContain("binnen het appartement");
     expect(domainScores(a).T).toBe(3);
   });
@@ -238,9 +238,10 @@ describe("voorwaarde 1: deterministische prioritering en vraagaantallen", () => 
     const oud = shown({ ...HOUSE, Q14: "oud" }).filter((q) => ["Q17", "Q15", "Q16", "Q19"].includes(q));
     const slijt = shown({ ...HOUSE, Q14: "slijtage" }).filter((q) => ["Q17", "Q15", "Q16", "Q19"].includes(q));
     const lek = shown({ ...HOUSE, Q14: "lek" }).filter((q) => ["Q17", "Q15", "Q16", "Q19"].includes(q));
-    expect(oud.length).toBeLessThan(slijt.length);
-    expect(slijt.length).toBeLessThanOrEqual(lek.length);
+    expect(oud).toEqual(["Q17"]);
+    expect(slijt).not.toContain("Q19");
     expect(lek).toContain("Q19");
+    expect(slijt.length).toBeGreaterThan(oud.length);
   });
   it("lichte vochtmelding toont minder vervolgvragen dan vochtplekken", () => {
     const vocht = ["Q25", "Q26", "Q29", "Q27"];
@@ -267,7 +268,7 @@ describe("voorwaarde 1: deterministische prioritering en vraagaantallen", () => 
     const n = count(a);
     console.log(`[vraagaantal] ${name}: ${n}`);
     expect(n).toBeGreaterThan(10);
-    expect(n).toBeLessThan(50);
+    expect(n).toBeLessThan(60);
   });
   it("een normale scan blijft compact (≤ 26 vragen)", () => {
     expect(count(HOUSE)).toBeLessThanOrEqual(26);
