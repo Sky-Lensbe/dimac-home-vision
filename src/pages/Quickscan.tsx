@@ -224,7 +224,7 @@ const Intro = ({ onStart, resume }: { onStart: () => void; resume?: () => void }
     <section className="py-16 md:py-20 bg-background">
       <div className="container-tight max-w-3xl space-y-4 text-muted-foreground leading-relaxed">
         <p className="text-primary">De Quickscan is een eerste analyse op basis van uw antwoorden en vervangt geen inspectie ter plaatse.</p>
-        <p>Vanuit Diest actief in Limburg en Vlaams-Brabant. Wilt u meteen een inspectie ter plaatse? <Link to="/woningscan#pakketten" className="text-accent underline underline-offset-2">Bekijk de Woningscan-pakketten</Link>.</p>
+        <p>Vanuit Diest actief in Limburg en Vlaams-Brabant. Wilt u meteen een inspectie ter plaatse? <Link to="/woningscan#pakketten" className="text-accent underline underline-offset-2">Bekijk Woningscan en Woningscan Plus</Link>.</p>
       </div>
     </section>
   </>

@@ -56,8 +56,8 @@ const Contact = () => {
         <div className="container-tight grid gap-5 md:grid-cols-2">
           <Link to="/woningscan#pakketten" className="focus-ring group/c border border-border p-8 fine:hover:border-accent transition-colors">
             <span className="text-[11px] uppercase tracking-[0.24em] text-accent">Woningscan</span>
-            <p className="mt-3 font-display text-2xl">Een pakket kiezen en aanvragen</p>
-            <span className="mt-6 inline-flex items-center gap-2 text-sm">Naar de pakketten <ArrowRight className="w-4 h-4" /></span>
+            <p className="mt-3 font-display text-2xl">Woningscan of Woningscan Plus aanvragen</p>
+            <span className="mt-6 inline-flex items-center gap-2 text-sm">Naar de mogelijkheden <ArrowRight className="w-4 h-4" /></span>
           </Link>
           <Link to="/totaalrenovaties#intake" className="focus-ring group/c border border-border p-8 fine:hover:border-accent transition-colors">
             <span className="text-[11px] uppercase tracking-[0.24em] text-accent">Totaalrenovatie</span>

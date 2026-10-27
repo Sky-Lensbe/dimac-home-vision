@@ -1,47 +1,91 @@
 import { describe, it, expect } from "vitest";
-import { SCAN_PACKAGES, scanTotal, DRONE_PRICE } from "@/data/woningscan";
+import {
+  PRODUCTS,
+  ONLINE_PRODUCTS,
+  PHYSICAL_PRODUCTS,
+  DRONE_PRICE,
+  getProduct,
+  getPackage,
+  scanTotal,
+  vatPart,
+  formatEuro,
+  formatPrice,
+  parseScanParams,
+  woningscanRecipient,
+  WONINGSCAN_MAIL_MODE,
+} from "@/data/woningscan";
 import { buildMailto } from "@/lib/mailto";
-import { parseScanParams } from "@/data/woningscan";
 
-describe("woningscan prijzen", () => {
-  it("Basis kost €299 en €424 met drone", () => {
-    expect(scanTotal("basis", false)).toBe(299);
-    expect(scanTotal("basis", true)).toBe(424);
+describe("vier Woningscan-producten", () => {
+  it("exact vier producten met vaste ID's", () => {
+    expect(PRODUCTS.map((p) => p.id)).toEqual(["quickscan", "online-budgetindicator", "woningscan", "woningscan-plus"]);
   });
-  it("Plus bestaat niet meer en een oude Plus-link kiest geen pakket", () => {
-    expect(SCAN_PACKAGES.map((p) => p.id)).toEqual(["basis", "compleet"]);
-    expect(parseScanParams(new URLSearchParams("pakket=plus")).pakket).toBeNull();
+  it("twee online en twee ter plaatse", () => {
+    expect(ONLINE_PRODUCTS.map((p) => p.id)).toEqual(["quickscan", "online-budgetindicator"]);
+    expect(PHYSICAL_PRODUCTS.map((p) => p.id)).toEqual(["woningscan", "woningscan-plus"]);
   });
-  it("Compleet kost €649 en €774 met drone", () => {
-    expect(scanTotal("compleet", false)).toBe(649);
-    expect(scanTotal("compleet", true)).toBe(774);
+  it("Quickscan is gratis en opent de bestaande vragenlijst", () => {
+    expect(formatPrice(getProduct("quickscan")!)).toBe("Gratis");
+    expect(getProduct("quickscan")!.ctaTo).toBe("/woningscan/quickscan");
   });
-  it("drone-optie kost €125", () => {
+  it("online budgetraming kost €39,99, is binnenkort beschikbaar en niet koopbaar", () => {
+    const b = getProduct("online-budgetindicator")!;
+    expect(b.price).toBe(39.99);
+    expect(formatEuro(b.price)).toBe("€39,99");
+    expect(b.availability).toBe("coming_soon");
+    expect(b.ctaTo).toBeNull();
+    expect(getPackage("online-budgetindicator")).toBeUndefined();
+  });
+  it("Woningscan €299 en Woningscan Plus €449, met juiste aanvraag-CTA", () => {
+    expect(getProduct("woningscan")!.price).toBe(299);
+    expect(getProduct("woningscan-plus")!.price).toBe(449);
+    expect(getProduct("woningscan")!.ctaTo).toContain("pakket=woningscan#");
+    expect(getProduct("woningscan-plus")!.ctaTo).toContain("pakket=woningscan-plus");
+  });
+  it("geen €649 en geen Basis/Compleet meer", () => {
+    expect(PRODUCTS.some((p) => p.price === 649)).toBe(false);
+    expect(PRODUCTS.some((p) => /basis|compleet/i.test(p.id + p.name))).toBe(false);
+  });
+});
+
+describe("drone en totaal incl. btw", () => {
+  it("drone €125 enkel bij fysieke scans", () => {
     expect(DRONE_PRICE).toBe(125);
+    expect(PRODUCTS.filter((p) => p.droneAllowed).map((p) => p.id)).toEqual(["woningscan", "woningscan-plus"]);
+    expect(() => scanTotal("quickscan", true)).toThrow();
+    expect(() => scanTotal("online-budgetindicator", true)).toThrow();
   });
-
+  it("totaal telt drone op zonder extra btw", () => {
+    expect(scanTotal("woningscan", false)).toBe(299);
+    expect(scanTotal("woningscan", true)).toBe(424);
+    expect(scanTotal("woningscan-plus", false)).toBe(449);
+    expect(scanTotal("woningscan-plus", true)).toBe(574);
+  });
+  it("btw-component uit inclusieve prijs (21%)", () => {
+    expect(vatPart(121)).toBe(21);
+  });
 });
 
-describe("mailto", () => {
-  it("stuurt naar info@dimac.be met onderwerp en velden", () => {
-    const url = buildMailto("Aanvraag", [["Pakket", "Basis"], ["Drone", "Ja"]]);
-    expect(url.startsWith("mailto:info@dimac.be?subject=Aanvraag")).toBe(true);
-    expect(decodeURIComponent(url)).toContain("Pakket: Basis");
+describe("queryparameters", () => {
+  it("nieuwe pakketten worden geselecteerd", () => {
+    expect(parseScanParams(new URLSearchParams("pakket=woningscan-plus&situatie=kopen"))).toEqual({ pakket: "woningscan-plus", situatie: "kopen" });
+  });
+  it("oude basis/compleet/plus-links selecteren niets", () => {
+    for (const old of ["basis", "compleet", "plus", "quickscan", "online-budgetindicator"]) {
+      expect(parseScanParams(new URLSearchParams(`pakket=${old}`)).pakket).toBeNull();
+    }
   });
 });
 
-import { getPackage } from "@/data/woningscan";
-describe("woningscan queryparameters en inhoud", () => {
-  it("leest pakket en situatie samen", () => {
-    expect(parseScanParams(new URLSearchParams("pakket=compleet&situatie=kopen"))).toEqual({ pakket: "compleet", situatie: "kopen" });
+describe("mailto testmodus", () => {
+  it("Woningscan-aanvragen gaan in testmodus uitsluitend naar info@sky-lens.be", () => {
+    expect(WONINGSCAN_MAIL_MODE).toBe("test");
+    expect(woningscanRecipient()).toBe("info@sky-lens.be");
+    const url = buildMailto("Aanvraag", [["Pakket", "Woningscan"]], undefined, woningscanRecipient());
+    expect(url.startsWith("mailto:info@sky-lens.be?")).toBe(true);
+    expect(url).not.toContain("dimac.be");
   });
-  it("negeert ongeldige waarden", () => {
-    expect(parseScanParams(new URLSearchParams("pakket=xl&situatie=huren"))).toEqual({ pakket: null, situatie: null });
-  });
-  it("Basis bevat geen kostenraming of fotodocumentatie", () => {
-    expect(getPackage("basis")!.items.some((i) => /kostenraming|fotodocumentatie/i.test(i))).toBe(false);
-  });
-  it("Compleet bevat een indicatieve kostenraming", () => {
-    expect(getPackage("compleet")!.items.some((i) => /indicatieve.*kostenraming/i.test(i))).toBe(true);
+  it("algemene mailto blijft standaard naar info@dimac.be", () => {
+    expect(buildMailto("X", []).startsWith("mailto:info@dimac.be?")).toBe(true);
   });
 });
