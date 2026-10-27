@@ -101,7 +101,7 @@ const Dashboard = () => {
         <Button variant="outline" onClick={() => supabase.auth.signOut()}>Afmelden</Button>
       </div>
       <div className="mt-8 grid gap-3 grid-cols-2 md:grid-cols-6">
-        {[["Leads", leads.length], ["Nieuw", count((l) => l.status === "nieuw")], ["Advies Basis", count((l) => rep(l)?.recommended_package === "basis")],
+        {[["Leads", leads.length], ["Nieuw", count((l) => l.status === "nieuw")],
           ["Drone-advies", count((l) => !!rep(l)?.drone_recommendation)],
           ["Marketing-toestemming", count((l) => l.marketing_consent)]].map(([t, n]) => (
           <div key={t as string} className="border border-border p-4"><p className="text-xs text-muted-foreground">{t}</p><p className="mt-1 font-display text-3xl text-primary">{n}</p></div>

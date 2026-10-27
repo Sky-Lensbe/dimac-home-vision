@@ -17,8 +17,19 @@ type Stage = "intro" | "questions" | "preview" | "form" | "report";
 const KEY = "dimac-quickscan-v2.1";
 
 interface Saved { stage: Stage; answers: Answers; index: number; startedAt: number }
+/** Laadt opgeslagen voortgang; antwoorden die niet meer geldig zijn vervallen en worden opnieuw gevraagd. */
 const load = (): Saved | null => {
-  try { const s = sessionStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch { return null; }
+  try {
+    sessionStorage.removeItem("dimac-quickscan-v1");
+    const raw = sessionStorage.getItem(KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw) as Saved;
+    const answers = activeAnswers(s.answers ?? {});
+    const vis = visibleQuestions(answers);
+    const firstOpen = vis.findIndex((q) => answers[q.id] === undefined);
+    if (firstOpen >= 0 && s.stage !== "intro") return { ...s, answers, stage: "questions", index: firstOpen };
+    return { ...s, answers, index: Math.min(s.index ?? 0, Math.max(vis.length - 1, 0)) };
+  } catch { return null; }
 };
 
 const BENEFITS = [
