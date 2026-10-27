@@ -34,7 +34,8 @@ export type TrackEvent =
   | "quickscan_email_failed"
   | "quickscan_report_view"
   | "quickscan_report_download"
-  | "quickscan_paid_scan_click";
+  | "quickscan_paid_scan_click"
+  | "quickscan_next_step_click";
 
 export interface TrackPayload {
   page_type?: string;

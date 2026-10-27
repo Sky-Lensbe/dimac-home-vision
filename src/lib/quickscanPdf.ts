@@ -22,6 +22,8 @@ export function buildReportPdf(r: QuickscanReport, meta: ReportMeta): Blob {
     for (const l of lines) { ensure(lh); doc.text(l, M, y); y += lh; }
     y += gap;
   };
+  let chapter = 0;
+  const ch = () => ++chapter;
   const h2 = (n: number, s: string) => {
     ensure(16); y += 4;
     doc.setDrawColor(...ORANGE); doc.setLineWidth(0.4); doc.line(M, y, M + 12, y); y += 6;
@@ -43,10 +45,10 @@ export function buildReportPdf(r: QuickscanReport, meta: ReportMeta): Blob {
     h2(0, "Veiligheidsadvies");
     for (const s of r.safety) { text(s.title, 11, ORANGE, "bold", 1); text(s.text, 10); }
   }
-  h2(1, "Uw woningprofiel");
+  h2(ch(), "Uw woningprofiel");
   for (const p of r.profile) text(`${p.label}: ${p.value}`, 10, INK, "normal", 0.5);
 
-  h2(2, "Renovatienoodzakelijkheidsbarometer");
+  h2(ch(), "Renovatienoodzakelijkheidsbarometer");
   // Vierdelige meter
   ensure(14);
   const segW = CW / 4;
@@ -62,29 +64,33 @@ export function buildReportPdf(r: QuickscanReport, meta: ReportMeta): Blob {
   text(r.category.text, 10);
   text("De barometer geeft de signalen weer die u zelf opgeeft, niet een bewezen renovatienoodzaak.", 9, MUTED);
 
-  h2(3, "Uw belangrijkste aandachtspunten");
+  h2(ch(), "Uw belangrijkste aandachtspunten");
   if (!r.points.length) text("Er zijn op basis van uw antwoorden geen uitgesproken aandachtspunten gemeld.");
   for (const p of r.points) { text(p.title, 11, INK, "bold", 1); text(p.text, 10, INK, "normal", 1); text(`Volgende stap: ${p.next}`, 9, MUTED); }
 
-  h2(4, "Wat weten we nog niet?");
+  h2(ch(), "Wat weten we nog niet?");
   text(r.unknown.label, 11, INK, "bold", 1); text(r.unknown.text, 10);
   if (r.unknown.sentence) text(r.unknown.sentence, 10);
 
   if (r.combinations.length) {
-    h2(5, "Renovaties slim combineren");
+    h2(ch(), "Renovaties slim combineren");
     for (const c of r.combinations) { text(c.title, 11, INK, "bold", 1); text(c.text, 10); }
   }
-  h2(6, "Samenvatting");
+  if (r.apartment) {
+    h2(ch(), r.apartment.title);
+    for (const i of r.apartment.items) text(`${i.label} ${i.value}`, 10, INK, "normal", 0.5);
+    for (const t of r.apartment.signals) text(t, 10);
+    for (const t of r.apartment.notes) text(t, 9, MUTED);
+  }
+  h2(ch(), "Samenvatting");
   text(r.summary, 10);
 
-  h2(7, "Een mogelijke volgende stap");
-  text(`Woningscan ${r.packageAdvice.pkg === "compleet" ? "Compleet" : "Basis"}`, 11, INK, "bold", 1);
-  text(r.packageAdvice.text, 10);
-  if (r.packageAdvice.doubt && r.packageAdvice.pkg === "basis") text("Compleet is relevant wanneer u ook een renovatieplanning en een indicatie van de kosten wenst.", 10, MUTED);
+  h2(ch(), "Een mogelijke volgende stap");
+  text(r.nextStep.title, 11, INK, "bold", 1);
+  text(r.nextStep.text, 10);
   if (r.droneText) text(r.droneText, 10, MUTED);
-  text("Deze aanbeveling is vrijblijvend. U kunt alle pakketten bekijken op dimac.be/woningscan.", 9, MUTED);
 
-  h2(8, "Grenzen van de Quickscan");
+  h2(ch(), "Grenzen van de Quickscan");
   text(r.limits, 10);
 
   const pages = doc.getNumberOfPages();
