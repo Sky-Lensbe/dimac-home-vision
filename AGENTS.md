@@ -1,7 +1,7 @@
 # AGENTS.md
 
 - Woningscan prices and drone option live only in `src/data/woningscan.ts`; UI and tests read from there so prices never drift.
-- Contact and Woningscan forms have no backend: they build a `mailto:` via `src/lib/mailto.ts` and must never show a "received" confirmation. The Quickscan is the exception and stores leads through the `quickscan-submit` function.
+- Contact and Woningscan forms have no backend: they build a `mailto:` via `src/lib/mailto.ts` and must never show a "received" confirmation; the Woningscan form recipient comes from `woningscanRecipient()` (code-constant test mode, never env-based). The Quickscan is the exception and stores leads through the `quickscan-submit` function.
 - Confirmed projects live in `src/data/developments.ts`; missing images and descriptive fields remain optional so incomplete records never require invented content. When empty, pages show the development approach instead of cards.
 - Indexing is off unless `VITE_ALLOW_INDEXING=true` (PageSEO forces noindex; robots.txt disallows) because the site is not live yet.
 - Analytics events go to `window.dataLayer` via `track()`; never include personal data, and a mailto handoff is not a sent message.
