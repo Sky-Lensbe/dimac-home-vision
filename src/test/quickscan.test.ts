@@ -87,13 +87,13 @@ describe("woningen (acceptatie 1–14)", () => {
     expect(n.some((t) => t.startsWith("Buitenmuren: isolatietoestand onbekend"))).toBe(true);
   });
   it("7. gekende asbestmaterialen: vervolgvraag en melding zonder barometerimpact", () => {
-    const a = fill({ ...HOUSE, AS01: "gekend", AS02: "werken" });
+    const a = fill({ ...HOUSE, Q03: "1970-1990", AS01: "gekend", AS02: "werken" });
     expect(visibleQuestions(a).map((q) => q.id)).toContain("AS02");
     expect(contextNotices(a).map((n) => n.id)).toContain("NOT-ASBEST-WERK");
-    expect(barometer(a).score).toBe(barometer(fill(HOUSE)).score);
+    expect(barometer(a).score).toBe(barometer(fill({ ...HOUSE, Q03: "1970-1990" })).score);
   });
   it("8. geen asbestattest: geen diagnose, wel een melding", () => {
-    const n = contextNotices(fill({ ...HOUSE, AS01: "geen_attest" }));
+    const n = contextNotices(fill({ ...HOUSE, Q03: "1970-1990", AS01: "geen_attest" }));
     expect(n.find((x) => x.id === "NOT-ASBEST-ATTEST")?.text).toContain("niet dat er asbest aanwezig of afwezig is");
   });
   it("9. kelder met vochtproblemen vraagt naar water in de kelder", () => {
@@ -130,7 +130,7 @@ describe("appartementen (acceptatie 15–24)", () => {
     for (const q of ["AK01", "AB01", "Q14", "DI01", "MI01", "K01", "Q08"]) expect(s).not.toContain(q);
   });
   it("16. oude privatieve leidingen: aandachtspunt, vraagtekst verwijst naar het appartement", () => {
-    const a = fill({ ...APT, SL01: "origineel" });
+    const a = fill({ ...APT, R01: "gt30", SL01: "origineel" });
     expect(questionText(QUESTION_MAP.SL01, a)).toContain("binnen het appartement");
     expect(domainScores(a).T).toBe(3);
   });
