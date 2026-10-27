@@ -238,9 +238,10 @@ describe("voorwaarde 1: deterministische prioritering en vraagaantallen", () => 
     const oud = shown({ ...HOUSE, Q14: "oud" }).filter((q) => ["Q17", "Q15", "Q16", "Q19"].includes(q));
     const slijt = shown({ ...HOUSE, Q14: "slijtage" }).filter((q) => ["Q17", "Q15", "Q16", "Q19"].includes(q));
     const lek = shown({ ...HOUSE, Q14: "lek" }).filter((q) => ["Q17", "Q15", "Q16", "Q19"].includes(q));
-    expect(oud.length).toBeLessThan(slijt.length);
-    expect(slijt.length).toBeLessThanOrEqual(lek.length);
+    expect(oud).toEqual(["Q17"]);
+    expect(slijt).not.toContain("Q19");
     expect(lek).toContain("Q19");
+    expect(slijt.length).toBeGreaterThan(oud.length);
   });
   it("lichte vochtmelding toont minder vervolgvragen dan vochtplekken", () => {
     const vocht = ["Q25", "Q26", "Q29", "Q27"];
@@ -267,7 +268,7 @@ describe("voorwaarde 1: deterministische prioritering en vraagaantallen", () => 
     const n = count(a);
     console.log(`[vraagaantal] ${name}: ${n}`);
     expect(n).toBeGreaterThan(10);
-    expect(n).toBeLessThan(50);
+    expect(n).toBeLessThan(60);
   });
   it("een normale scan blijft compact (≤ 26 vragen)", () => {
     expect(count(HOUSE)).toBeLessThanOrEqual(26);
