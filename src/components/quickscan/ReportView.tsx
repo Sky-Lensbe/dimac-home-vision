@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { AlertTriangle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CATEGORIES, SAFETY_TEXT, type QuickscanReport, type SafetyId } from "@/lib/quickscan";
-import { formatEuro, getPackage, DRONE_OPTION } from "@/data/woningscan";
 import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
@@ -46,22 +45,22 @@ const Chapter = ({ n, title, children }: { n: number; title: string; children: R
 );
 
 export const ReportView = ({ report }: { report: QuickscanReport }) => {
-  const pkg = getPackage(report.packageAdvice.pkg)!;
-  const other = getPackage(report.packageAdvice.pkg === "basis" ? "compleet" : "basis")!;
+  let n = 0;
+  const next = () => ++n;
   return (
     <div>
       {report.safety.length > 0 && <div className="mb-10"><SafetyAlerts ids={report.safety.map((s) => s.id as SafetyId)} /></div>}
-      <Chapter n={1} title="Uw woningprofiel">
+      <Chapter n={next()} title="Uw woningprofiel">
         <dl className="grid sm:grid-cols-2 gap-x-8 gap-y-4">
           {report.profile.map((p) => (
             <div key={p.label}><dt className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{p.label}</dt><dd className="mt-1 text-primary">{p.value}</dd></div>
           ))}
         </dl>
       </Chapter>
-      <Chapter n={2} title="Uw renovatiebarometer">
+      <Chapter n={next()} title="Uw renovatiebarometer">
         <Barometer level={report.level} label={report.category.label} text={report.category.text} />
       </Chapter>
-      <Chapter n={3} title="Uw belangrijkste aandachtspunten">
+      <Chapter n={next()} title="Uw belangrijkste aandachtspunten">
         {report.points.length ? (
           <ol className="space-y-6">
             {report.points.map((p, i) => (
@@ -77,39 +76,44 @@ export const ReportView = ({ report }: { report: QuickscanReport }) => {
           </ol>
         ) : <p className="text-primary/85">Er zijn op basis van uw antwoorden geen uitgesproken aandachtspunten gemeld.</p>}
       </Chapter>
-      <Chapter n={4} title="Wat weten we nog niet?">
+      <Chapter n={next()} title="Wat weten we nog niet?">
         <p className="font-medium text-primary">{report.unknown.label}</p>
         <p className="mt-1 text-primary/85">{report.unknown.text}</p>
         {report.unknown.sentence && <p className="mt-3 text-primary/85 leading-relaxed">{report.unknown.sentence}</p>}
       </Chapter>
+      {report.apartment && (
+        <Chapter n={next()} title={report.apartment.title}>
+          {report.apartment.items.length > 0 && (
+            <dl className="grid gap-y-4">
+              {report.apartment.items.map((i) => (<div key={i.label}><dt className="text-sm text-muted-foreground">{i.label}</dt><dd className="mt-1 text-primary">{i.value}</dd></div>))}
+            </dl>
+          )}
+          {report.apartment.signals.length > 0 && <ul className="mt-6 space-y-3 text-primary/85 leading-relaxed">{report.apartment.signals.map((t) => <li key={t}>{t}</li>)}</ul>}
+          <ul className="mt-6 space-y-2 text-sm text-muted-foreground leading-relaxed">{report.apartment.notes.map((t) => <li key={t}>{t}</li>)}</ul>
+        </Chapter>
+      )}
       {report.combinations.length > 0 && (
-        <Chapter n={5} title="Renovaties slim combineren">
+        <Chapter n={next()} title="Renovaties slim combineren">
           <ul className="space-y-4">
             {report.combinations.map((c) => (<li key={c.id}><p className="font-medium text-primary">{c.title}</p><p className="mt-1 text-primary/85">{c.text}</p></li>))}
           </ul>
         </Chapter>
       )}
-      <Chapter n={6} title="Samenvatting"><p className="text-primary/85 leading-relaxed">{report.summary}</p></Chapter>
-      <Chapter n={7} title="Een mogelijke volgende stap">
+      <Chapter n={next()} title="Samenvatting"><p className="text-primary/85 leading-relaxed">{report.summary}</p></Chapter>
+      <Chapter n={next()} title="Een mogelijke volgende stap">
         <div className="border border-border bg-surface p-6 md:p-8">
           <p className="text-xs uppercase tracking-[0.24em] text-accent">Vrijblijvend advies</p>
-          <p className="mt-2 font-display text-2xl text-primary">Woningscan {pkg.name} · {formatEuro(pkg.price)} <span className="text-sm text-muted-foreground font-sans">incl. btw</span></p>
-          <p className="mt-3 text-primary/85 leading-relaxed">{report.packageAdvice.text}</p>
-          {report.packageAdvice.doubt && report.packageAdvice.pkg === "basis" && (
-            <p className="mt-3 text-sm text-muted-foreground">Compleet ({formatEuro(other.price)}) is relevant wanneer u ook een renovatieplanning en een indicatie van de kosten wenst.</p>
-          )}
-          {report.droneText && <p className="mt-3 text-sm text-muted-foreground">{report.droneText} Optioneel: + {formatEuro(DRONE_OPTION.price)} incl. btw.</p>}
+          <p className="mt-2 font-display text-2xl text-primary">{report.nextStep.title}</p>
+          <p className="mt-3 text-primary/85 leading-relaxed">{report.nextStep.text}</p>
+          {report.droneText && <p className="mt-3 text-sm text-muted-foreground">{report.droneText}</p>}
           <div className="mt-6 flex flex-wrap gap-3 no-print">
             <Button asChild>
-              <Link to={`/woningscan?pakket=${pkg.id}#pakketten`} onClick={() => track("quickscan_paid_scan_click", { item_id: pkg.id })}>Bekijk Woningscan {pkg.name} <ArrowRight /></Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link to={`/woningscan?pakket=${other.id}#pakketten`} onClick={() => track("quickscan_paid_scan_click", { item_id: other.id })}>Bekijk {other.name}</Link>
+              <Link to="/contact" onClick={() => track("quickscan_next_step_click", { item_id: "contact" })}>Neem vrijblijvend contact op <ArrowRight /></Link>
             </Button>
           </div>
         </div>
       </Chapter>
-      <Chapter n={8} title="Grenzen van de Quickscan"><p className="text-sm text-muted-foreground leading-relaxed">{report.limits}</p></Chapter>
+      <Chapter n={next()} title="Grenzen van de Quickscan"><p className="text-sm text-muted-foreground leading-relaxed">{report.limits}</p></Chapter>
     </div>
   );
 };
