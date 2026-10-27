@@ -119,7 +119,7 @@ export default function Quickscan() {
         <section className="py-12 md:py-20 bg-background min-h-[70vh]">
           <div className="container-tight max-w-3xl">
             <StepBar step={q.step} />
-            <p className="mt-10 text-xs uppercase tracking-[0.24em] text-accent">Stap {q.step} van 4 — {STEP_TITLES[q.step - 1]}</p>
+            <p className="mt-10 text-xs uppercase tracking-[0.24em] text-accent">Stap {q.step} van 4 — {stepTitle(q.step, active)}</p>
             <h1 className="mt-3 font-display text-3xl md:text-4xl leading-tight text-primary">{questionText(q, active)}</h1>
             {q.help && <p className="mt-3 text-sm text-muted-foreground">{q.help}</p>}
             <div className="mt-8 grid gap-3 sm:grid-cols-2" role={q.multi ? "group" : "radiogroup"} aria-label={questionText(q, active)}>
@@ -149,10 +149,16 @@ export default function Quickscan() {
               <Button type="button" variant="ghost" onClick={() => (index === 0 ? setStage("intro") : setIndex(index - 1))}>
                 <ArrowLeft /> Vorige
               </Button>
-              <Button type="button" onClick={next} disabled={active[q.id] === undefined}>
-                Volgende <ArrowRight />
-              </Button>
+              <div className="flex items-center gap-2">
+                {q.optional && !q.safety && (
+                  <Button type="button" variant="outline" onClick={skip}>Overslaan</Button>
+                )}
+                <Button type="button" onClick={next} disabled={active[q.id] === undefined || active[q.id] === SKIP}>
+                  Volgende <ArrowRight />
+                </Button>
+              </div>
             </div>
+            {q.optional && !q.safety && <p className="mt-3 text-xs text-muted-foreground text-right">Optionele vraag. Overslaan telt als ontbrekende informatie.</p>}
             <p className="mt-8 text-xs text-muted-foreground">Het aantal vragen past zich aan uw antwoorden aan.</p>
           </div>
         </section>
