@@ -173,7 +173,7 @@ export const QUESTIONS: Question[] = [
 export const questionText = (q: Question, a: Answers) => q.textFor?.(a) ?? q.text;
 
 export const QUESTION_MAP: Record<string, Question> = Object.fromEntries(QUESTIONS.map((q) => [q.id, q]));
-export const STEP_TITLES = ["Uw woning", "De zichtbare toestand", "Energie en installaties", "Uw renovatieplannen"];
+export const STEP_TITLES = ["Uw woning", "Bouwkundige toestand", "Energie en installaties", "Renovatieplannen"];
 
 /** Geldige antwoorden filteren op toegestane opties en exclusieve keuzes. */
 function sanitize(q: Question, v: unknown): string | string[] | undefined {
@@ -231,9 +231,9 @@ export const SAFETY_TEXT: Record<SafetyId, { title: string; text: string }> = {
 export function safetyFlags(a: Answers): SafetyId[] {
   const f: SafetyId[] = [];
   if (has(a, "Q42", "gas") || has(a, "Q43", "ja")) f.push("SAFE-01");
-  if (has(a, "Q40", "rook")) f.push("SAFE-02");
+  if (has(a, "Q41", "rook")) f.push("SAFE-02");
   if (has(a, "Q30", "groot") || has(a, "Q31", "groter") || has(a, "Q32", "duidelijk")) f.push("SAFE-03");
-  if (has(a, "Q14", "lek") || has(a, "Q16", "actief") || has(a, "Q24", "infiltratie") || has(a, "Q28", "actief") || has(a, "Q45", "actief")) f.push("SAFE-04");
+  if (has(a, "Q14", "lek") || has(a, "Q16", "actief") || has(a, "Q18", "infiltratie") || has(a, "Q28", "actief")) f.push("SAFE-04");
   if (has(a, "Q14", "los") || has(a, "Q15", "los")) f.push("SAFE-05");
   return f;
 }
@@ -252,10 +252,13 @@ export type DomainScores = Record<Domain, number | null>;
 
 export function domainScores(a: Answers): DomainScores {
   const s: DomainScores = { B: null, V: null, E: null, T: null, S: null };
+  const collective = has(a, "H01", "collectief");
   for (const [qid, v] of Object.entries(a)) {
     const q = QUESTION_MAP[qid];
     if (!q) continue;
     for (const id of Array.isArray(v) ? v : [v]) {
+      // Collectieve verwarming: de gebruiker is niet verantwoordelijk voor het gemeenschappelijke systeem; enkel veiligheid telt.
+      if (qid === "Q42" && collective && id !== "gas") continue;
       const sc = q.options.find((x) => x.id === id)?.score;
       if (!sc) continue;
       s[sc.d] = Math.max(s[sc.d] ?? 0, sc.v);
@@ -264,7 +267,7 @@ export function domainScores(a: Answers): DomainScores {
   return s;
 }
 
-const MAIN_TECH: Record<Domain, string[]> = { B: ["Q14", "Q20"], V: ["Q24"], E: ["Q34"], T: ["Q40", "Q42"], S: ["Q30"] };
+const MAIN_TECH: Record<Domain, string[]> = { B: ["Q14", "Q20"], V: ["Q24"], E: ["Q34"], T: ["Q41", "Q42"], S: ["Q30"] };
 
 function knownMain(a: Answers, qid: string): boolean {
   const v = a[qid];
@@ -277,10 +280,11 @@ export function coverage(a: Answers): { weighted: number; unknownDomains: Domain
   let w = 0;
   const unknownDomains: Domain[] = [];
   const ds = domainScores(a);
+  const visible = new Set(visibleQuestions(a).map((q) => q.id));
   for (const d of DOMAINS) {
-    const qs = MAIN_TECH[d.code];
+    const qs = MAIN_TECH[d.code].filter((q) => visible.has(q));
     const k = qs.filter((q) => knownMain(a, q)).length;
-    w += d.weight * (k / qs.length);
+    w += d.weight * (qs.length ? k / qs.length : 1);
     if (ds[d.code] === null) unknownDomains.push(d.code);
   }
   return { weighted: Math.round(w * 100) / 100, unknownDomains };
