@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
     barometer_score_internal: report.scoreInternal, barometer_category: report.category.id, information_coverage: report.unknown.level,
     domain_scores: report.domainScores, safety_flags: report.safety.map((s) => s.id), attention_points: report.points,
     unknown_information: report.unknown.items, combination_advice: report.combinations,
-    recommended_package: report.packageAdvice.pkg, drone_recommendation: report.drone,
+    recommended_package: null, drone_recommendation: report.drone,
     report_snapshot: { ...report, meta }, delivery_status: deliveryStatus,
   });
   if (repErr) console.error("report insert failed", repErr.code);

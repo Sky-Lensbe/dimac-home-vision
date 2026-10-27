@@ -102,7 +102,7 @@ const Dashboard = () => {
       </div>
       <div className="mt-8 grid gap-3 grid-cols-2 md:grid-cols-6">
         {[["Leads", leads.length], ["Nieuw", count((l) => l.status === "nieuw")], ["Advies Basis", count((l) => rep(l)?.recommended_package === "basis")],
-          ["Advies Compleet", count((l) => rep(l)?.recommended_package === "compleet")], ["Drone-advies", count((l) => !!rep(l)?.drone_recommendation)],
+          ["Drone-advies", count((l) => !!rep(l)?.drone_recommendation)],
           ["Marketing-toestemming", count((l) => l.marketing_consent)]].map(([t, n]) => (
           <div key={t as string} className="border border-border p-4"><p className="text-xs text-muted-foreground">{t}</p><p className="mt-1 font-display text-3xl text-primary">{n}</p></div>
         ))}
@@ -186,7 +186,7 @@ const LeadDetail = ({ lead, onClose, onChange }: { lead: Lead; onClose: () => vo
             <div><p className="font-medium">Aandachtspunten</p><ul>{snap.points.map((p) => <li key={p.id}>{p.title}</li>)}</ul></div>
             <div><p className="font-medium">Onbekend</p><ul>{snap.unknown.items.map((u) => <li key={u.id}>{u.label}</li>)}</ul></div>
             <div><p className="font-medium">Combinaties</p><ul>{snap.combinations.map((c) => <li key={c.id}>{c.title}</li>)}</ul></div>
-            <p>Advies: Woningscan <span className="capitalize">{snap.packageAdvice.pkg}</span> · drone: {snap.drone ? "ja" : "nee"}</p>
+            <p>{(snap as { packageAdvice?: { pkg: string } }).packageAdvice ? `Advies (oude versie): Woningscan ${(snap as { packageAdvice?: { pkg: string } }).packageAdvice!.pkg} · ` : ""}Drone: {snap.drone ? "ja" : "nee"}</p>
           </div>
         )}
 

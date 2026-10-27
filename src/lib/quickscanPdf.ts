@@ -22,6 +22,8 @@ export function buildReportPdf(r: QuickscanReport, meta: ReportMeta): Blob {
     for (const l of lines) { ensure(lh); doc.text(l, M, y); y += lh; }
     y += gap;
   };
+  let chapter = 0;
+  const ch = () => ++chapter;
   const h2 = (n: number, s: string) => {
     ensure(16); y += 4;
     doc.setDrawColor(...ORANGE); doc.setLineWidth(0.4); doc.line(M, y, M + 12, y); y += 6;

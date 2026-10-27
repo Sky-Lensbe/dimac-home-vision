@@ -6,7 +6,7 @@ import { PageSEO } from "@/components/seo/PageSEO";
 import { TextField } from "@/components/site/FormFields";
 import { Barometer, ReportView, SafetyAlerts } from "@/components/quickscan/ReportView";
 import {
-  activeAnswers, buildReport, safetyFlags, STEP_TITLES, visibleQuestions,
+  activeAnswers, buildReport, questionText, safetyFlags, STEP_TITLES, visibleQuestions,
   type Answers, type Question, type QuickscanReport,
 } from "@/lib/quickscan";
 import { buildReportPdf, downloadBlob, type ReportMeta } from "@/lib/quickscanPdf";
@@ -14,7 +14,7 @@ import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 type Stage = "intro" | "questions" | "preview" | "form" | "report";
-const KEY = "dimac-quickscan-v1";
+const KEY = "dimac-quickscan-v2.1";
 
 interface Saved { stage: Stage; answers: Answers; index: number; startedAt: number }
 const load = (): Saved | null => {
@@ -90,10 +90,10 @@ export default function Quickscan() {
         <section className="py-12 md:py-20 bg-background min-h-[70vh]">
           <div className="container-tight max-w-3xl">
             <StepBar step={q.step} />
-            <p className="mt-10 text-xs uppercase tracking-[0.24em] text-accent">Stap {q.step} · {STEP_TITLES[q.step - 1]}</p>
-            <h1 className="mt-3 font-display text-3xl md:text-4xl leading-tight text-primary">{q.text}</h1>
+            <p className="mt-10 text-xs uppercase tracking-[0.24em] text-accent">Stap {q.step} van 4 — {STEP_TITLES[q.step - 1]}</p>
+            <h1 className="mt-3 font-display text-3xl md:text-4xl leading-tight text-primary">{questionText(q, active)}</h1>
             {q.help && <p className="mt-3 text-sm text-muted-foreground">{q.help}</p>}
-            <div className="mt-8 grid gap-3 sm:grid-cols-2" role={q.multi ? "group" : "radiogroup"} aria-label={q.text}>
+            <div className="mt-8 grid gap-3 sm:grid-cols-2" role={q.multi ? "group" : "radiogroup"} aria-label={questionText(q, active)}>
               {q.options.map((o) => {
                 const v = active[q.id];
                 const on = Array.isArray(v) ? v.includes(o.id) : v === o.id;
@@ -124,7 +124,7 @@ export default function Quickscan() {
                 Volgende <ArrowRight />
               </Button>
             </div>
-            <p className="mt-8 text-xs text-muted-foreground">Vraag {index + 1} van circa {visible.length}. Het aantal vragen past zich aan uw antwoorden aan.</p>
+            <p className="mt-8 text-xs text-muted-foreground">Het aantal vragen past zich aan uw antwoorden aan.</p>
           </div>
         </section>
       )}
