@@ -258,6 +258,16 @@ export type Database = {
         Returns: boolean
       }
       quickscan_admin_allowed: { Args: { _email: string }; Returns: boolean }
+      quickscan_register: {
+        Args: {
+          p_events: Json
+          p_lead: Json
+          p_report: Json
+          p_report_number: string
+          p_responses: Json
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin"

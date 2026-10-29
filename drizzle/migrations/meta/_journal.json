@@ -8,6 +8,13 @@
       "when": 1792432936387,
       "tag": "0000_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793266511031,
+      "tag": "0001_quickscan_register_atomic",
+      "breakpoints": true
     }
   ]
 }
