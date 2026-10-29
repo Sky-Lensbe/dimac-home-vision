@@ -30,3 +30,4 @@
 - [x] Terughoudend productadvies, conditionele verbanden, consistente informatiezekerheid
 - [x] Volwaardige VME-presentatie online en PDF; dynamische leesbare PDF
 - [x] 205 tests geslaagd; echte inschrijving→rapport→PDF→Plus-aanvraag gecontroleerd, testgegevens verwijderd; VME desktop/mobiel, vier PDF-profielen gecontroleerd; serverpatch uitgerold zonder publicatie
+- [x] PDF-paginatie 2.3.1: keep-with-next/keep-together-laag, y-correctie disclaimer, aanbeveling zonder volledige paginareservatie, adviestitel-fontmeting, geen lege adviestitel; vier profielen visueel gecontroleerd
