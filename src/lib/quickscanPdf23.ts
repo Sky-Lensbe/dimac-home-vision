@@ -322,9 +322,10 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   // ---------- Pagina 3: advies ----------
   const firstAction = v.actions[0];
   const firstActionH = firstAction ? 20 + measure(firstAction.text, CW - 42, "sans", false, 9) + (firstAction.next ? measure(firstAction.next, CW - 42, "sans", false, 8.5) : 0) : 0;
-  startSection(50 + firstActionH);
+  const tl = lines(v.adviceTitle, 112);
+  startSection(17 + tl.length * 9, firstActionH);
   eyebrow("Praktisch advies", M, y + 4);
-  font("serif", false, 22, INK); const tl = lines(v.adviceTitle, 112); tl.forEach((l, i) => doc.text(l, M, y + 15 + i * 9));
+  font("serif", false, 22, INK); tl.forEach((l, i) => doc.text(l, M, y + 15 + i * 9));
   font("sans", false, 7.6, MUTED); para("Met deze acties verduidelijkt u de belangrijkste aandachtspunten en onzekerheden.", 140, y + 12, W - M - 140, 7.6);
   y += 17 + tl.length * 9;
   v.actions.forEach((x, i) => {
@@ -341,7 +342,8 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   });
 
   if (v.documents.length) {
-    ensure(45); y += 5;
+    const firstDocH = 16 + measure(v.documents[0].label, (CW - 5) / 2 - 22, "sans", true, 9);
+    y += 5; keepWithNext(22, firstDocH);
     eyebrow("Handige documenten", M, y + 4);
     font("serif", false, 18, INK); doc.text("Documenten om op te vragen.", M, y + 15); y += 22;
     const dw = (CW - 5) / 2;
@@ -366,6 +368,7 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     ensure(h);
     eyebrow("Grenzen van de Quickscan", M, y + 3, MUTED);
     font("sans", false, 8, MUTED); para(r.limits, M, y + 7, CW, 8);
+    y += h;
   }
 
 
