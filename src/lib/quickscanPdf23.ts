@@ -344,6 +344,14 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     textBlock("Beschikbaarheid", ["Een onbekend document is niet automatisch afwezig."], 8.5);
   }
 
+  {
+    const h = measure(r.limits, CW, "sans", false, 8) + 9;
+    ensure(h);
+    eyebrow("Grenzen van de Quickscan", M, y + 3, MUTED);
+    font("sans", false, 8, MUTED); para(r.limits, M, y + 7, CW, 8);
+  }
+
+
   // Aanbeveling: dezelfde snapshot, leesbare volle breedte en deelblokken die mogen doorlopen.
   {
     const rec = v.recommendation;
@@ -376,12 +384,6 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     if (rec.price !== null) { ensure(10); font("sans", false, 8.5, MUTED); y += para(`${rec.priceNote} Rapportdatum: ${new Date(meta.date).toLocaleDateString("nl-BE")}.`, M, y + 3, CW, 8.5) + 4; }
   }
 
-  {
-    const h = measure(r.limits, CW, "sans", false, 8) + 9;
-    ensure(h);
-    eyebrow("Grenzen van de Quickscan", M, y + 3, MUTED);
-    font("sans", false, 8, MUTED); para(r.limits, M, y + 7, CW, 8);
-  }
 
   // Voetteksten en paginering
   const pages = doc.getNumberOfPages();
