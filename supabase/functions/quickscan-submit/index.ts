@@ -1,7 +1,8 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { z } from "npm:zod@3";
-import { buildReport, isComplete, QUESTION_VERSION, type Answers } from "../_shared/quickscan/engine.ts";
+import { isComplete, QUESTION_VERSION, type Answers } from "../_shared/quickscan/engine.ts";
+import { composeReport } from "../_shared/quickscan/report.ts";
 import { MAIL_MODE } from "../_shared/quickscan/mail-policy.ts";
 import { findExisting, persistQuickscan, reportNumberFor, type QuickscanStore } from "../_shared/quickscan/persist.ts";
 
@@ -53,7 +54,7 @@ Deno.serve(async (req) => {
   };
 
   // Server-side herberekening; niets uit de browser wordt vertrouwd.
-  const report = buildReport(answers);
+  const report = composeReport(answers);
   const a = report.answers;
   const reportNumber = await reportNumberFor(d.email, d.startedAt, a);
   // In testmodus en zonder geverifieerd verzenddomein wordt niets verzonden.
@@ -92,7 +93,7 @@ Deno.serve(async (req) => {
       barometer_score_internal: report.scoreInternal, barometer_category: report.category.id, information_coverage: report.unknown.level,
       domain_scores: report.domainScores, safety_flags: report.safety.map((s) => s.id), attention_points: report.points,
       unknown_information: report.unknown.items, combination_advice: report.combinations,
-      recommended_package: null, drone_recommendation: report.drone,
+      recommended_package: report.v23.recommendation.productId, drone_recommendation: report.drone,
       delivery_status: deliveryStatus,
     },
     events: [

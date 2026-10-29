@@ -41,10 +41,12 @@ export const VAT_LABEL = `incl. ${Math.round(VAT_RATE * 100)}% btw`;
 export type Situation = "kopen" | "renoveren";
 
 /** Leest pakket- en situatieparameters; oude (basis/compleet) of ongeldige waarden selecteren niets. */
-export function parseScanParams(params: URLSearchParams): { pakket: PackageId | null; situatie: Situation | null } {
+export function parseScanParams(params: URLSearchParams): { pakket: PackageId | null; situatie: Situation | null; rapport: string | null } {
   const pakket = (getPackage(params.get("pakket"))?.id as PackageId | undefined) ?? null;
   const s = params.get("situatie");
-  return { pakket, situatie: s === "kopen" || s === "renoveren" ? s : null };
+  // Quickscan-rapportnummer: enkel een referentie in de aanvraag, nooit een toegang tot rapportinhoud.
+  const r = params.get("rapport");
+  return { pakket, situatie: s === "kopen" || s === "renoveren" ? s : null, rapport: r && /^QS-\d{8}-[A-Z0-9]{8}$/.test(r) ? r : null };
 }
 
 /**

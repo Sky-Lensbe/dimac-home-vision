@@ -297,7 +297,7 @@ const LeadForm = ({ answers, startedAt, onBack, onDone }: { answers: Answers; st
 
 const FinalReport = ({ report, meta, onRestart }: { report: QuickscanReport; meta: ReportMeta; onRestart: () => void }) => {
   const download = () => {
-    downloadBlob(buildReportPdf(report, meta), `DIMAC-Quickscan-${meta.reportNumber}.pdf`);
+    void buildReportPdf(report, meta).then((b) => downloadBlob(b, `DIMAC-Quickscan-${meta.reportNumber}.pdf`));
     track("quickscan_report_download");
   };
   return (

@@ -131,3 +131,13 @@ export function downloadBlob(blob: Blob, filename: string) {
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 30_000);
 }
+
+/** 2.3-snapshots krijgen de nieuwe opmaak; oudere snapshots exact hun oorspronkelijke opmaak. */
+export async function buildReportPdf(r: QuickscanReport, meta: ReportMeta): Promise<Blob> {
+  if ("v23" in r && (r as { v23?: unknown }).v23) {
+    const { buildReportPdf23 } = await import("@/lib/quickscanPdf23");
+    return buildReportPdf23(r as never, meta);
+  }
+  return buildLegacyPdf(r, meta);
+}
+export { reportPdfModel } from "@/lib/quickscanPdf23";

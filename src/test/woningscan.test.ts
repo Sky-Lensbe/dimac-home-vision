@@ -68,7 +68,7 @@ describe("drone en totaal incl. btw", () => {
 
 describe("queryparameters", () => {
   it("nieuwe pakketten worden geselecteerd", () => {
-    expect(parseScanParams(new URLSearchParams("pakket=woningscan-plus&situatie=kopen"))).toEqual({ pakket: "woningscan-plus", situatie: "kopen" });
+    expect(parseScanParams(new URLSearchParams("pakket=woningscan-plus&situatie=kopen"))).toEqual({ pakket: "woningscan-plus", situatie: "kopen", rapport: null });
   });
   it("oude basis/compleet/plus-links selecteren niets", () => {
     for (const old of ["basis", "compleet", "plus", "quickscan", "online-budgetindicator"]) {
@@ -87,5 +87,12 @@ describe("mailto testmodus", () => {
   });
   it("algemene mailto blijft standaard naar info@dimac.be", () => {
     expect(buildMailto("X", []).startsWith("mailto:info@dimac.be?")).toBe(true);
+  });
+});
+
+describe("Quickscan-referentie in de aanvraaglink", () => {
+  it("een geldig rapportnummer wordt overgenomen, al het andere genegeerd", () => {
+    expect(parseScanParams(new URLSearchParams("pakket=woningscan&rapport=QS-20261029-ABCDEF12")).rapport).toBe("QS-20261029-ABCDEF12");
+    expect(parseScanParams(new URLSearchParams("pakket=woningscan&rapport=jan@example.com")).rapport).toBeNull();
   });
 });

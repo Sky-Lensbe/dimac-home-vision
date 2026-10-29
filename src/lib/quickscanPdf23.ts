@@ -36,7 +36,7 @@ export function reportPdfModel(r: QuickscanReport23, meta: ReportMeta) {
   };
 }
 
-export interface PdfLoadOptions { load?: (url: string) => Promise<ArrayBuffer> }
+export interface PdfLoadOptions { load?: (url: string) => Promise<ArrayBuffer>; arrayBuffer?: boolean }
 const defaultLoad = async (url: string) => {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -117,8 +117,8 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   const sections: number[] = [];
   const header = () => {
     if (logo) {
-      const h = 13, w = h * logo.ratio;
-      doc.addImage(logo.data, logo.fmt, M, 11, w, h, undefined, "FAST");
+      const h = 19, w = h * logo.ratio;
+      doc.addImage(logo.data, logo.fmt, M - 2, 7, w, h, undefined, "FAST");
     } else { font("serif", true, 14, INK); doc.text("DIMAC", M, 20); }
     doc.setDrawColor(...ORANGE); doc.setLineWidth(0.5); doc.line(M, 27, M + 10, 27);
     doc.setDrawColor(...LINE); doc.setLineWidth(0.2); doc.line(M + 12, 27, W - M, 27);
@@ -134,13 +134,13 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   font("serif", false, 42, INK); doc.text("Uw woning", M, 62); doc.text("in beeld.", M, 78);
   font("sans", false, 8.6, INK);
   let cy = 88;
-  if (v.facts.length) cy += para(v.facts.map((f) => f.value).join("  ·  "), M, cy, 92, 8.6) + 3;
+  if (v.facts.length) cy += para(v.facts.map((f) => f.value.replace(/ /g, "\u00a0")).join("  ·  "), M, cy, 80, 8.6) + 3;
   font("sans", false, 8.8, BODY);
   cy += para(`Een heldere eerste analyse van uw ${r.apartment ? "appartement" : "woning"}, op basis van uw eigen antwoorden in de DIMAC Quickscan.`, M, cy, 84, 8.8) + 2;
   font("sans", false, 7.2, MUTED); doc.text(new Date(meta.date).toLocaleDateString("nl-BE", { day: "numeric", month: "long", year: "numeric" }) + `  ·  Rapport ${meta.reportNumber}`, M, cy + 3);
   // Illustratie (illustratief, geen foto)
   draw(ILLUSTRATIONS[v.illustration], 104, 34, 88, 220, [92, 96, 104], 0.5);
-  font("sans", false, 5.8, MUTED); doc.text("ILLUSTRATIE, GEEN WEERGAVE VAN UW WONING", 192, 98, { align: "right", charSpace: 0.5 });
+  font("sans", false, 5.8, MUTED); doc.text("ILLUSTRATIE, GEEN WEERGAVE VAN UW WONING", W - M, 98, { align: "right" });
   y = Math.max(cy + 10, 106);
 
   if (r.safety.length) {
@@ -175,7 +175,7 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   // Highlights
   if (v.highlights.length) {
     font("serif", false, 15, INK); doc.text("Dit verdient uw aandacht", M, y + 4);
-    font("sans", false, 6.2, MUTED); doc.text("OP BASIS VAN UW ANTWOORDEN", W - M, y + 4, { align: "right", charSpace: 0.6 });
+    font("sans", false, 6.2, MUTED); doc.text("OP BASIS VAN UW ANTWOORDEN", W - M, y + 4, { align: "right" });
     y += 9;
     const gap = 4, cw = (CW - gap * 2) / 3;
     const hs = v.highlights.map((h) => 26 + measure(h.title, cw - 20, "sans", true, 8.6, 1.3) + measure(h.short, cw - 10, "sans", false, 7.8));
@@ -233,7 +233,7 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
 
   if (v.connections.length) {
     y += 5;
-    const blocks = v.connections.map((c) => Math.max(56, measure(c.text, 78, "sans", false, 8) + 18));
+    const blocks = v.connections.map((c) => Math.max(66, measure(c.text, 78, "sans", false, 8) + 18));
     const h = 26 + blocks.reduce((a, b) => a + b, 0);
     ensure(Math.min(h, BOTTOM - TOP));
     doc.setFillColor(...SURFACE); doc.setDrawColor(...LINE); doc.rect(M, y, CW, h, "FD");
@@ -242,7 +242,7 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     let ky = y + 28;
     v.connections.forEach((c, i) => {
       const bx = M + 8, bw = 82;
-      const P = c.nodes.length === 3 ? [[bx + bw / 2, ky + 8], [bx + 12, ky + 38], [bx + bw - 12, ky + 38]] : [[bx + 16, ky + 18], [bx + bw - 16, ky + 18]];
+      const P = c.nodes.length === 3 ? [[bx + bw / 2, ky + 8], [bx + 10, ky + 44], [bx + bw - 10, ky + 44]] : [[bx + 16, ky + 18], [bx + bw - 16, ky + 18]];
       doc.setDrawColor(...ORANGE); doc.setLineWidth(0.3); doc.setLineDashPattern([0.9, 0.9], 0);
       P.forEach((p, j) => {
         if (c.nodes.length === 2 && j === 1) return;
@@ -256,9 +256,9 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
         doc.setFillColor(255, 255, 255); doc.setDrawColor(...ORANGE); doc.setLineWidth(0.35); doc.circle(px, py, 7.5, "FD");
         icon(n.icon, px - 4.5, py - 4.5, 9);
         font("sans", true, 7.6, INK); doc.text(n.label, px, py + 11.5, { align: "center" });
-        font("sans", false, 6.2, MUTED); doc.text(lines(n.caption, 34), px, py + 14.5, { align: "center" });
+        font("sans", false, 6.2, MUTED); doc.text(lines(n.caption, 30), px, py + 14.5, { align: "center" });
       });
-      if (c.nodes.length === 3) { icon("house", bx + bw / 2 - 3.5, ky + 27, 7, MUTED); }
+      if (c.nodes.length === 3) { icon("house", bx + bw / 2 - 3.5, ky + 30, 7, MUTED); }
       const tx = M + 98;
       font("sans", true, 8.6, INK); doc.text(c.title, tx, ky + 4);
       font("sans", false, 8, BODY); const th = para(c.text, tx, ky + 10, CW - 98 - 6, 8);
@@ -306,7 +306,8 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     y += 4;
     const colW = (CW - 16 - 8) / 2;
     const rows = Math.ceil(v.documents.length / 2);
-    const rowH = (d: (typeof v.documents)[number]) => 6 + (d.note ? measure(d.note, colW - 8, "sans", false, 6.6) : 0);
+    const LW = colW - 34;
+    const rowH = (d: (typeof v.documents)[number]) => 2.5 + measure(d.label, LW, "sans", false, 7.8, 1.3) + (d.note ? measure(d.note, colW - 8, "sans", false, 6.6, 1.3) + 1 : 0);
     const heights = Array.from({ length: rows }, (_, i) => Math.max(rowH(v.documents[i * 2]), v.documents[i * 2 + 1] ? rowH(v.documents[i * 2 + 1]) : 0) + 3);
     const h = 26 + heights.reduce((a, b) => a + b, 0) + 6;
     ensure(h);
@@ -320,12 +321,12 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
         if (!d) return;
         const x = M + 8 + j * (colW + 8);
         icon("doc", x, ry - 3.2, 4.5, [120, 122, 128]);
-        font("sans", false, 7.8, INK); doc.text(lines(d.label, colW - 36)[0], x + 6, ry);
+        font("sans", false, 7.8, INK); const lh2 = para(d.label, x + 6, ry, LW, 7.8, 1.3);
         font("sans", true, 6.2, d.status === "beschikbaar" ? INK : MUTED);
         const tag = TAG[d.status]; const tw = doc.getTextWidth(tag) + 3;
         doc.setDrawColor(...(d.status === "beschikbaar" ? ([120, 122, 128] as RGB) : LINE)); doc.setLineWidth(0.2); doc.rect(x + colW - tw, ry - 3, tw, 4.2, "S");
         doc.text(tag, x + colW - tw + 1.5, ry);
-        if (d.note) { font("sans", false, 6.6, MUTED); para(d.note, x + 6, ry + 3.6, colW - 8, 6.6, 1.3); }
+        if (d.note) { font("sans", false, 6.6, MUTED); para(d.note, x + 6, ry + lh2 + 0.4, colW - 8, 6.6, 1.3); }
       });
       ry += heights[i];
     }
@@ -336,15 +337,15 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   // Aanbeveling
   {
     const rec = v.recommendation;
-    const tw = 112;
+    const tw = 106;
     const parts: [string, number, boolean][] = [];
     if (rec.safetyFirst) parts.push(["Volg eerst het veiligheidsadvies bovenaan dit rapport. Een Woningscan vervangt geen onmiddellijke veiligheidsmaatregel.", 7.8, true]);
     const titleH = measure(rec.title, tw, "serif", false, 19, 1.2);
     let h = 16 + titleH + measure(rec.motivation, tw, "sans", false, 8.2) + 3 + (rec.gains ? measure(rec.gains, tw, "sans", false, 7.6) + 2 : 0) + rec.benefits.length * 5 + (rec.price !== null ? 12 : 0) + (rec.drone ? measure(`Optioneel: drone-dakscreening + ${formatEuro(rec.drone.price)} ${VAT_LABEL}. ${rec.drone.text}`, tw, "sans", false, 7.4) + 3 : 0) + 14 + (rec.secondary ? measure(rec.secondary.text, tw, "sans", false, 7.2) + 2 : 0) + 12 + parts.reduce((n, p) => n + measure(p[0], tw, "sans", true, p[1]) + 2, 0);
-    h = Math.max(h, 70);
+    h = Math.max(h + 14, 70);
     ensure(h);
     doc.setDrawColor(...LINE); doc.setLineWidth(0.3); doc.rect(M, y, CW, h, "S");
-    draw(ILLUSTRATIONS[v.illustration], W - M - 58, y + h - 44, 56, 220, [214, 214, 218], 0.45);
+    draw(ILLUSTRATIONS[v.illustration], W - M - 50, y + h - 40, 46, 220, [214, 214, 218], 0.45);
     let ry = y + 9;
     eyebrow("Uw aanbevolen volgende stap", M + 8, ry); ry += 5;
     for (const [t, s] of parts) { font("sans", true, s, RED); ry += para(t, M + 8, ry + 2, tw, s) + 2; }
@@ -396,7 +397,7 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   for (let i = 1; i <= pages; i++) {
     doc.setPage(i);
     doc.setDrawColor(...LINE); doc.setLineWidth(0.2); doc.line(M, 282, W - M, 282);
-    if (logo) doc.addImage(logo.data, logo.fmt, M, 284.5, 7 * logo.ratio, 7, undefined, "FAST");
+    if (logo) doc.addImage(logo.data, logo.fmt, M - 1, 283.5, 9 * logo.ratio, 9, undefined, "FAST");
     font("sans", false, 5.8, MUTED);
     doc.text("BOUWKUNDIGE EXPERTISE", M + 10, 287.2, { charSpace: 0.5 });
     doc.text("VOOR EEN ZEKERE WONING", M + 10, 290.2, { charSpace: 0.5 });
@@ -405,5 +406,5 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     font("sans", false, 6.5, MUTED); doc.text(`${String(i).padStart(2, "0")} / ${String(pages).padStart(2, "0")}`, W - M, 19, { align: "right" });
   }
   void H;
-  return doc.output("blob");
+  return opts.arrayBuffer ? (doc.output("arraybuffer") as unknown as Blob) : doc.output("blob");
 }

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-- Woningscan prices and drone option live only in `src/data/woningscan.ts`; UI and tests read from there so prices never drift.
+- Woningscan prices, product texts and the drone option live only in `supabase/functions/_shared/quickscan/catalog.ts` (no imports), re-exported by `src/data/woningscan.ts`; site, Quickscan recommendation and tests read from there so prices never drift.
 - Contact and Woningscan forms have no backend: they build a `mailto:` via `src/lib/mailto.ts` and must never show a "received" confirmation; the Woningscan form recipient comes from `woningscanRecipient()` (code-constant test mode, never env-based). The Quickscan is the exception and stores leads through the `quickscan-submit` function.
 - Confirmed projects live in `src/data/developments.ts`; missing images and descriptive fields remain optional so incomplete records never require invented content. When empty, pages show the development approach instead of cards.
 - Indexing is off unless `VITE_ALLOW_INDEXING=true` (PageSEO forces noindex; robots.txt disallows) because the site is not live yet.
@@ -11,3 +11,5 @@
 - Quickscan submissions persist through the single `quickscan_register` database function (one transaction, advisory lock per report number) called from `_shared/quickscan/persist.ts`, so failures roll back fully and concurrent duplicates yield one record; an unconfirmed outcome gets a neutral message, never a false guarantee.
 - Quickscan email recipients are decided only by `supabase/functions/_shared/quickscan/mail-policy.ts`; test mode is a code constant with a server-side allowlist so it can never switch to production automatically.
 - Quickscan tables allow no anonymous access; inserts go through the service-role function and only `has_role(admin)` users can read, so lead data is never public.
+- Quickscan report 2.3 is composed by `_shared/quickscan/report.ts` (`composeReport`, imports engine + catalog; the engine never imports it) for browser and server alike; the product recommendation is deterministic with fixed reason codes and never feeds back into scoring. Snapshots with `v23` render via `Report23`/`quickscanPdf23`; older snapshots keep the legacy view and PDF.
+- The Quickscan report number may travel in URLs (`?rapport=`) only as a reference in a request; it never grants access to report content or personal data.
