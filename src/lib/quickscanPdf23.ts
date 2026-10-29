@@ -318,17 +318,18 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     }
   }
 
-  // ---------- Pagina 3: advies ----------
-  const firstAction = v.actions[0];
-  const firstActionH = firstAction ? 20 + measure(firstAction.text, CW - 42, "sans", false, 9) + (firstAction.next ? measure(firstAction.next, CW - 42, "sans", false, 8.5) : 0) : 0;
-  // Eerst het lettertype zetten, dan pas meten: splitTextToSize gebruikt het actieve font.
-  font("serif", false, 22, INK); const tl = lines(v.adviceTitle, 112);
-  startSection(17 + tl.length * 9, firstActionH);
-  eyebrow("Praktisch advies", M, y + 4);
-  font("serif", false, 22, INK); tl.forEach((l, i) => doc.text(l, M, y + 15 + i * 9));
-  font("sans", false, 7.6, MUTED); para("Met deze acties verduidelijkt u de belangrijkste aandachtspunten en onzekerheden.", 140, y + 12, W - M - 140, 7.6);
-  y += 17 + tl.length * 9;
-  v.actions.forEach((x, i) => {
+  // ---------- Advies (alleen wanneer er acties zijn; nooit een titel zonder inhoud) ----------
+  if (v.actions.length) {
+    const firstAction = v.actions[0];
+    const firstActionH = 20 + measure(firstAction.text, CW - 42, "sans", false, 9) + (firstAction.next ? measure(firstAction.next, CW - 42, "sans", false, 8.5) : 0);
+    // Eerst het lettertype zetten, dan pas meten: splitTextToSize gebruikt het actieve font.
+    font("serif", false, 22, INK); const tl = lines(v.adviceTitle, 112);
+    startSection(17 + tl.length * 9, firstActionH);
+    eyebrow("Praktisch advies", M, y + 4);
+    font("serif", false, 22, INK); tl.forEach((l, i) => doc.text(l, M, y + 15 + i * 9));
+    font("sans", false, 7.6, MUTED); para("Met deze acties verduidelijkt u de belangrijkste aandachtspunten en onzekerheden.", 140, y + 12, W - M - 140, 7.6);
+    y += 17 + tl.length * 9;
+    v.actions.forEach((x, i) => {
     const tw = CW - 42;
     const h = 18 + measure(x.text, tw, "sans", false, 9) + (x.next ? measure(`Volgende stap: ${x.next}`, tw, "sans", false, 8.5) + 1 : 0);
     ensure(h + 3);
