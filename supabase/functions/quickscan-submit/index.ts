@@ -3,6 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { z } from "npm:zod@3";
 import { buildReport, isComplete, QUESTION_VERSION, type Answers } from "../_shared/quickscan/engine.ts";
 import { MAIL_MODE } from "../_shared/quickscan/mail-policy.ts";
+import { findExisting, persistQuickscan, reportNumberFor, type QuickscanStore } from "../_shared/quickscan/persist.ts";
 
 const CONSENT_VERSION = "qs-consent-2026.10-1";
 const RATE_LIMIT_PER_HOUR = 5;
@@ -45,6 +46,25 @@ Deno.serve(async (req) => {
   if (!isComplete(answers)) return json({ error: "Niet alle vragen zijn beantwoord." }, 400);
 
   const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const store: QuickscanStore = {
+    findReport: (n) => db.from("quickscan_reports").select("report_snapshot").eq("report_number", n).maybeSingle(),
+    insertLead: (row) => db.from("quickscan_leads").insert(row).select("id").single(),
+    insertResponses: (rows) => db.from("quickscan_responses").insert(rows),
+    insertReport: (row) => db.from("quickscan_reports").insert(row),
+    insertEvents: (rows) => db.from("quickscan_events").insert(rows),
+    deleteLead: (id) => db.from("quickscan_leads").delete().eq("id", id),
+  };
+
+  // Server-side herberekening; niets uit de browser wordt vertrouwd.
+  const report = buildReport(answers);
+  const a = report.answers;
+  const reportNumber = await reportNumberFor(d.email, d.startedAt, a);
+  // In testmodus en zonder geverifieerd verzenddomein wordt niets verzonden.
+  const deliveryStatus = "niet_geconfigureerd";
+
+  // Herhaalde indiening: geef het reeds opgeslagen rapport terug, zonder nieuwe records of rate-limitverbruik.
+  const existing = await findExisting(store, reportNumber);
+  if (existing) return json({ ok: true, report: existing, deliveryStatus, duplicate: true });
 
   // Rate limiting per IP (gehasht), per uur.
   const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || "onbekend";
@@ -54,42 +74,35 @@ Deno.serve(async (req) => {
   if ((rl?.count ?? 0) >= RATE_LIMIT_PER_HOUR) return json({ error: "Te veel aanvragen. Probeer het later opnieuw." }, 429);
   await db.from("quickscan_rate_limits").upsert({ ip_hash: ipHash, window_start: windowStart, count: (rl?.count ?? 0) + 1 });
 
-  // Server-side herberekening; niets uit de browser wordt vertrouwd.
-  const report = buildReport(answers);
-  const a = report.answers;
   const postal = /^\d{4}$/.test(d.municipality) ? d.municipality : null;
   const now = new Date().toISOString();
-
-  const { data: lead, error: leadErr } = await db.from("quickscan_leads").insert({
-    first_name: d.firstName, last_name: d.lastName, email: d.email.toLowerCase(), phone: d.phone || null,
-    municipality: d.municipality, postal_code: postal,
-    situation: (a.Q01 as string) ?? null, property_type: (a.Q02 as string) ?? null,
-    construction_period: (a.Q03 as string) ?? null, decision_timing: (a.Q49 as string) ?? null,
-    marketing_consent: d.marketingConsent, consent_version: CONSENT_VERSION, consent_timestamp: d.marketingConsent ? now : null,
-  }).select("id").single();
-  if (leadErr || !lead) { console.error("lead insert failed", leadErr?.code); return json({ error: "Opslaan mislukt. Probeer het later opnieuw." }, 500); }
-
-  await db.from("quickscan_responses").insert(
-    Object.entries(a).map(([question_id, v]) => ({ lead_id: lead.id, question_id, answer_value: v, question_version: QUESTION_VERSION })),
-  );
-
-  const reportNumber = `QS-${now.slice(0, 10).replace(/-/g, "")}-${crypto.randomUUID().slice(0, 6).toUpperCase()}`;
   const meta = { reportNumber, name: `${d.firstName} ${d.lastName}`, municipality: d.municipality, date: now };
-  // In testmodus en zonder geverifieerd verzenddomein wordt niets verzonden.
-  const deliveryStatus = "niet_geconfigureerd";
-  const { error: repErr } = await db.from("quickscan_reports").insert({
-    lead_id: lead.id, report_number: reportNumber, rule_version: report.ruleVersion, report_version: report.reportVersion,
-    barometer_score_internal: report.scoreInternal, barometer_category: report.category.id, information_coverage: report.unknown.level,
-    domain_scores: report.domainScores, safety_flags: report.safety.map((s) => s.id), attention_points: report.points,
-    unknown_information: report.unknown.items, combination_advice: report.combinations,
-    recommended_package: null, drone_recommendation: report.drone,
-    report_snapshot: { ...report, meta }, delivery_status: deliveryStatus,
-  });
-  if (repErr) console.error("report insert failed", repErr.code);
-  await db.from("quickscan_events").insert([
-    { lead_id: lead.id, event_type: "rapport_aangemaakt", detail: reportNumber },
-    { lead_id: lead.id, event_type: "email_niet_verzonden", detail: `Modus ${MAIL_MODE}: verzenddomein nog niet geverifieerd` },
-  ]);
+  const snapshot = { ...report, meta };
 
-  return json({ ok: true, report: { ...report, meta }, deliveryStatus });
+  const result = await persistQuickscan(store, {
+    reportNumber,
+    snapshot,
+    lead: {
+      first_name: d.firstName, last_name: d.lastName, email: d.email.toLowerCase(), phone: d.phone || null,
+      municipality: d.municipality, postal_code: postal,
+      situation: (a.Q01 as string) ?? null, property_type: (a.Q02 as string) ?? null,
+      construction_period: (a.Q03 as string) ?? null, decision_timing: (a.Q49 as string) ?? null,
+      marketing_consent: d.marketingConsent, consent_version: CONSENT_VERSION, consent_timestamp: d.marketingConsent ? now : null,
+    },
+    responses: Object.entries(a).map(([question_id, v]) => ({ question_id, answer_value: v, question_version: QUESTION_VERSION })),
+    report: (leadId) => ({
+      lead_id: leadId, report_number: reportNumber, rule_version: report.ruleVersion, report_version: report.reportVersion,
+      barometer_score_internal: report.scoreInternal, barometer_category: report.category.id, information_coverage: report.unknown.level,
+      domain_scores: report.domainScores, safety_flags: report.safety.map((s) => s.id), attention_points: report.points,
+      unknown_information: report.unknown.items, combination_advice: report.combinations,
+      recommended_package: null, drone_recommendation: report.drone,
+      report_snapshot: snapshot, delivery_status: deliveryStatus,
+    }),
+    events: [
+      { event_type: "rapport_aangemaakt", detail: reportNumber },
+      { event_type: "email_niet_verzonden", detail: `Modus ${MAIL_MODE}: verzenddomein nog niet geverifieerd` },
+    ],
+  });
+  if (!result.ok) return json({ error: result.error }, result.status);
+  return json({ ok: true, report: result.snapshot, deliveryStatus, duplicate: result.duplicate });
 });
