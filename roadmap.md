@@ -27,6 +27,6 @@
 - [ ] Prijzen/teksten in productkaarten laten nalezen door DIMAC — wacht op gebruiker
 
 # Quickscan 2.3.1 (testmodus)
-- [ ] Terughoudend productadvies, conditionele verbanden, consistente informatiezekerheid
-- [ ] Volwaardige VME-presentatie online en PDF; dynamische leesbare PDF
-- [ ] Regressietests, browserdoorloop en PDF-controle; serverrapportpatch uitrollen zonder publicatie
+- [x] Terughoudend productadvies, conditionele verbanden, consistente informatiezekerheid
+- [x] Volwaardige VME-presentatie online en PDF; dynamische leesbare PDF
+- [x] 205 tests geslaagd; echte inschrijving→rapport→PDF→Plus-aanvraag gecontroleerd, testgegevens verwijderd; VME desktop/mobiel, vier PDF-profielen gecontroleerd; serverpatch uitgerold zonder publicatie
