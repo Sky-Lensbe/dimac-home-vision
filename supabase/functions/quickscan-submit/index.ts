@@ -48,11 +48,8 @@ Deno.serve(async (req) => {
   const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const store: QuickscanStore = {
     findReport: (n) => db.from("quickscan_reports").select("report_snapshot").eq("report_number", n).maybeSingle(),
-    insertLead: (row) => db.from("quickscan_leads").insert(row).select("id").single(),
-    insertResponses: (rows) => db.from("quickscan_responses").insert(rows),
-    insertReport: (row) => db.from("quickscan_reports").insert(row),
-    insertEvents: (rows) => db.from("quickscan_events").insert(rows),
-    deleteLead: (id) => db.from("quickscan_leads").delete().eq("id", id),
+    // Eén atomaire databanktransactie voor lead, antwoorden, rapport en events (zie quickscan_register).
+    register: (args) => db.rpc("quickscan_register", args) as never,
   };
 
   // Server-side herberekening; niets uit de browser wordt vertrouwd.
@@ -90,14 +87,14 @@ Deno.serve(async (req) => {
       marketing_consent: d.marketingConsent, consent_version: CONSENT_VERSION, consent_timestamp: d.marketingConsent ? now : null,
     },
     responses: Object.entries(a).map(([question_id, v]) => ({ question_id, answer_value: v, question_version: QUESTION_VERSION })),
-    report: (leadId) => ({
-      lead_id: leadId, report_number: reportNumber, rule_version: report.ruleVersion, report_version: report.reportVersion,
+    report: {
+      report_number: reportNumber, rule_version: report.ruleVersion, report_version: report.reportVersion,
       barometer_score_internal: report.scoreInternal, barometer_category: report.category.id, information_coverage: report.unknown.level,
       domain_scores: report.domainScores, safety_flags: report.safety.map((s) => s.id), attention_points: report.points,
       unknown_information: report.unknown.items, combination_advice: report.combinations,
       recommended_package: null, drone_recommendation: report.drone,
-      report_snapshot: snapshot, delivery_status: deliveryStatus,
-    }),
+      delivery_status: deliveryStatus,
+    },
     events: [
       { event_type: "rapport_aangemaakt", detail: reportNumber },
       { event_type: "email_niet_verzonden", detail: `Modus ${MAIL_MODE}: verzenddomein nog niet geverifieerd` },
