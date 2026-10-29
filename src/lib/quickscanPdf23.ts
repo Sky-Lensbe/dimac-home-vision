@@ -292,7 +292,9 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   if (v.information?.topics.length || r.unknown.items.length || r.unknown.skipped?.length) textBlock(`Wat weten we nog niet? ${r.unknown.label}.`, [v.information?.sentence ?? r.unknown.sentence, r.unknown.skipped?.length ? `Overgeslagen: ${r.unknown.skipped.map((s) => s.label).join("; ")}.` : ""].filter(Boolean));
   for (const n of r.notices ?? []) textBlock(n.title, [n.text]);
   if (r.apartment) {
-    ensure(65); y += 6;
+    const firstCard = v.coOwnership?.cards[0];
+    const firstCardH = firstCard ? 19 + measure(firstCard.text, CW - 30, "sans", false, 9) + (firstCard.uncertain ? 5 : 0) : 25;
+    y += 6; keepWithNext(24, firstCardH);
     eyebrow("Mede-eigendom", M, y + 4);
     font("serif", false, 23, INK); doc.text("Uw appartement en de VME", M, y + 16); y += 24;
     if (v.coOwnership) {
@@ -306,7 +308,8 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
         y += h + 4;
       }
       for (const g of r.apartment.groups ?? []) if (g.title !== "Financiële onzekerheden" && g.signals.length) textBlock(g.title, g.signals);
-      ensure(25); font("serif", false, 17, INK); doc.text("Vragen voor de verkoper of syndicus", M, y + 5); y += 12;
+      const firstQH = v.coOwnership.questions[0] ? measure(v.coOwnership.questions[0], CW - 10, "sans", false, 9) + 5 : 10;
+      keepWithNext(12, firstQH); font("serif", false, 17, INK); doc.text("Vragen voor de verkoper of syndicus", M, y + 5); y += 12;
       v.coOwnership.questions.forEach((q, i) => { const h = measure(q, CW - 10, "sans", false, 9) + 5; ensure(h); font("sans", true, 9, ORANGE); doc.text(`${i + 1}.`, M, y + 3); font("sans", false, 9, BODY); y += para(q, M + 10, y + 3, CW - 10, 9) + 5; });
       textBlock("Aankoopchecklist", v.coOwnership.checklist.map((q) => `– ${q}`));
       textBlock("Privatief en gemeenschappelijk", ["Onbekende documenten zijn niet automatisch onbestaand. Gemeenschappelijke problemen tellen niet mee in de privatieve barometer; veiligheidsadvies blijft van toepassing."]);
