@@ -35,7 +35,14 @@ export type TrackEvent =
   | "quickscan_report_view"
   | "quickscan_report_download"
   | "quickscan_paid_scan_click"
-  | "quickscan_next_step_click";
+  | "quickscan_next_step_click"
+  | "quickscan_recommendation_shown"
+  | "quickscan_recommendation_view"
+  | "quickscan_recommendation_cta_click"
+  | "quickscan_recommendation_compare_click"
+  | "quickscan_recommendation_secondary_click"
+  | "quickscan_drone_info_view"
+  | "woningscan_quickscan_referral";
 
 export interface TrackPayload {
   page_type?: string;
@@ -43,6 +50,8 @@ export interface TrackPayload {
   cta_label?: string;
   value?: number;
   enabled?: boolean;
+  /** Vaste technische redenencode van de Quickscan-aanbeveling (nooit antwoorden of persoonsgegevens). */
+  reason_code?: string;
 }
 
 interface DataLayerEntry extends TrackPayload {

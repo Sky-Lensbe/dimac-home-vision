@@ -8,8 +8,8 @@ const ORANGE: [number, number, number] = [215, 100, 29];
 const INK: [number, number, number] = [34, 34, 34];
 const MUTED: [number, number, number] = [110, 110, 110];
 
-/** Bouwt het A4-rapport rechtstreeks uit de opgeslagen rapportgegevens. */
-export function buildReportPdf(r: QuickscanReport, meta: ReportMeta): Blob {
+/** Pre-2.3-rapporten: exact de oorspronkelijke opmaak, rechtstreeks uit de opgeslagen gegevens. */
+export function buildLegacyPdf(r: QuickscanReport, meta: ReportMeta): Blob {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const W = 210, M = 20, CW = W - 2 * M, BOTTOM = 277;
   let y = M;

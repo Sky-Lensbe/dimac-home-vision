@@ -886,3 +886,6 @@ export function buildReport(answers: Answers) {
   };
 }
 export type QuickscanReport = ReturnType<typeof buildReport>;
+
+/** 2.3: hulpfuncties voor de rapportlaag (report.ts). Alleen lezen; geen invloed op scoring. */
+export const answerHelpers = { has, hasR, plans, plannedCount, buyer, label: LABEL };
