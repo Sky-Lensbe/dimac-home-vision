@@ -119,7 +119,7 @@ export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; 
               <h3 className="font-display text-2xl text-primary">Dit verdient uw aandacht</h3>
               <span className="hidden sm:block text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Op basis van uw antwoorden</span>
             </div>
-            <ol className="mt-5 grid sm:grid-cols-3 gap-4">
+            <ol className={cn("mt-5 grid gap-4", v.highlights.length === 3 ? "sm:grid-cols-3" : v.highlights.length === 2 ? "sm:grid-cols-2" : "grid-cols-1")}>
               {v.highlights.map((h, i) => (
                 <li key={h.id} className={cn("border p-5 flex flex-col", h.safety ? "border-destructive/50" : "border-border")}>
                   <div className="flex items-start gap-3">
@@ -186,10 +186,10 @@ export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; 
           </div>
         )}
 
-        {(report.unknown.items.length > 0 || report.unknown.skipped?.length > 0) && (
+        {(v.information?.topics.length || report.unknown.items.length > 0 || report.unknown.skipped?.length > 0) && (
           <div className="mt-10">
             <h3 className="font-display text-2xl text-primary">Wat weten we nog niet?</h3>
-            <p className="mt-2 text-sm text-primary/80"><span className="font-medium">{report.unknown.label}.</span> {report.unknown.sentence}</p>
+            <p className="mt-2 text-sm text-primary/80"><span className="font-medium">{report.unknown.label}.</span> {v.information?.sentence ?? report.unknown.sentence}</p>
             {report.unknown.skipped?.length > 0 && <p className="mt-2 text-xs text-muted-foreground">Overgeslagen: {report.unknown.skipped.map((s) => s.label).join("; ")}.</p>}
           </div>
         )}
@@ -199,16 +199,28 @@ export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; 
           </div>
         )}
         {report.apartment && (
-          <div className="mt-10 border border-border p-6">
+          <div className="mt-10">
             <Eyebrow>Mede-eigendom</Eyebrow>
-            <h3 className="mt-2 font-display text-2xl text-primary">{report.apartment.title}</h3>
-            <div className="mt-4 space-y-5">
-              {report.apartment.groups?.filter((g) => g.signals.length).map((g) => (
-                <div key={g.title}><p className="text-sm font-medium text-primary">{g.title}</p><ul className="mt-2 space-y-1 text-sm text-primary/80">{g.signals.map((t) => <li key={t}>{t}</li>)}</ul></div>
-              ))}
-              {report.apartment.syndic?.length > 0 && <div><p className="text-sm font-medium text-primary">Vragen voor de syndicus</p><ul className="mt-2 list-disc pl-5 space-y-1 text-sm text-primary/80">{report.apartment.syndic.map((t) => <li key={t}>{t}</li>)}</ul></div>}
-              <ul className="space-y-1 text-xs text-muted-foreground">{report.apartment.notes.map((t) => <li key={t}>{t}</li>)}</ul>
-            </div>
+            <h3 className="mt-2 font-display text-3xl text-primary">Uw appartement en de VME</h3>
+            {v.coOwnership ? <>
+              <div className="mt-6 grid sm:grid-cols-2 gap-4">
+                {v.coOwnership.cards.map((card) => <div key={card.id} className="border border-border p-5">
+                  <div className="flex items-center gap-3"><Icon id={card.icon} className="h-7 w-7 shrink-0 text-accent" /><h4 className="font-medium text-primary">{card.title}</h4></div>
+                  <p className="mt-3 text-sm leading-relaxed text-primary/80">{card.text}</p>
+                  {card.uncertain && <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground"><HelpCircle className="h-4 w-4" />Nog te verduidelijken</p>}
+                </div>)}
+              </div>
+              {report.apartment.groups?.filter((g) => g.signals.length && g.title !== "Financiële onzekerheden").map((g) => <div key={g.title} className="mt-5 border-l-2 border-accent pl-4"><h4 className="font-medium text-primary">{g.title}</h4><ul className="mt-2 space-y-2 text-sm text-primary/80">{g.signals.map((t) => <li key={t}>{t}</li>)}</ul></div>)}
+              <h4 className="mt-7 font-display text-2xl text-primary">Vragen voor de verkoper of syndicus</h4>
+              <ol className="mt-4 list-decimal pl-5 space-y-3 text-sm leading-relaxed text-primary/80">{v.coOwnership.questions.map((q) => <li key={q}>{q}</li>)}</ol>
+              <h4 className="mt-7 font-medium text-primary">Aankoopchecklist</h4>
+              <ul className="mt-3 grid sm:grid-cols-2 gap-3">{v.coOwnership.checklist.map((item) => <li key={item} className="flex gap-2 text-sm text-primary/80"><Icon id="doc" className="h-5 w-5 shrink-0 text-accent" />{item}</li>)}</ul>
+              <p className="mt-5 text-sm text-muted-foreground">Onbekende documenten zijn niet automatisch onbestaand. Gemeenschappelijke problemen tellen niet mee in de privatieve barometer; veiligheidsadvies blijft van toepassing.</p>
+            </> : <div className="mt-4 space-y-5">
+              {report.apartment.groups?.filter((g) => g.signals.length).map((g) => <div key={g.title}><p className="text-sm font-medium text-primary">{g.title}</p><ul className="mt-2 space-y-1 text-sm text-primary/80">{g.signals.map((t) => <li key={t}>{t}</li>)}</ul></div>)}
+              <ul className="list-disc pl-5 space-y-2 text-sm text-primary/80">{report.apartment.syndic.map((q) => <li key={q}>{q}</li>)}</ul>
+              <ul className="text-xs text-muted-foreground">{report.apartment.notes.map((t) => <li key={t}>{t}</li>)}</ul>
+            </div>}
           </div>
         )}
       </Page>
@@ -299,7 +311,7 @@ export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; 
             {rec.secondary && (
               <p className="mt-5 text-sm text-muted-foreground">
                 {rec.secondary.text}{" "}
-                <Link className="underline underline-offset-4 text-primary" to={withReportRef(rec.secondary.path, reportNumber)} onClick={() => track("quickscan_recommendation_secondary_click", { item_id: rec.secondary!.productId, reason_code: rec.reasonCode })}>{rec.secondary.name} ({formatEuro(rec.secondary.price)})</Link>
+                <Link className="underline underline-offset-4 text-primary" to={withReportRef(rec.secondary.path, reportNumber)} onClick={() => track("quickscan_recommendation_secondary_click", { item_id: rec.secondary?.productId, reason_code: rec.reasonCode })}>{rec.secondary.name} ({formatEuro(rec.secondary.price)})</Link>
               </p>
             )}
             {rec.limitation && <p className="mt-4 text-xs text-muted-foreground">{rec.limitation}</p>}
