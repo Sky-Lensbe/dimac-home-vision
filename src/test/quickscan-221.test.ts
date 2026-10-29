@@ -55,7 +55,8 @@ describe("2.2.1 privatief en gemeenschappelijk bij appartementen", () => {
   it("4. vocht in gemeenschappelijke kelder: VME-context, geen privatieve vochtscore door de kelder", () => {
     const a = fill({ ...APT, Q24: "terugkerend", Q25A: ["gemkelder"], KV01: "regelmatig" });
     expect(visibleQuestions(a).map((q) => q.id)).not.toContain("Q28");
-    expect(domainScores(a).V).toBe(QUESTION_MAP.Q24.options.find((o) => o.id === "terugkerend")!.score!.v);
+    // 2.2.2: vocht uitsluitend in de gemeenschappelijke kelder telt niet meer privatief (2.2.1 gaf hier V = 5).
+    expect(domainScores(a).V).toBe(0);
     expect(apartmentSection(a)!.signals.join(" ")).toContain("gemeenschappelijke kelder");
   });
   it("4b. actieve instroom in gemeenschappelijke kelder: melding, maar barometer niet verhoogd", () => {
