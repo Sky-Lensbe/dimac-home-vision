@@ -175,7 +175,7 @@ const LeadDetail = ({ lead, onClose, onChange }: { lead: Lead; onClose: () => vo
           <select value={lead.status} onChange={(e) => update({ status: e.target.value }, "status_aangepast")} className="min-h-[44px] border border-border bg-background px-3">
             {STATUSES.map(([v, l]) => <option key={v} value={v} disabled={v === "contact_toegelaten" && !lead.marketing_consent}>{l}</option>)}
           </select>
-          {snap && <Button variant="outline" onClick={() => downloadBlob(buildReportPdf(snap, snap.meta), `DIMAC-Quickscan-${snap.meta.reportNumber}.pdf`)}>PDF</Button>}
+          {snap && <Button variant="outline" onClick={() => void buildReportPdf(snap, snap.meta).then((b) => downloadBlob(b, `DIMAC-Quickscan-${snap.meta.reportNumber}.pdf`))}>PDF</Button>}
           <Button variant="outline" onClick={remove}>Verwijderen</Button>
         </div>
 
