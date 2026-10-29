@@ -21,15 +21,16 @@ export const Barometer = ({ level, label, text }: { level: number | null; label:
   </div>
 );
 
-export const SafetyAlerts = ({ ids }: { ids: SafetyId[] }) =>
+/** Toont de opgeslagen titel en tekst (snapshot) wanneer beschikbaar, anders de actuele tekst per ID. */
+export const SafetyAlerts = ({ ids, items }: { ids: SafetyId[]; items?: { id: string; title: string; text: string }[] }) =>
   ids.length ? (
     <div className="space-y-3" role="alert">
-      {ids.map((id) => (
+      {(items ?? ids.map((id) => ({ id, ...SAFETY_TEXT[id] }))).map(({ id, title, text }) => (
         <div key={id} className="border border-destructive/40 bg-destructive/5 p-5 flex gap-3">
           <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" aria-hidden="true" />
           <div>
-            <p className="font-medium text-primary">{SAFETY_TEXT[id].title}</p>
-            <p className="mt-1 text-sm text-primary/85 leading-relaxed">{SAFETY_TEXT[id].text}</p>
+            <p className="font-medium text-primary">{title}</p>
+            <p className="mt-1 text-sm text-primary/85 leading-relaxed">{text}</p>
           </div>
         </div>
       ))}
@@ -49,7 +50,7 @@ export const ReportView = ({ report }: { report: QuickscanReport }) => {
   const next = () => ++n;
   return (
     <div>
-      {report.safety.length > 0 && <div className="mb-10"><SafetyAlerts ids={report.safety.map((s) => s.id as SafetyId)} /></div>}
+      {report.safety.length > 0 && <div className="mb-10"><SafetyAlerts ids={report.safety.map((s) => s.id as SafetyId)} items={report.safety} /></div>}
       <Chapter n={next()} title="Uw woningprofiel">
         <dl className="grid sm:grid-cols-2 gap-x-8 gap-y-4">
           {report.profile.map((p) => (

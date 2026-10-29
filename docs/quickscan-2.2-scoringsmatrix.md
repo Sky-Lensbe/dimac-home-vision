@@ -35,3 +35,40 @@ Ze worden opgeslagen als contextgegevens (`context` in het rapport) en verschijn
 ## Verwijderd
 
 Q36 (algemene isolatievraag) is vervangen door DI01, MI01 en VL02, zodat isolatie niet dubbel gevraagd wordt.
+
+## Patch 2.2.1 — inhoudelijke correcties (vraag-, regel- en rapportversie 2.2.1)
+
+Geen nieuwe scorewaarden en geen gewijzigde domeingewichten. Nieuwe vraag-ID's hergebruiken uitsluitend bestaande scores.
+
+| Wijziging | Vraag / regel | Antwoord | Domein | Score | Motivatie |
+|---|---|---|---|---|---|
+| Routesplitsing | Q04 (woning) / Q04A (appartement) | Q04A zonder dak en gevel | — | — | Dak/gevel van een appartementsgebouw zijn meestal gemeenschappelijk; die informatie zit in CD01. Ramen blijven, met verwijzing naar de basisakte |
+| Routesplitsing | Q07 (woning) / Q07A (appartement) | vocht binnen het appartement | V | 7 | Zelfde waarde als Q07 vocht |
+| | Q07A | technieken binnen het appartement | T | 7 | Zelfde waarde als Q07 technieken |
+| | Q07A | gemeenschappelijke delen (dak, gevel) | — | — | Niet privatief; VME-signaal en syndicusvraag. Vervangt Q07 dak (B 7) voor appartementen |
+| Routesplitsing | Q13 / Q13A | Q13A zonder dak en gevel | — | — | Context, geen score |
+| Routesplitsing | Q25 / Q25A | Q25A: plafond, buitenmuur, ramen, badkamer, meerdere, gemeenschappelijke kelder | — | — | Geen eigen kelder of zolder bij appartementen |
+| Nieuw (context) | KV01 water in gemeenschappelijke kelder | alle | — | — | VME-context; 'actief' geeft SAFE-04 als gemeenschappelijke melding zonder barometerimpact |
+| Nieuw (toewijzing) | SC01 locatie scheuren (appartement) | alle | — | — | Bepaalt alleen privatief/gemeenschappelijk, nooit de verantwoordelijkheid |
+| Regel | Q30/Q31 bij SC01 = alleen gemeenschappelijk | — | S | niet geteld | Zichtbaar via SAFE-03/06 en VME-hoofdstuk. 'Binnen', 'beide' en 'weet ik niet' blijven privatief geteld (niet geruststellen bij onzekerheid). Q32/Q33 (eigen vloeren, ramen en deuren) blijven tellen |
+| Regel | Q42 bij collectieve verwarming | ook 'gas' | T | niet geteld | Was T 10 in 2.2. SAFE-01 blijft altijd getoond, maar als gemeenschappelijke melding zonder barometerimpact |
+| Regel | Barometer | — | — | — | Alleen privatieve veiligheidsmeldingen verhogen de categorie. Gemeenschappelijke meldingen worden apart getoond (titel met "(gemeenschappelijke delen of installatie)") en in de samenvatting vermeld |
+| Trigger | Q28 kelderwater | — | V | ongewijzigd | Enkel woningen; niet bij K01 = geen of kruipruimte |
+| Trigger | M01 waterinfiltratie | — | V | ongewijzigd | Ook bij Q25A plafond/buitenmuur; niet opnieuw gevraagd bij Q14 = actieve lekkage (al V 10 en SAFE-04) |
+| Trigger | Q45 sanitair | — | T | ongewijzigd | Trigger via Q41 'weet ik niet' (elektriciteit) verwijderd; badkamer, vernieuwd sanitair, oud gebouw, oude leidingen en riolering blijven |
+| Routesplitsing | Q46 / Q46A | Q46A zonder dak en gevel | — | — | Gemeenschappelijke werken beslist de VME (A02) |
+
+### Twijfelgevallen (ouderdom ≠ bewezen gebrek) — scores behouden, goedkeuring DIMAC gevraagd
+
+| Vraag | Antwoord | Huidige score | Vraag aan DIMAC |
+|---|---|---|---|
+| Q14 | Ouder dak zonder gekende problemen | B 3 | Behouden als laag signaal of naar 1? Geen aandachtspunttekst over schade |
+| Q41 | Verouderd, zonder gekende problemen | T 3 | Idem |
+| Q42 | Functioneert, maar is verouderd | T 3 | Idem; de tekst van AP-VERW vermeldt nu dat ouderdom alleen geen gebrek is |
+| H02 | Meer dan 20 jaar | T 3 | Idem |
+| SL01 | Meer dan 25 jaar / vermoedelijk origineel | T 3 | Idem |
+| Q07A | 'Ja, iets anders' | B 4 (via AP-HERHAALD-ANDERS) | Onderdeel onbekend; mogelijk gemeenschappelijk bij appartementen |
+
+### Migratie
+- Sessies 2.2 → 2.2.1: woningen ongewijzigd. Appartementen: Q04/Q13/Q46 met dak of gevel, Q25 met zolder of kelder, en Q07 behalve 'nee' worden opnieuw gevraagd. Gemigreerde sessies hervatten in de vragenlijst.
+- Opgeslagen rapporten (2.1, 2.2) blijven onveranderde snapshots en worden niet herberekend.
