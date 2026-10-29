@@ -375,13 +375,14 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   // Aanbeveling: dezelfde snapshot, leesbare volle breedte en deelblokken die mogen doorlopen.
   {
     const rec = v.recommendation;
-    const recommendationHeight = 78 + measure(rec.title, CW, "serif", false, 24) + measure(rec.motivation, CW, "sans", false, 9) + measure(rec.gains, CW, "sans", false, 9) + rec.benefits.reduce((n, b) => n + measure(b, CW, "sans", false, 9), 0) + (rec.drone ? 35 : 0) + (rec.secondary ? 20 : 0) + (model.ctaUrl ? 20 : 0);
-    ensure(Math.min(recommendationHeight, BOTTOM - TOP)); y += 5;
+    const th = measure(rec.title, CW, "serif", false, 24);
+    // Keep-with-next: scheidingslijn, eyebrow en titel blijven samen; de deelblokken
+    // eronder (motivatie, meerwaarde, prijs, links) breken zelfstandig via ensure().
+    y += 5; keepWithNext(13, (rec.safetyFirst ? 22 : 0) + th + 12);
     doc.setDrawColor(...ORANGE); doc.setLineWidth(0.6); doc.line(M, y, W - M, y);
     eyebrow("Uw aanbevolen volgende stap", M, y + 8); y += 13;
     if (rec.safetyFirst) textBlock("Veiligheid eerst", ["Volg eerst het veiligheidsadvies bovenaan dit rapport. Een Woningscan vervangt geen onmiddellijke veiligheidsmaatregel."]);
-    const th = measure(rec.title, CW, "serif", false, 24);
-    ensure(th + 25); font("serif", false, 24, INK); y += para(rec.title, M, y + 5, CW, 24) + 3;
+    ensure(th + 8); font("serif", false, 24, INK); y += para(rec.title, M, y + 5, CW, 24) + 3;
     textBlock("Waarom deze dienst?", [rec.motivation]);
     if (rec.gains || rec.benefits.length) textBlock("Concrete meerwaarde", [rec.gains, ...rec.benefits.map((b) => `– ${b}`)].filter(Boolean));
     if (rec.price !== null && model.priceLabel) {
