@@ -85,3 +85,23 @@ Geen nieuwe scorewaarden en geen gewijzigde domeingewichten. Nieuwe vraag-ID's h
 | SC01 `onbekend` | geen (voorzichtig meegewogen) | normaal | privatief + onzekerheidsmelding |
 
 Scorewaarden en domeingewichten zijn ongewijzigd.
+
+## 2.3 — rapportlaag en productaanbeveling (geen scorewijzigingen)
+
+Regel- en vragenversie blijven `2.2.2`; enkel de rapportversie wordt `qs-report-2.3`.
+
+Beslisboom (`recommendProduct`, eerste treffer wint; "technisch domein" = privatieve domeinscore ≥ 5; "complex" = volledige renovatie of ≥ 3 werkdomeinen):
+
+| Code | Voorwaarde | Product |
+|---|---|---|
+| PLUS-COMPLEX-TECH | complex én ≥ 1 technisch domein | Woningscan Plus |
+| PLUS-COMPLEX-SEQUENCE | complex én Q47 = ja | Woningscan Plus |
+| PLUS-BUYER-RENOVATION | koper, bouwjaar vóór 1991, R01 > 30 j of nooit, ≥ 2 technische domeinen, ≥ 2 werken | Woningscan Plus |
+| WS-TECH-BUYER | koper met ≥ 1 technisch domein | Woningscan |
+| WS-TECH-OWNER | ≥ 1 technisch domein | Woningscan |
+| WS-APT-COMMON | koper van appartement, enkel gemeenschappelijke signalen | Woningscan (privatieve delen) |
+| BUDGET-COST | Q48 = ja, ≥ 1 gepland werk, geen technisch domein | Online budgetindicator (binnenkort beschikbaar, geen bestelknop) |
+| WS-UNKNOWN-BUYER | koper met beperkte informatie | Woningscan |
+| NONE-NEUTRAL | anders | geen aanbeveling |
+
+Twee werkdomeinen leiden nooit op zich tot Plus. Veiligheidssignalen zetten `safetyFirst`; het veiligheidsadvies blijft eerst. Drone enkel bij een fysiek pakket én `droneAdvice()`, nooit voorgeselecteerd. Asbest: vóór 2001 attestplicht bij verkoop; 1991–2010 eerst het bouwjaar verifiëren; vanaf 2011 geen verplichting (geen uitspraak over asbestvrijheid); onbekend bouwjaar neutraal.
