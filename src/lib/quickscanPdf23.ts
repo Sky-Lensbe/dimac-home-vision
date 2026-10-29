@@ -125,8 +125,22 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     font("sans", false, 6.5, MUTED); doc.text("WONINGSCAN / QUICKSCAN", W - M - 32, 19, { align: "right", charSpace: 0.7 });
   };
   const newPage = (first = false) => { if (!first) doc.addPage(); header(); y = TOP; };
+  /** Paginaovergang enkel wanneer een blok van hoogte h hier echt niet meer past. */
   const ensure = (h: number) => { if (y + h > BOTTOM) newPage(); };
-  const startSection = (minHeight = 48) => { y += 9; ensure(minHeight); sections.push(doc.getNumberOfPages()); };
+  /**
+   * Keep-with-next voor hoofdstuktitels: breek alleen wanneer de titel én een
+   * eerste zinnig stuk inhoud (max KEEP mm) niet meer samen op deze pagina passen.
+   * Zo ontstaan nooit verweesde titels en nooit onnodig vroege paginawissels.
+   */
+  const KEEP = 42;
+  const keepWithNext = (headingH: number, firstBlockH: number) => {
+    if (y + headingH + Math.min(firstBlockH, KEEP) > BOTTOM) newPage();
+  };
+  const startSection = (headingH: number, firstBlockH: number) => {
+    y += 9;
+    keepWithNext(headingH, firstBlockH);
+    sections.push(doc.getNumberOfPages());
+  };
 
   // ---------- Pagina 1: cover ----------
   header(); sections.push(1);
@@ -208,7 +222,7 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   // ---------- Pagina 2: analyse ----------
   const firstDomain = v.domains[0];
   const firstDomainH = firstDomain ? 18 + [firstDomain.analysis, firstDomain.missing, firstDomain.scopeNote].filter(Boolean).reduce((n, text) => n + measure(text as string, CW - 70, "sans", false, 9), 0) : 25;
-  startSection(34 + firstDomainH);
+  startSection(34, firstDomainH);
   eyebrow("Analyse per bouwdeel", M, y + 4);
   font("serif", false, 26, INK); doc.text("De resultaten", M, y + 16); doc.text("in detail.", M, y + 26);
   font("sans", false, 7.6, MUTED); para("Op basis van uw antwoorden geven we per thema een eerste inschatting. Dit is een indicatie en geen technische diagnose. Een lage score bewijst niet dat een onderdeel in orde is.", 118, y + 12, W - M - 118, 7.6);
@@ -238,7 +252,7 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   if (v.connections.length) {
     const first = v.connections[0];
     const firstH = 48 + measure(first.title, CW - 16, "sans", true, 10) + Math.max(...first.nodes.map((n) => measure(n.caption, (CW - 24) / first.nodes.length - 8, "sans", false, 8.5))) + measure(first.text, CW - 16, "sans", false, 9);
-    ensure(firstH + 24); y += 5;
+    y += 5; keepWithNext(21, firstH);
     eyebrow("Wat vertellen uw antwoorden samen?", M, y + 4);
     font("serif", false, 18, INK); doc.text("Verbanden die het verschil maken.", M, y + 14); y += 21;
     for (const c of v.connections) {
