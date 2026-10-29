@@ -139,8 +139,8 @@ describe("2.2.1 sanitair, ouderdom en energie", () => {
     expect(a.Q45).toBe("actief");
     expect(safetyFlags(a)).toContain("SAFE-04");
   });
-  it("12b. geplande sanitaire werken activeren de sanitaire vraag", () => {
-    expect(shown({ ...HOUSE, Q03: "vanaf2011", Q46: ["sanitair"] })).toContain("Q45");
+  it("12b. vernieuwd sanitair activeert de sanitaire vraag ook bij appartementen", () => {
+    expect(shown({ ...APT, Q04A: ["sanitair"] })).toContain("Q45");
   });
   it("13. oud dak zonder gekende schade: geen tekst over bewezen defecten", () => {
     const r = buildReport(fill({ ...HOUSE, Q14: "oud" }));
