@@ -8,9 +8,9 @@
  * en veiligheid los van de technische barometer. Geen nieuwe scorewaarden of gewichten.
  */
 
-export const RULE_VERSION = "qs-rules-2.2.1";
-export const QUESTION_VERSION = "qs-questions-2.2.1";
-export const REPORT_VERSION = "qs-report-2.2.1";
+export const RULE_VERSION = "qs-rules-2.2.2";
+export const QUESTION_VERSION = "qs-questions-2.2.2";
+export const REPORT_VERSION = "qs-report-2.2.2";
 
 export type Domain = "B" | "V" | "E" | "T" | "S";
 export const DOMAINS: { code: Domain; name: string; weight: number }[] = [
@@ -85,6 +85,27 @@ const oldBuild = (a: Answers) => has(a, "Q03", "voor1945", "1945-1969", "1970-19
 const notRecent = (a: Answers) => has(a, "Q03", "voor1945", "1945-1969", "1970-1990", "1991-2010", "onbekend");
 const buyer = (a: Answers) => has(a, "Q01", "koper");
 const moistureReported = (a: Answers) => has(a, "Q24", "terugkerend", "vochtplekken");
+/** 2.2.2: herkomst van vochtsignalen bij appartementen. */
+const Q25A_PRIVATE = ["plafond", "buitenmuur", "ramen", "badkamer", "meerdere"];
+/** Vocht uitsluitend in de gemeenschappelijke kelder of berging: geen privatieve vochtscore. */
+export const commonMoistureOnly = (a: Answers) => {
+  const v = a.Q25A;
+  return isApartment(a) && Array.isArray(v) && v.length > 0 && v.every((y) => y === "gemkelder");
+};
+/** Scheuren of vervormingen uitsluitend aan gemeenschappelijke delen: geen privatieve structurele score. */
+export const commonCracksOnly = (a: Answers) => isApartment(a) && has(a, "SC01", "gemeenschappelijk");
+const COMMON_MOISTURE_QS = ["Q24", "Q25A", "Q26", "Q27", "Q29", "M01"];
+const COMMON_CRACK_QS = ["Q30", "SC01", "Q31", "Q32", "Q33"];
+/** Vragen waarvan het antwoord uitsluitend naar gemeenschappelijke delen verwijst (herkomst = gemeenschappelijk). */
+export function commonOriginQuestions(a: Answers): string[] {
+  return [...(commonMoistureOnly(a) ? COMMON_MOISTURE_QS : []), ...(commonCracksOnly(a) ? COMMON_CRACK_QS : [])];
+}
+/** Antwoorden met alleen de privatieve signalen; basis voor privatieve score, aandachtspunten en privatieve veiligheid. */
+export function privateSignals(a: Answers): Answers {
+  const out = { ...a };
+  for (const q of commonOriginQuestions(a)) delete out[q];
+  return out;
+}
 const roofIssue = (a: Answers) => has(a, "Q14", "slijtage", "beschadigd", "lek", "los");
 const hasBasement = (a: Answers) => has(a, "K01", "kelder", "beide");
 const oldRenovation = (a: Answers) => has(a, "R01", "11-20", "21-30", "gt30", "nooit", "onbekend");
@@ -193,12 +214,12 @@ export const QUESTIONS: Question[] = [
   { id: "VL02", step: 2, optional: true, showIf: (a) => house(a) && (a.VL01 !== undefined) && !has(a, "VL01", "recent"), text: "Is de vloer op het gelijkvloers geïsoleerd?", options: [o("ja", "Ja", "E", 0), o("gedeeltelijk", "Gedeeltelijk", "E", 2), o("nee", "Nee", "E", 4), unk("E"), o("nvt", "Niet van toepassing")] },
   { id: "Q24", step: 2, main: true, safety: true, text: "Zijn er vocht-, schimmel- of waterproblemen?", options: [o("geen", "Geen gekende problemen", "V", 0), o("terugkerend", "Terugkerende condens of schimmel", "V", 5), o("vochtplekken", "Vochtplekken", "V", 8), unk("V")] },
   // Vochtgroep in prioriteitsvolgorde: waar, hoe vaak, aard, wanneer, insijpeling
-  { id: "Q25A", step: 2, group: "vocht", multi: true, text: "Waar merkt u dit probleem?", help: "Meerdere antwoorden mogelijk.", showIf: (a) => isApartment(a) && moistureReported(a), options: [o("plafond", "Plafond, onder dak of bovenliggende ruimte"), o("buitenmuur", "Buitenmuur van het appartement"), o("ramen", "Rond ramen"), o("badkamer", "Badkamer"), o("meerdere", "Meerdere ruimtes in het appartement"), o("gemkelder", "Gemeenschappelijke kelder of berging")] },
+  { id: "Q25A", step: 2, group: "vocht", multi: true, text: "Waar merkt u dit probleem?", help: "Meerdere antwoorden mogelijk.", showIf: (a) => isApartment(a) && moistureReported(a), options: [o("plafond", "Plafond, onder dak of bovenliggende ruimte"), o("buitenmuur", "Buitenmuur van het appartement"), o("ramen", "Rond ramen"), o("badkamer", "Badkamer"), o("meerdere", "Meerdere ruimtes in het appartement"), o("gemkelder", "Gemeenschappelijke kelder of berging"), o("onbekend", "Weet ik niet of niet duidelijk", undefined, undefined, true)] },
   { id: "Q25", step: 2, group: "vocht", multi: true, text: "Waar merkt u dit probleem?", help: "Meerdere antwoorden mogelijk.", showIf: (a) => house(a) && moistureReported(a), options: [o("zolder", "Dak of zolder"), o("buitenmuur", "Buitenmuur"), o("ramen", "Rond ramen"), o("badkamer", "Badkamer"), o("kelder", "Kelder"), o("meerdere", "Meerdere ruimtes")] },
   { id: "Q26", step: 2, group: "vocht", text: "Is het probleem terugkerend?", showIf: moistureReported, options: [o("eenmalig", "Eenmalig", "V", 2), o("afentoe", "Af en toe", "V", 4), o("regelmatig", "Regelmatig", "V", 7), o("voortdurend", "Vrijwel voortdurend", "V", 8)] },
   { id: "Q29", step: 2, group: "vocht", text: "Hoe uitgebreid is de zichtbare schimmelvorming?", showIf: (a) => has(a, "Q24", "terugkerend"), options: [o("plaatselijk", "Plaatselijk", "V", 3), o("meerdere", "Meerdere plekken", "V", 6), o("ruimtes", "In verschillende ruimtes", "V", 8), unk("V")] },
   { id: "Q27", step: 2, group: "vocht", optional: true, text: "Wanneer treedt het probleem vooral op?", showIf: moistureReported, options: [o("regen", "Na regen"), o("koude", "In koude periodes"), o("douchen", "Na douchen of koken"), o("geenpatroon", "Geen duidelijk patroon")] },
-  { id: "M01", step: 2, safety: true, text: "Komt er daadwerkelijk water naar binnen?", help: "Bijvoorbeeld druppels, natte plekken die groeien bij regen of water dat binnenloopt.", showIf: (a) => !has(a, "Q14", "lek") && (has(a, "Q24", "vochtplekken") || has(a, "Q27", "regen") || has(a, "Q25", "buitenmuur", "zolder") || has(a, "Q25A", "buitenmuur", "plafond")), options: [o("nee", "Nee, alleen vochtige plekken", "V", 0), o("vermoeden", "Mogelijk, bij regen", "V", 6), o("regen", "Ja, bij regen", "V", 8), o("actief", "Ja, actieve lekkage", "V", 10), unk("V")] },
+  { id: "M01", step: 2, safety: true, text: "Komt er daadwerkelijk water naar binnen?", help: "Bijvoorbeeld druppels, natte plekken die groeien bij regen of water dat binnenloopt.", showIf: (a) => !has(a, "Q14", "lek") && !commonMoistureOnly(a) && (has(a, "Q24", "vochtplekken") || has(a, "Q27", "regen") || has(a, "Q25", "buitenmuur", "zolder") || has(a, "Q25A", "buitenmuur", "plafond")), options: [o("nee", "Nee, alleen vochtige plekken", "V", 0), o("vermoeden", "Mogelijk, bij regen", "V", 6), o("regen", "Ja, bij regen", "V", 8), o("actief", "Ja, actieve lekkage", "V", 10), unk("V")] },
   { id: "Q23", step: 2, text: "Zijn er vochtplekken rond ramen of gevel na regen?", showIf: (a) => hasR(a, "Q25", "ramen", "buitenmuur") && !has(a, "M01", "regen", "actief"), options: [o("nee", "Nee", "V", 0), o("soms", "Soms", "V", 5), o("herhaaldelijk", "Herhaaldelijk", "V", 8), unk("V")] },
   { id: "Q28", step: 2, safety: true, text: "Komt er water in de kelder?", showIf: (a) => house(a) && ((hasBasement(a) && (moistureReported(a) || has(a, "Q03", ...OLD_BUILDING))) || (has(a, "Q25", "kelder") && !has(a, "K01", "geen", "kruip"))), options: [o("nee", "Nee", "V", 0), o("soms", "Soms na regen", "V", 7), o("regelmatig", "Regelmatig", "V", 8), o("actief", "Actieve waterinstroom", "V", 10), unk("V")] },
   // Appartement: water in een gemeenschappelijke kelder is VME-context zonder privatieve score; actieve instroom blijft een veiligheidsmelding.
@@ -398,29 +419,37 @@ export const SAFETY_TEXT: Record<SafetyId, { title: string; text: string }> = {
 };
 
 /**
- * Veiligheidsmeldingen die uitsluitend voortkomen uit gemeenschappelijke delen of een collectieve installatie.
- * Ze worden altijd getoond, maar verhogen de privatieve barometer niet (veiligheid staat los van de technische score).
+ * Veiligheidsmeldingen uit gemeenschappelijke delen of een collectieve installatie (2.2.2: herkomst expliciet).
+ * Ze worden altijd getoond, maar verhogen de privatieve barometer niet. Een privatieve melding met hetzelfde
+ * SAFE-ID wordt afzonderlijk bepaald (privateSafetyFlags) en dus nooit gemaskeerd.
  */
 export function collectiveSafetyFlags(a: Answers): SafetyId[] {
   const f: SafetyId[] = [];
   if (has(a, "H01", "collectief") && (has(a, "Q42", "gas") || has(a, "Q43", "ja"))) f.push("SAFE-01");
-  const commonOnly = has(a, "SC01", "gemeenschappelijk");
-  if (commonOnly && (has(a, "Q30", "groot") || has(a, "Q31", "groter")) && !has(a, "Q32", "duidelijk")) f.push("SAFE-03");
-  const privateWater = has(a, "Q14", "lek") || has(a, "Q16", "actief") || has(a, "Q18", "infiltratie") || has(a, "Q28", "actief") || has(a, "Q45", "actief") || has(a, "M01", "actief");
-  if (has(a, "KV01", "actief") && !privateWater) f.push("SAFE-04");
-  if (commonOnly && has(a, "Q30", "verzakking")) f.push("SAFE-06");
+  const commonCrack = isApartment(a) && has(a, "SC01", "gemeenschappelijk", "beide");
+  if (commonCrack && (has(a, "Q30", "groot") || has(a, "Q31", "groter") || has(a, "Q32", "duidelijk"))) f.push("SAFE-03");
+  if (has(a, "KV01", "actief")) f.push("SAFE-04");
+  if (commonCrack && has(a, "Q30", "verzakking")) f.push("SAFE-06");
   return f;
 }
 
-export function safetyFlags(a: Answers): SafetyId[] {
+/** Veiligheidsmeldingen uit privatieve signalen (of signalen met onbekende locatie: geen ongefundeerde geruststelling). */
+export function privateSafetyFlags(a: Answers): SafetyId[] {
+  const p = privateSignals(a);
   const f: SafetyId[] = [];
-  if (has(a, "Q42", "gas") || has(a, "Q43", "ja")) f.push("SAFE-01");
-  if (has(a, "Q41", "rook")) f.push("SAFE-02");
-  if (has(a, "Q30", "groot") || has(a, "Q31", "groter") || has(a, "Q32", "duidelijk")) f.push("SAFE-03");
-  if (has(a, "Q14", "lek") || has(a, "Q16", "actief") || has(a, "Q18", "infiltratie") || has(a, "Q28", "actief") || has(a, "Q45", "actief") || has(a, "M01", "actief") || has(a, "KV01", "actief")) f.push("SAFE-04");
-  if (has(a, "Q14", "los") || has(a, "Q15", "los")) f.push("SAFE-05");
-  if (has(a, "Q30", "verzakking")) f.push("SAFE-06");
+  if (!has(p, "H01", "collectief") && (has(p, "Q42", "gas") || has(p, "Q43", "ja"))) f.push("SAFE-01");
+  if (has(p, "Q41", "rook")) f.push("SAFE-02");
+  if (has(p, "Q30", "groot") || has(p, "Q31", "groter") || has(p, "Q32", "duidelijk")) f.push("SAFE-03");
+  if (has(p, "Q14", "lek") || has(p, "Q16", "actief") || has(p, "Q18", "infiltratie") || has(p, "Q28", "actief") || has(p, "Q45", "actief") || has(p, "M01", "actief")) f.push("SAFE-04");
+  if (has(p, "Q14", "los") || has(p, "Q15", "los")) f.push("SAFE-05");
+  if (has(p, "Q30", "verzakking")) f.push("SAFE-06");
   return f;
+}
+
+/** Alle te tonen veiligheidsmeldingen (unie van privatief en gemeenschappelijk). */
+export function safetyFlags(a: Answers): SafetyId[] {
+  const set = new Set<SafetyId>([...privateSafetyFlags(a), ...collectiveSafetyFlags(a)]);
+  return (Object.keys(SAFETY_TEXT) as SafetyId[]).filter((id) => set.has(id));
 }
 
 // ---------- Barometer ----------
@@ -439,6 +468,10 @@ export type DomainScores = Record<Domain, number | null>;
 export function domainScores(a: Answers): DomainScores {
   const s: DomainScores = { B: null, V: null, E: null, T: null, S: null };
   const collective = has(a, "H01", "collectief");
+  // 2.2.2: signalen met gemeenschappelijke herkomst tellen niet privatief. De hoofdvraag is wel beantwoord: privatief geen signaal (0).
+  const common = new Set(commonOriginQuestions(a));
+  if (common.has("Q24")) s.V = 0;
+  if (common.has("Q30")) s.S = 0;
   for (const [qid, v] of Object.entries(a)) {
     const q = QUESTION_MAP[qid];
     if (!q || v === SKIP) continue;
@@ -447,7 +480,7 @@ export function domainScores(a: Answers): DomainScores {
       // 2.2.1: ook een gas-/CO-signaal bij collectieve verwarming telt niet privatief; de veiligheidsmelding blijft (SAFE-01).
       if (qid === "Q42" && collective) continue;
       // Scheuren uitsluitend aan gemeenschappelijke delen: zichtbaar via veiligheid en VME, niet privatief gescoord.
-      if ((qid === "Q30" || qid === "Q31") && has(a, "SC01", "gemeenschappelijk")) continue;
+      if (common.has(qid)) continue;
       const sc = q.options.find((y) => y.id === id)?.score;
       if (!sc) continue;
       s[sc.d] = Math.max(s[sc.d] ?? 0, sc.v);
@@ -483,7 +516,7 @@ export function barometer(a: Answers) {
   const ds = domainScores(a);
   const flags = safetyFlags(a);
   const common = collectiveSafetyFlags(a);
-  const own = flags.filter((f) => !common.includes(f));
+  const own = privateSafetyFlags(a);
   let num = 0;
   let den = 0;
   for (const d of DOMAINS) {
@@ -503,7 +536,7 @@ export function barometer(a: Answers) {
   if (own.some((f) => f === "SAFE-01" || f === "SAFE-02" || f === "SAFE-03" || f === "SAFE-06")) idx = 3;
   const strongSignal = own.length > 0 || max >= 9;
   const category = insufficient && !strongSignal ? INSUFFICIENT : CATEGORIES[idx];
-  return { score, category, level: insufficient && !strongSignal ? null : idx, domainScores: ds, coverage: cov, flags, collectiveFlags: common };
+  return { score, category, level: insufficient && !strongSignal ? null : idx, domainScores: ds, coverage: cov, flags, collectiveFlags: common, privateFlags: own };
 }
 
 // ---------- Aandachtspunten ----------
@@ -568,9 +601,9 @@ export const DOMAIN_HEADLINE: Record<Domain, string> = {
 export interface AttentionPoint { id: string; domain: Domain; title: string; text: string; next: string; severity: number; safety: boolean }
 
 export function attentionPoints(a: Answers, limit = 3): AttentionPoint[] {
-  const common = collectiveSafetyFlags(a);
-  const flags = safetyFlags(a).filter((f) => !common.includes(f));
-  const list = POINTS.map((p, order) => ({ p, order, sev: p.sev(a) }))
+  const flags = privateSafetyFlags(a);
+  const priv = privateSignals(a);
+  const list = POINTS.map((p, order) => ({ p, order, sev: p.sev(priv) }))
     .filter((y) => y.sev >= 3)
     .map((y) => ({ ...y, safe: !!y.p.safety && flags.includes(y.p.safety) }))
     .sort((p, q) => Number(q.safe) - Number(p.safe) || q.sev - p.sev || Number(!!q.p.active) - Number(!!p.p.active) || p.order - q.order);
@@ -687,6 +720,7 @@ export const NEXT_STEP = {
 
 // ---------- Appartement: mede-eigendom ----------
 export const APARTMENT_TITLE = "Gemeenschappelijke delen en mogelijke toekomstige kosten";
+export const APARTMENT_BAROMETER_NOTE = "Deze renovatiebarometer beoordeelt de opgegeven signalen binnen het appartement. Ernstige aandachtspunten aan gemeenschappelijke delen worden afzonderlijk vermeld en vereisen eveneens opvolging.";
 export const APARTMENT_NOTES = [
   "Dit onderdeel is gebaseerd op de informatie die u zelf opgeeft. De gemeenschappelijke delen werden niet ter plaatse geïnspecteerd en wegen niet mee in de privatieve barometer.",
   "Welke delen gemeenschappelijk of privatief zijn (bijvoorbeeld ramen, gevels of balkons), hangt af van de basisakte en de relevante documenten.",
@@ -703,8 +737,12 @@ export function apartmentSection(a: Answers) {
   const tech: string[] = [], planned: string[] = [], fin: string[] = [], syndic: string[] = [];
   if (has(a, "A01", "enkele", "duidelijk") || has(a, "CD01", "verouderd", "problemen")) tech.push("U vermeldt aandachtspunten aan de gemeenschappelijke delen. Ernstige collectieve signalen verdienen opvolging via de syndicus, ook al wegen ze niet mee in de privatieve barometer.");
   if (has(a, "Q07A", "gemeenschappelijk")) tech.push("U meldt dat een eerder hersteld probleem aan gemeenschappelijke delen, zoals dak of gevel, opnieuw optreedt. Dit telt niet mee in de privatieve barometer; laat de oorzaak via de syndicus opvolgen.");
+  if (commonMoistureOnly(a)) tech.push("U meldt een vochtprobleem uitsluitend in de gemeenschappelijke kelder of berging. Dit telt niet mee in de privatieve barometer; laat de oorzaak via de syndicus opvolgen.");
+  else if (has(a, "Q25A", "gemkelder")) tech.push("U meldt vocht zowel in het appartement als in de gemeenschappelijke kelder of berging. Alleen de signalen binnen het appartement tellen mee in de privatieve barometer; het keldervocht wordt hier afzonderlijk vermeld.");
+  if (has(a, "Q25A", "onbekend")) tech.push("U weet niet precies waar het vochtprobleem zich bevindt. De Quickscan kan daarom niet bepalen of het privatieve of gemeenschappelijke delen betreft; de gemelde signalen worden voorzichtigheidshalve meegewogen. Laat de locatie en oorzaak ter plaatse verduidelijken.");
   if (has(a, "KV01", "soms", "regelmatig", "actief")) tech.push(has(a, "KV01", "actief") ? "U meldt actieve waterinstroom in de gemeenschappelijke kelder of berging. Verwittig de syndicus onmiddellijk." : "U meldt water in de gemeenschappelijke kelder of berging. Dit telt niet mee in de privatieve barometer; meld het aan de syndicus.");
   if (has(a, "H01", "collectief") && has(a, "Q42", "storingen", "ouder", "gas")) tech.push(has(a, "Q42", "gas") ? "U meldt een mogelijk gas- of CO-signaal bij de collectieve verwarming. Volg eerst het veiligheidsadvies; verwittig daarna de syndicus." : "U meldt aandachtspunten bij de collectieve verwarming. Dat is een gemeenschappelijke installatie en telt niet mee in de privatieve barometer; meld het aan de syndicus.");
+  if (has(a, "SC01", "onbekend") && has(a, "Q30", "haar", "groot", "verzakking")) tech.push("U weet niet of de scheuren of vervormingen binnen het appartement of aan gemeenschappelijke delen zitten. Ze worden voorzichtigheidshalve meegewogen; laat de locatie en ernst ter plaatse beoordelen. De Quickscan bepaalt niet wie verantwoordelijk is.");
   if (has(a, "SC01", "gemeenschappelijk", "beide") && has(a, "Q30", "groot", "verzakking")) tech.push("U meldt scheuren of vervormingen aan gemeenschappelijke delen. Laat dit prioritair beoordelen via de syndicus door een geschikte deskundige. De Quickscan doet geen stabiliteitsdiagnose en bepaalt niet wie verantwoordelijk is.");
   if (has(a, "CL01", "nee")) tech.push("De gemeenschappelijke leidingen zijn volgens u niet recent vernieuwd. Dat is geen bewezen gebrek, maar wel een onderwerp voor het onderhoudsplan.");
   if (has(a, "A02", "ingrijpend", "middel")) planned.push("Er zijn middelgrote of ingrijpende werken aan de gemeenschappelijke delen aangekondigd.");
@@ -778,10 +816,11 @@ export function buildReport(answers: Answers) {
   const drone = droneAdvice(a);
   const energy = energyNotes(a);
   const notices = contextNotices(a);
-  const flags = b.flags.map((id) => {
-    const collective = b.collectiveFlags.includes(id);
-    return { id, ...SAFETY_TEXT[id], title: collective ? `${SAFETY_TEXT[id].title} (gemeenschappelijke delen of installatie)` : SAFETY_TEXT[id].title, collective };
-  });
+  // 2.2.2: per herkomst een afzonderlijke melding, zodat een privatief risico nooit door een gemeenschappelijk risico met hetzelfde ID verdwijnt.
+  const flags = b.flags.flatMap((id) => [
+    ...(b.privateFlags.includes(id) ? [{ id, ...SAFETY_TEXT[id], collective: false }] : []),
+    ...(b.collectiveFlags.includes(id) ? [{ id, ...SAFETY_TEXT[id], title: `${SAFETY_TEXT[id].title} (gemeenschappelijke delen of installatie)`, collective: true }] : []),
+  ]);
   const apt = isApartment(a);
   const profile = [
     { label: "Situatie", value: LABEL("Q01", a.Q01) },
@@ -804,6 +843,7 @@ export function buildReport(answers: Answers) {
       ? `De belangrijkste aandachtspunten zijn: ${joinNl(points.map((p) => p.title.toLowerCase()))}.`
       : "U meldt geen uitgesproken aandachtspunten.",
     flags.length ? "Er zijn veiligheidsrelevante signalen gemeld; volg de veiligheidsadviezen in dit rapport." : "",
+    apt && (flags.some((f) => f.collective) || apartment?.signals.length) ? APARTMENT_BAROMETER_NOTE : "",
     flags.some((f) => f.collective) ? "Een deel van die signalen betreft gemeenschappelijke delen of een collectieve installatie; die tellen niet mee in de privatieve barometer." : "",
     `Informatiezekerheid: ${unknown.label.toLowerCase()}.`,
     apartment && (apartment.signals.length) ? "Voor de gemeenschappelijke delen zijn er afzonderlijke aandachtspunten; die staan los van de privatieve barometer." : "",
