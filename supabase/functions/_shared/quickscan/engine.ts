@@ -343,8 +343,32 @@ const MIGRATIONS_21: Record<string, Record<string, string | null>> = {
   Q30: {},
 };
 const DROPPED_21 = ["Q36"];
-export function migrateAnswers(answers: Answers, from: "2.1"): Answers {
+/**
+ * 2.2 → 2.2.1: bij woningen blijven alle antwoorden. Bij appartementen worden routevragen alleen overgezet
+ * als ze eenduidig privatief zijn; antwoorden met dak, gevel, zolder of kelder (privatief of gemeenschappelijk?)
+ * worden nooit stilzwijgend geïnterpreteerd en dus opnieuw gevraagd.
+ */
+const AMBIGUOUS_APT: Record<string, string[]> = { Q04: ["dak", "gevel"], Q13: ["dak", "gevel"], Q25: ["zolder", "kelder", "buitenmuur", "meerdere"], Q46: ["dak", "gevel"] };
+function migrate22(answers: Answers): Answers {
+  const apt = answers.Q02 === "appartement";
+  const out: Answers = {};
+  for (const [qid, v] of Object.entries(answers ?? {})) {
+    if (!apt || !(qid in ROUTE_PAIRS)) { out[qid] = v; continue; }
+    // Q07 'Ja, vocht/technieken/dak' maakte bij appartementen geen onderscheid privatief/gemeenschappelijk: enkel 'nee' is eenduidig.
+    if (qid === "Q07") { if (v === "nee") out.Q07A = v; continue; }
+    if (qid === "Q13") continue; // andere antwoordopties in Q13A: opnieuw vragen
+    const vals = Array.isArray(v) ? v : [v];
+    if (vals.some((y) => AMBIGUOUS_APT[qid]?.includes(y))) continue;
+    out[ROUTE_PAIRS[qid]] = v;
+  }
+  return out;
+}
+export function migrateAnswers(answers: Answers, from: "2.1" | "2.2"): Answers {
+  if (from === "2.2") return migrate22(answers);
   if (from !== "2.1") return {};
+  return migrate22(migrate21(answers));
+}
+function migrate21(answers: Answers): Answers {
   const out: Answers = {};
   for (const [qid, v] of Object.entries(answers ?? {})) {
     if (DROPPED_21.includes(qid)) continue;
@@ -668,7 +692,7 @@ export const APARTMENT_NOTES = [
   "Welke delen gemeenschappelijk of privatief zijn (bijvoorbeeld ramen, gevels of balkons), hangt af van de basisakte en de relevante documenten.",
   "Een aangekondigde renovatie of een beperkt reservefonds betekent niet automatisch dat u persoonlijk een bepaald bedrag verschuldigd bent. De exacte impact hangt af van de beslissingen van de VME en de kostenverdeling.",
 ];
-const VME_TECH = ["A01", "CD01", "CL01", "Q07A", "KV01", "SC01"];
+const VME_TECH = ["A01", "CD01", "CL01"];
 const VME_PLANNED = ["A02", "A06", "A07"];
 const VME_FIN = ["A03", "A04", "A05"];
 export const VME_QUESTIONS = [...VME_TECH, ...VME_PLANNED, ...VME_FIN];
