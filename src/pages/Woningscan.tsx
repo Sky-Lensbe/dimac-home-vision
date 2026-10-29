@@ -248,7 +248,7 @@ const ProductCard = ({
 
 const Woningscan = () => {
   const [params] = useSearchParams();
-  const { pakket: initial, situatie: initialSituation } = parseScanParams(params);
+  const { pakket: initial, situatie: initialSituation, rapport: quickscanRef } = parseScanParams(params);
   const [situation, setSituation] = useState<Situation | null>(initialSituation);
   const [selected, setSelected] = useState<PackageId | null>(initial);
   const [drone, setDrone] = useState(false);
@@ -261,6 +261,7 @@ const Woningscan = () => {
   useEffect(() => {
     track("woningscan_view", { page_type: "woningscan" });
     const legacy = params.get("pakket");
+    if (quickscanRef) track("woningscan_quickscan_referral", { page_type: "woningscan", item_id: initial ?? undefined });
     if (initial) {
       requestAnimationFrame(() => formRef.current?.scrollIntoView({ block: "start" }));
     } else if (legacy) {
@@ -324,6 +325,7 @@ const Woningscan = () => {
         ["Adres van de woning", form.address],
         ["Gewenste periode", form.timing],
         ["Toelichting", form.message],
+        ...(quickscanRef ? ([["Quickscan-rapport", quickscanRef]] as [string, string][]) : []),
       ],
       `Beste Dimac, graag vraag ik een ${pkg.name} aan.`,
       recipient

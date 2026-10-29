@@ -140,7 +140,7 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   font("sans", false, 7.2, MUTED); doc.text(new Date(meta.date).toLocaleDateString("nl-BE", { day: "numeric", month: "long", year: "numeric" }) + `  ·  Rapport ${meta.reportNumber}`, M, cy + 3);
   // Illustratie (illustratief, geen foto)
   draw(ILLUSTRATIONS[v.illustration], 104, 34, 88, 220, [92, 96, 104], 0.5);
-  font("sans", false, 5.8, MUTED); doc.text("ILLUSTRATIE, GEEN WEERGAVE VAN UW WONING", 192, 98, { align: "right", charSpace: 0.5 });
+  font("sans", false, 5.8, MUTED); doc.text("ILLUSTRATIE, GEEN WEERGAVE VAN UW WONING", W - M, 98, { align: "right" });
   y = Math.max(cy + 10, 106);
 
   if (r.safety.length) {
@@ -175,7 +175,7 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   // Highlights
   if (v.highlights.length) {
     font("serif", false, 15, INK); doc.text("Dit verdient uw aandacht", M, y + 4);
-    font("sans", false, 6.2, MUTED); doc.text("OP BASIS VAN UW ANTWOORDEN", W - M, y + 4, { align: "right", charSpace: 0.6 });
+    font("sans", false, 6.2, MUTED); doc.text("OP BASIS VAN UW ANTWOORDEN", W - M, y + 4, { align: "right" });
     y += 9;
     const gap = 4, cw = (CW - gap * 2) / 3;
     const hs = v.highlights.map((h) => 26 + measure(h.title, cw - 20, "sans", true, 8.6, 1.3) + measure(h.short, cw - 10, "sans", false, 7.8));
