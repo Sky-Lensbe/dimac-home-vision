@@ -72,3 +72,16 @@ Geen nieuwe scorewaarden en geen gewijzigde domeingewichten. Nieuwe vraag-ID's h
 ### Migratie
 - Sessies 2.2 → 2.2.1: woningen ongewijzigd. Appartementen: Q04/Q13/Q46 met dak of gevel, Q25 met zolder of kelder, en Q07 behalve 'nee' worden opnieuw gevraagd. Gemigreerde sessies hervatten in de vragenlijst.
 - Opgeslagen rapporten (2.1, 2.2) blijven onveranderde snapshots en worden niet herberekend.
+
+## Patch 2.2.2 — herkomst van signalen bij appartementen
+
+| Situatie | Vragen zonder privatieve score | Privatieve V/S | Veiligheid |
+|---|---|---|---|
+| Q25A uitsluitend `gemkelder` | Q24, Q25A, Q26, Q27, Q29, M01 (M01 wordt niet gesteld; KV01 vraagt naar instroom) | V = 0 | KV01 `actief` → SAFE-04 (gemeenschappelijk) |
+| Q25A `gemkelder` + privatieve locatie | geen | normaal (algemene vochtvragen beschrijven ook het privatieve probleem) | privatief en gemeenschappelijk afzonderlijk |
+| Q25A `onbekend` (nieuw, exclusief) | geen (voorzichtig meegewogen) | normaal | normaal + onzekerheidsmelding |
+| SC01 `gemeenschappelijk` | Q30, SC01, Q31, Q32, Q33 | S = 0 | SAFE-03/SAFE-06 gemeenschappelijk |
+| SC01 `beide` | geen | normaal | SAFE-03/06 zowel privatief als gemeenschappelijk |
+| SC01 `onbekend` | geen (voorzichtig meegewogen) | normaal | privatief + onzekerheidsmelding |
+
+Scorewaarden en domeingewichten zijn ongewijzigd.

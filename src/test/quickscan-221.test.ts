@@ -6,7 +6,8 @@ import {
 import { readSaved, SESSION_KEY_22 } from "@/lib/quickscanSession";
 import { storedReport } from "@/lib/quickscanSnapshot";
 import { MAIL_MODE, resolveRecipients } from "../../supabase/functions/_shared/quickscan/mail-policy";
-import { persistQuickscan, reportNumberFor, SAVE_ERROR, type QuickscanStore } from "../../supabase/functions/_shared/quickscan/persist";
+import { persistQuickscan, reportNumberFor, SAVE_ERROR } from "../../supabase/functions/_shared/quickscan/persist";
+import { fakeDb, input } from "./fakeQuickscanDb";
 import { readFileSync } from "node:fs";
 
 const defaultFor = (q: Question) => (q.multi ? [q.options.find((o) => o.exclusive)?.id ?? q.options[0].id] : q.options[0].id);
@@ -54,7 +55,8 @@ describe("2.2.1 privatief en gemeenschappelijk bij appartementen", () => {
   it("4. vocht in gemeenschappelijke kelder: VME-context, geen privatieve vochtscore door de kelder", () => {
     const a = fill({ ...APT, Q24: "terugkerend", Q25A: ["gemkelder"], KV01: "regelmatig" });
     expect(visibleQuestions(a).map((q) => q.id)).not.toContain("Q28");
-    expect(domainScores(a).V).toBe(QUESTION_MAP.Q24.options.find((o) => o.id === "terugkerend")!.score!.v);
+    // 2.2.2: vocht uitsluitend in de gemeenschappelijke kelder telt niet meer privatief (2.2.1 gaf hier V = 5).
+    expect(domainScores(a).V).toBe(0);
     expect(apartmentSection(a)!.signals.join(" ")).toContain("gemeenschappelijke kelder");
   });
   it("4b. actieve instroom in gemeenschappelijke kelder: melding, maar barometer niet verhoogd", () => {
@@ -196,46 +198,14 @@ describe("2.2.1 routewissel, migratie en historische rapporten", () => {
   }
 });
 
-/** Nep-databank met unieke rapportnummers en ON DELETE CASCADE, zoals de echte tabellen. */
-function fakeDb(fail: Partial<Record<"lead" | "responses" | "report" | "events", boolean>> = {}) {
-  const t = { leads: [] as { id: string }[], responses: [] as { lead_id: string }[], reports: [] as { lead_id: string; report_number: string; report_snapshot: unknown }[], events: [] as { lead_id: string }[] };
-  let n = 0;
-  const err = { code: "XX000" };
-  const db: QuickscanStore = {
-    findReport: async (nr) => ({ data: t.reports.find((r) => r.report_number === nr) ?? null, error: null }),
-    insertLead: async () => (fail.lead ? { data: null, error: err } : (t.leads.push({ id: `L${++n}` }), { data: { id: `L${n}` }, error: null })),
-    insertResponses: async (rows) => (fail.responses ? { data: null, error: err } : (t.responses.push(...(rows as never[])), { data: null, error: null })),
-    insertReport: async (row) => {
-      if (fail.report) return { data: null, error: err };
-      if (t.reports.some((r) => r.report_number === row.report_number)) return { data: null, error: { code: "23505" } };
-      t.reports.push(row as never); return { data: null, error: null };
-    },
-    insertEvents: async (rows) => (fail.events ? { data: null, error: err } : (t.events.push(...(rows as never[])), { data: null, error: null })),
-    deleteLead: async (id) => {
-      t.leads = t.leads.filter((l) => l.id !== id);
-      t.responses = t.responses.filter((r) => r.lead_id !== id);
-      t.reports = t.reports.filter((r) => r.lead_id !== id);
-      t.events = t.events.filter((r) => r.lead_id !== id);
-      return { data: null, error: null };
-    },
-  };
-  return { db, t };
-}
-const input = (nr: string) => ({
-  reportNumber: nr, snapshot: { nr }, lead: { email: "x@y.be" },
-  responses: [{ question_id: "Q01", answer_value: "eigenaar" }],
-  report: (lead_id: string) => ({ lead_id, report_number: nr, report_snapshot: { nr } }),
-  events: [{ event_type: "rapport_aangemaakt" }],
-});
-
 describe("2.2.1 betrouwbare opslag", () => {
   it("19. mislukte opslag van antwoorden: geen succes en geen achtergebleven records", async () => {
     const { db, t } = fakeDb({ responses: true });
     const r = await persistQuickscan(db, input("QS-A"));
-    expect(r).toEqual({ ok: false, status: 500, error: SAVE_ERROR });
+    expect(r).toEqual({ ok: false, status: 500, error: SAVE_ERROR, uncertain: false });
     expect(t.leads.length + t.responses.length + t.reports.length).toBe(0);
   });
-  it("20. mislukte opslag van rapportsnapshot: geen foutieve succesmelding, lead en antwoorden teruggedraaid", async () => {
+  it("20. mislukte opslag van rapportsnapshot: geen foutieve succesmelding, niets vastgelegd", async () => {
     const { db, t } = fakeDb({ report: true });
     const r = await persistQuickscan(db, input("QS-B"));
     expect(r.ok).toBe(false);
@@ -255,16 +225,6 @@ describe("2.2.1 betrouwbare opslag", () => {
     expect(t.leads).toHaveLength(1);
     expect(t.reports).toHaveLength(1);
     expect(t.responses).toHaveLength(1);
-  });
-  it("gelijktijdige dubbele indiening (unieke sleutel): extra lead teruggedraaid, bestaand rapport terug", async () => {
-    const { db, t } = fakeDb();
-    await persistQuickscan(db, input("QS-E"));
-    const racing = { ...db, findReport: (async () => ({ data: null, error: null })) as QuickscanStore["findReport"] };
-    let calls = 0;
-    racing.findReport = async (nr) => (calls++ === 0 ? { data: null, error: null } : db.findReport(nr));
-    const r = await persistQuickscan(racing, input("QS-E"));
-    expect(r).toMatchObject({ ok: true, duplicate: true });
-    expect(t.leads).toHaveLength(1);
   });
   it("rapportnummer is deterministisch per indiening en verschilt bij andere antwoorden", async () => {
     const a = await reportNumberFor("A@B.be", 1_700_000_000_000, { Q01: "koper", Q02: "open" });

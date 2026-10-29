@@ -26,7 +26,7 @@ export const SafetyAlerts = ({ ids, items }: { ids: SafetyId[]; items?: { id: st
   ids.length ? (
     <div className="space-y-3" role="alert">
       {(items ?? ids.map((id) => ({ id, ...SAFETY_TEXT[id] }))).map(({ id, title, text }) => (
-        <div key={id} className="border border-destructive/40 bg-destructive/5 p-5 flex gap-3">
+        <div key={`${id}-${title}`} className="border border-destructive/40 bg-destructive/5 p-5 flex gap-3">
           <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" aria-hidden="true" />
           <div>
             <p className="font-medium text-primary">{title}</p>

@@ -1,32 +1,43 @@
 /**
  * Betrouwbare opslag van een Quickscan-registratie (geen imports, testbaar met een nep-databank).
  *
- * Volgorde: lead → antwoorden → rapportsnapshot → events. Mislukt een verplichte stap, dan wordt de lead
- * verwijderd; antwoorden, rapport en events hangen eraan met ON DELETE CASCADE, zodat er geen gedeeltelijke
- * of verweesde records achterblijven. Pas als alle verplichte stappen gelukt zijn, geeft de functie ok terug.
+ * 2.2.2: de verplichte registratie (lead, antwoorden, rapportsnapshot en audit-events) gebeurt in één
+ * PostgreSQL-functie `quickscan_register`, dus binnen één databasetransactie. Mislukt één insert, dan draait
+ * PostgreSQL alles terug; er is geen compensatie via een aparte verwijdering meer nodig.
  *
- * Herhaalde indieningen: het rapportnummer is afgeleid van (e-mail, starttijd, antwoorden). Een tweede
- * identieke indiening geeft het reeds opgeslagen rapport terug en maakt geen nieuwe records aan.
+ * Idempotentie: het rapportnummer is afgeleid van (e-mail, starttijd, antwoorden) en uniek in de databank.
+ * De functie neemt een transactie-advisory-lock per rapportnummer, zodat gelijktijdige identieke indieningen
+ * na elkaar verwerkt worden en de tweede het reeds opgeslagen rapport terugkrijgt.
+ *
+ * Onzekere status: als de verbinding wegvalt of het antwoord onleesbaar is, controleren we eerst of het
+ * rapport toch bestaat. Kan dat niet bevestigd worden, dan volgt een neutrale melding zonder garanties.
  */
 
 type DbError = { code?: string; message?: string } | null;
 type Res<T> = PromiseLike<{ data: T | null; error: DbError }>;
 
+export interface RegisterArgs {
+  p_report_number: string;
+  p_lead: Record<string, unknown>;
+  p_responses: Record<string, unknown>[];
+  p_report: Record<string, unknown>;
+  p_events: Record<string, unknown>[];
+}
+
 /** Minimale databankinterface die de echte client en de tests allebei bieden. */
 export interface QuickscanStore {
   findReport(reportNumber: string): Res<{ report_snapshot: unknown }>;
-  insertLead(row: Record<string, unknown>): Res<{ id: string }>;
-  insertResponses(rows: Record<string, unknown>[]): Res<unknown>;
-  insertReport(row: Record<string, unknown>): Res<unknown>;
-  insertEvents(rows: Record<string, unknown>[]): Res<unknown>;
-  deleteLead(id: string): Res<unknown>;
+  register(args: RegisterArgs): Res<{ duplicate: boolean; snapshot: unknown }>;
 }
 
 export type PersistResult =
   | { ok: true; duplicate: boolean; snapshot: unknown }
-  | { ok: false; status: number; error: string };
+  | { ok: false; status: number; error: string; uncertain: boolean };
 
-export const SAVE_ERROR = "Uw rapport kon niet worden opgeslagen. Er werd niets geregistreerd; probeer het later opnieuw.";
+/** De databank meldde een fout: de transactie is volledig teruggedraaid. */
+export const SAVE_ERROR = "Uw rapport kon niet worden opgeslagen. Probeer het later opnieuw.";
+/** De opslagstatus is niet met zekerheid gekend: geen garantie in één of andere richting. */
+export const UNCERTAIN_ERROR = "We konden niet bevestigen of uw rapport werd opgeslagen. Probeer het opnieuw: een herhaalde indiening maakt geen dubbele registratie aan.";
 
 async function sha256Hex(s: string) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
@@ -48,7 +59,8 @@ export interface PersistInput {
   reportNumber: string;
   lead: Record<string, unknown>;
   responses: Record<string, unknown>[];
-  report: (leadId: string) => Record<string, unknown>;
+  /** Rapportrij zonder lead_id; de databankfunctie koppelt de lead binnen dezelfde transactie. */
+  report: Record<string, unknown>;
   snapshot: unknown;
   events: Record<string, unknown>[];
 }
@@ -59,37 +71,32 @@ export async function findExisting(db: QuickscanStore, reportNumber: string): Pr
 }
 
 export async function persistQuickscan(db: QuickscanStore, input: PersistInput): Promise<PersistResult> {
-  const existing = await findExisting(db, input.reportNumber);
-  if (existing) return { ok: true, duplicate: true, snapshot: existing };
-
-  const { data: lead, error: leadErr } = await db.insertLead(input.lead);
-  if (leadErr || !lead) { console.error("quickscan: lead insert failed", leadErr?.code); return { ok: false, status: 500, error: SAVE_ERROR }; }
-
-  const rollback = async (stage: string, err: DbError) => {
-    console.error(`quickscan: ${stage} failed, rolling back`, err?.code);
-    const { error } = await db.deleteLead(lead.id);
-    if (error) console.error("quickscan: rollback failed", error.code);
-  };
-
-  if (input.responses.length) {
-    const { error } = await db.insertResponses(input.responses.map((r) => ({ ...r, lead_id: lead.id })));
-    if (error) { await rollback("responses insert", error); return { ok: false, status: 500, error: SAVE_ERROR }; }
-  }
-
-  const { error: repErr } = await db.insertReport(input.report(lead.id));
-  if (repErr) {
-    await rollback("report insert", repErr);
-    // Gelijktijdige dubbele indiening: het andere verzoek heeft het rapport al opgeslagen.
-    if (repErr.code === "23505") {
+  const uncertain = async (): Promise<PersistResult> => {
+    // Is het rapport ondanks de onderbreking toch opgeslagen? Dan is dat een geslaagde registratie.
+    try {
       const dup = await findExisting(db, input.reportNumber);
       if (dup) return { ok: true, duplicate: true, snapshot: dup };
-    }
-    return { ok: false, status: 500, error: SAVE_ERROR };
+    } catch { /* status blijft onzeker */ }
+    return { ok: false, status: 503, error: UNCERTAIN_ERROR, uncertain: true };
+  };
+
+  let res: { data: { duplicate: boolean; snapshot: unknown } | null; error: DbError };
+  try {
+    res = await db.register({
+      p_report_number: input.reportNumber,
+      p_lead: input.lead,
+      p_responses: input.responses,
+      p_report: { ...input.report, report_snapshot: input.snapshot },
+      p_events: input.events,
+    });
+  } catch {
+    console.error("quickscan: register call interrupted");
+    return uncertain();
   }
-
-  // Events zijn auditinformatie; het rapport is al volledig opgeslagen. Een fout wordt gelogd, niet verzwegen.
-  const { error: evErr } = await db.insertEvents(input.events.map((e) => ({ ...e, lead_id: lead.id })));
-  if (evErr) console.error("quickscan: events insert failed", evErr.code);
-
-  return { ok: true, duplicate: false, snapshot: input.snapshot };
+  if (res.error) {
+    console.error("quickscan: register failed, transaction rolled back", res.error.code);
+    return { ok: false, status: 500, error: SAVE_ERROR, uncertain: false };
+  }
+  if (!res.data || res.data.snapshot == null) return uncertain();
+  return { ok: true, duplicate: !!res.data.duplicate, snapshot: res.data.snapshot };
 }
