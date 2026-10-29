@@ -347,7 +347,8 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   // Aanbeveling: dezelfde snapshot, leesbare volle breedte en deelblokken die mogen doorlopen.
   {
     const rec = v.recommendation;
-    ensure(140); y += 5;
+    const recommendationHeight = 78 + measure(rec.title, CW, "serif", false, 24) + measure(rec.motivation, CW, "sans", false, 9) + measure(rec.gains, CW, "sans", false, 9) + rec.benefits.reduce((n, b) => n + measure(b, CW, "sans", false, 9), 0) + (rec.drone ? 35 : 0) + (rec.secondary ? 20 : 0) + (model.ctaUrl ? 20 : 0);
+    ensure(Math.min(recommendationHeight, BOTTOM - TOP)); y += 5;
     doc.setDrawColor(...ORANGE); doc.setLineWidth(0.6); doc.line(M, y, W - M, y);
     eyebrow("Uw aanbevolen volgende stap", M, y + 8); y += 16;
     if (rec.safetyFirst) textBlock("Veiligheid eerst", ["Volg eerst het veiligheidsadvies bovenaan dit rapport. Een Woningscan vervangt geen onmiddellijke veiligheidsmaatregel."]);
