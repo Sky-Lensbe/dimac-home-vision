@@ -13,4 +13,7 @@
 # Quickscan 2.2 (testmodus)
 - [x] Nieuwe vragen, appartement/VME-onderdeel, scoring, rapport en PDF (versie 2.2)
 - [x] Zes acceptatievoorwaarden: prioritering met gemeten vraagaantallen, Overslaan, sessiemigratie 2.1→2.2, onveranderlijke oude rapporten, VME-scheiding, scoringsmatrix (docs/quickscan-2.2-scoringsmatrix.md)
+- [x] Patch 2.2.1: scheiding privatief/gemeenschappelijk, veiligheid los van barometer, betrouwbare opslag zonder dubbele records, 50 extra tests
+- [ ] Twijfelgevallen ouderdomsscores (Q14 oud, Q41/Q42 verouderd, H02 >20j, SL01 oud) — wacht op goedkeuring DIMAC
+- [ ] Volledige woning- en appartementroute 2.2.1 in de browser tot PDF doorlopen
 - [x] 83 tests geslaagd; volledige doorloop appartement tot rapport en PDF; testinzending verwijderd
