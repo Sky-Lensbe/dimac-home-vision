@@ -268,10 +268,10 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   }
 
   const textBlock = (title: string, body: string[], size = 9) => {
-    const h = 6 + body.reduce((n, t) => n + measure(t, CW, "sans", false, size) + 1, 0);
+    const h = 9 + body.reduce((n, t) => n + measure(t, CW, "sans", false, size) + 1, 0);
     ensure(h);
     font("sans", true, 8.8, INK); doc.text(title, M, y + 4);
-    let by = y + 6;
+    let by = y + 9;
     for (const t of body) { font("sans", false, size, BODY); by += para(t, M, by, CW, size) + 1; }
     y = by + 1;
   };
@@ -373,14 +373,14 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     pdfLink(rec.infoLabel, model.infoUrl, false);
     if (rec.secondary) textBlock("Alternatief", [`${rec.secondary.text} ${rec.secondary.name}: ${formatEuro(rec.secondary.price)} ${VAT_LABEL}.`], 8.5);
     if (rec.limitation) textBlock("Afbakening", [rec.limitation], 8.5);
-    if (rec.price !== null) textBlock("Prijs op de rapportdatum", [`${rec.priceNote} Rapportdatum: ${new Date(meta.date).toLocaleDateString("nl-BE")}.`], 8.5);
+    if (rec.price !== null) { ensure(10); font("sans", false, 8.5, MUTED); y += para(`${rec.priceNote} Rapportdatum: ${new Date(meta.date).toLocaleDateString("nl-BE")}.`, M, y + 3, CW, 8.5) + 4; }
   }
 
   {
-    const h = measure(r.limits, CW, "sans", false, 8.5) + 12;
+    const h = measure(r.limits, CW, "sans", false, 8) + 9;
     ensure(h);
     eyebrow("Grenzen van de Quickscan", M, y + 3, MUTED);
-    font("sans", false, 8.5, MUTED); para(r.limits, M, y + 8, CW, 8.5);
+    font("sans", false, 8, MUTED); para(r.limits, M, y + 7, CW, 8);
   }
 
   // Voetteksten en paginering
