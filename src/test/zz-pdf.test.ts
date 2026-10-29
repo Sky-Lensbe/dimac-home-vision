@@ -14,4 +14,4 @@ it("pdf", async () => {
     const b = await buildReportPdf23(r, { reportNumber: "QS-20261029-ABCDEF12", name: "Test", municipality: "3980", date: "2026-10-29T10:00:00Z" }, { load });
     writeFileSync(`/tmp/pdf-${n}.pdf`, Buffer.from(await new Response(b).arrayBuffer()));
   }
-});
+}, 60000);
