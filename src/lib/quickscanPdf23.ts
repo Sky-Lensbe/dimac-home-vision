@@ -339,8 +339,9 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     font("sans", true, 9, INK); doc.text(x.title, M + 36, y + 7);
     font("sans", false, 9, BODY); let ty = y + 12 + para(x.text, M + 36, y + 12, tw, 9);
     if (x.next) { font("sans", false, 8.5, MUTED); ty += para(`Volgende stap: ${x.next}`, M + 36, ty + 1, tw, 8.5); }
-    y += h + 3;
-  });
+      y += h + 3;
+    });
+  }
 
   if (v.documents.length) {
     const firstDocH = 16 + measure(v.documents[0].label, (CW - 5) / 2 - 22, "sans", true, 9);
