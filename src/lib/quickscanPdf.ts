@@ -48,7 +48,7 @@ export function buildReportPdf(r: QuickscanReport, meta: ReportMeta): Blob {
   h2(ch(), "Uw woningprofiel");
   for (const p of r.profile) text(`${p.label}: ${p.value}`, 10, INK, "normal", 0.5);
 
-  h2(ch(), "Renovatienoodzakelijkheidsbarometer");
+  h2(ch(), "Uw renovatiebarometer");
   // Vierdelige meter
   ensure(14);
   const segW = CW / 4;
