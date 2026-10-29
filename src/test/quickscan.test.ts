@@ -26,8 +26,8 @@ const HOUSE: Answers = { Q01: "eigenaar", Q02: "open", Q03: "1991-2010", R01: "1
 const APT: Answers = { Q01: "eigenaar", Q02: "appartement", Q03: "1991-2010", R01: "6-10", Q34: "c", H01: "gas", H02: "6-10" };
 
 describe("versies en vragenbank 2.2", () => {
-  it("vraag-, regel- en rapportversie zijn 2.2.1", () => {
-    expect([QUESTION_VERSION, RULE_VERSION, REPORT_VERSION]).toEqual(["qs-questions-2.2.1", "qs-rules-2.2.1", "qs-report-2.2.1"]);
+  it("vraag-, regel- en rapportversie zijn 2.2.2", () => {
+    expect([QUESTION_VERSION, RULE_VERSION, REPORT_VERSION]).toEqual(["qs-questions-2.2.2", "qs-rules-2.2.2", "qs-report-2.2.2"]);
   });
   it("unieke vraag-ID's", () => expect(new Set(QUESTIONS.map((q) => q.id)).size).toBe(QUESTIONS.length));
   it("bevat alle nieuwe onderwerpen", () => {
@@ -192,7 +192,7 @@ describe("algemene logica (25–36)", () => {
   });
   it("28. rapport bewaart vraagversie en antwoordlabels", () => {
     const r = buildReport(fill(HOUSE));
-    expect(r.questionVersion).toBe("qs-questions-2.2.1");
+    expect(r.questionVersion).toBe("qs-questions-2.2.2");
     expect(r.answerLabels.Q02.a).toBe("Open bebouwing");
   });
   it("29. type wijzigen verwijdert niet-toepasselijke antwoorden", () => {

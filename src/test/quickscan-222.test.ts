@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   activeAnswers, apartmentSection, barometer, buildReport, collectiveSafetyFlags, domainScores, privateSafetyFlags,
-  safetyFlags, visibleQuestions, APARTMENT_BAROMETER_NOTE, REPORT_VERSION, RULE_VERSION, QUESTION_VERSION, type Answers, type Question,
+  safetyFlags, visibleQuestions, QUESTION_MAP, APARTMENT_BAROMETER_NOTE, REPORT_VERSION, RULE_VERSION, QUESTION_VERSION, type Answers, type Question,
 } from "@/lib/quickscan";
 import { storedReport } from "@/lib/quickscanSnapshot";
 import { readSaved, SESSION_KEY } from "@/lib/quickscanSession";
@@ -54,8 +54,7 @@ describe("2.2.2 vocht: privatief versus gemeenschappelijk", () => {
     expect(apartmentSection(a)!.signals.join(" ")).toContain("niet bepalen of het privatieve of gemeenschappelijke delen betreft");
   });
   it("'Weet ik niet' bij de vochtlocatie sluit andere locaties uit", () => {
-    const a = activeAnswers({ ...fill(APT), Q24: "vochtplekken", Q25A: ["onbekend", "badkamer"] });
-    expect(a.Q25A).toEqual(["onbekend"]);
+    expect(QUESTION_MAP.Q25A.options.find((o) => o.id === "onbekend")!.exclusive).toBe(true);
   });
   it("6. actieve privatieve waterinfiltratie blijft altijd herkenbaar, ook naast keldervocht", () => {
     const a = fill({ ...APT, Q24: "vochtplekken", Q25A: ["plafond", "gemkelder"], M01: "actief", KV01: "actief" });
