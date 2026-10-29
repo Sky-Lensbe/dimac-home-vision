@@ -114,7 +114,7 @@ export const PRODUCTS: ScanProduct[] = [
       "Een DIMAC-deskundige bekijkt de zichtbare bouwtechnische onderdelen van uw woning en brengt relevante vaststellingen en renovatieprioriteiten overzichtelijk in kaart.",
     audience: "Voor kandidaat-kopers en eigenaars die een eerste bouwtechnisch overzicht wensen.",
     items: [
-      "Visuele, niet-destructieve inspectie ter plaatse",
+      "Inspectie ter plaatse",
       "Controle van de belangrijkste bouwtechnische onderdelen",
       "Overzicht van zichtbare technische aandachtspunten",
       "Prioritering van relevante vaststellingen",
