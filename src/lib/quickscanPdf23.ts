@@ -268,11 +268,11 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   }
 
   const textBlock = (title: string, body: string[], size = 9) => {
-    const h = 8 + body.reduce((n, t) => n + measure(t, CW, "sans", false, size) + 1.5, 0);
+    const h = 6 + body.reduce((n, t) => n + measure(t, CW, "sans", false, size) + 1, 0);
     ensure(h);
     font("sans", true, 8.8, INK); doc.text(title, M, y + 4);
-    let by = y + 8;
-    for (const t of body) { font("sans", false, size, BODY); by += para(t, M, by, CW, size) + 1.5; }
+    let by = y + 6;
+    for (const t of body) { font("sans", false, size, BODY); by += para(t, M, by, CW, size) + 1; }
     y = by + 1;
   };
   if (v.information?.topics.length || r.unknown.items.length || r.unknown.skipped?.length) textBlock(`Wat weten we nog niet? ${r.unknown.label}.`, [v.information?.sentence ?? r.unknown.sentence, r.unknown.skipped?.length ? `Overgeslagen: ${r.unknown.skipped.map((s) => s.label).join("; ")}.` : ""].filter(Boolean));
@@ -350,10 +350,10 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     const recommendationHeight = 78 + measure(rec.title, CW, "serif", false, 24) + measure(rec.motivation, CW, "sans", false, 9) + measure(rec.gains, CW, "sans", false, 9) + rec.benefits.reduce((n, b) => n + measure(b, CW, "sans", false, 9), 0) + (rec.drone ? 35 : 0) + (rec.secondary ? 20 : 0) + (model.ctaUrl ? 20 : 0);
     ensure(Math.min(recommendationHeight, BOTTOM - TOP)); y += 5;
     doc.setDrawColor(...ORANGE); doc.setLineWidth(0.6); doc.line(M, y, W - M, y);
-    eyebrow("Uw aanbevolen volgende stap", M, y + 8); y += 16;
+    eyebrow("Uw aanbevolen volgende stap", M, y + 8); y += 13;
     if (rec.safetyFirst) textBlock("Veiligheid eerst", ["Volg eerst het veiligheidsadvies bovenaan dit rapport. Een Woningscan vervangt geen onmiddellijke veiligheidsmaatregel."]);
     const th = measure(rec.title, CW, "serif", false, 24);
-    ensure(th + 25); font("serif", false, 24, INK); y += para(rec.title, M, y + 5, CW, 24) + 7;
+    ensure(th + 25); font("serif", false, 24, INK); y += para(rec.title, M, y + 5, CW, 24) + 3;
     textBlock("Waarom deze dienst?", [rec.motivation]);
     if (rec.gains || rec.benefits.length) textBlock("Concrete meerwaarde", [rec.gains, ...rec.benefits.map((b) => `– ${b}`)].filter(Boolean));
     if (rec.price !== null && model.priceLabel) {
@@ -363,11 +363,11 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     }
     if (rec.drone) textBlock("Optionele drone-dakscreening", [`+ ${formatEuro(rec.drone.price)} ${VAT_LABEL}. ${rec.drone.text}`, `${rec.drone.condition} De optie staat standaard uit.`]);
     const pdfLink = (title: string, url: string, primary: boolean) => {
-      const h = 17 + measure(url, CW - 12, "sans", false, 8);
+      const h = 14 + measure(url, CW - 12, "sans", false, 8);
       ensure(h + 4); doc.setDrawColor(...(primary ? ORANGE : LINE)); doc.rect(M, y, CW, h, "S");
       font("sans", true, 10, primary ? ORANGE : INK); doc.text(title, M + 6, y + 8);
-      font("sans", false, 8, BODY); para(url, M + 6, y + 14, CW - 12, 8);
-      doc.link(M, y, CW, h, { url }); y += h + 4;
+      font("sans", false, 8, BODY); para(url, M + 6, y + 12, CW - 12, 8);
+      doc.link(M, y, CW, h, { url }); y += h + 2;
     };
     if (model.ctaUrl) pdfLink(rec.ctaLabel, model.ctaUrl, true);
     pdfLink(rec.infoLabel, model.infoUrl, false);
