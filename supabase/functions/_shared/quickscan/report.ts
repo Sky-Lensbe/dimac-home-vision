@@ -78,6 +78,9 @@ const MAIN_BY_DOMAIN: Record<Domain, { q: string; name: string; ids: string[] }[
   S: [{ q: "Q30", name: "scheuren of vervormingen", ids: ["onbekend"] }],
 };
 
+/** Hoofdvragen per domein (zoals in de barometer). Zijn ze allemaal onbekend, dan is het domein niet beoordeeld. */
+const CORE: Record<Domain, string[]> = { B: ["Q14", "Q20"], V: ["Q24"], E: ["Q34", "DI01", "MI01", "G01"], T: ["Q41", "Q42"], S: ["Q30"] };
+
 export interface DomainCard { code: Domain; title: string; icon: IconId; status: DomainStatus; statusLabel: string; analysis: string; missing: string | null; missingItems: string[]; scopeNote: string | null }
 
 function domainCards(a: Answers, ds: Record<Domain, number | null>, privateFlags: SafetyId[], collectiveFlags: SafetyId[]): DomainCard[] {
@@ -86,7 +89,8 @@ function domainCards(a: Answers, ds: Record<Domain, number | null>, privateFlags
   return (Object.keys(DOMAIN_CARD) as Domain[]).map((code) => {
     const v = ds[code];
     const severe = privateFlags.some((f) => SAFETY_DOMAIN[f] === code);
-    const status: DomainStatus = v === null ? "onvoldoende" : severe || v >= 9 ? "ernstig" : v >= 5 ? "duidelijk" : v >= 1 ? "beperkt" : "geen";
+    const mainUnknown = CORE[code].every((q) => a[q] === undefined || a[q] === SKIP || has(a, q, "onbekend", "spouw", "massief"));
+    const status: DomainStatus = v === null || (v === 0 && mainUnknown) ? "onvoldoende" : severe || v >= 9 ? "ernstig" : v >= 5 ? "duidelijk" : v >= 1 ? "beperkt" : "geen";
     const signals: string[] = [];
     for (const [qid, val] of Object.entries(p)) {
       const q = QUESTION_MAP[qid];
