@@ -284,8 +284,7 @@ describe("2.2.1 rapport, PDF en testmodus", () => {
   });
   it("22. testmodus en mailbeleid blijven ongewijzigd", () => {
     expect(MAIL_MODE).toBe("test");
-    const r = resolveRecipients({ customerEmail: "klant@example.com" } as never);
-    expect(JSON.stringify(r)).not.toContain("klant@example.com");
-    expect(JSON.stringify(r)).not.toContain("dimac.be");
+    expect(resolveRecipients("report", "klant@example.com")).toEqual(["info@sky-lens.be"]);
+    expect(resolveRecipients("lead_notification", null)).toEqual(["info@sky-lens.be"]);
   });
 });
