@@ -78,7 +78,7 @@ const MAIN_BY_DOMAIN: Record<Domain, { q: string; name: string; ids: string[] }[
   S: [{ q: "Q30", name: "scheuren of vervormingen", ids: ["onbekend"] }],
 };
 
-export interface DomainCard { code: Domain; title: string; icon: IconId; status: DomainStatus; statusLabel: string; analysis: string; missing: string | null; scopeNote: string | null }
+export interface DomainCard { code: Domain; title: string; icon: IconId; status: DomainStatus; statusLabel: string; analysis: string; missing: string | null; missingItems: string[]; scopeNote: string | null }
 
 function domainCards(a: Answers, ds: Record<Domain, number | null>, privateFlags: SafetyId[], collectiveFlags: SafetyId[]): DomainCard[] {
   const p = privateSignals(a);
@@ -96,7 +96,7 @@ function domainCards(a: Answers, ds: Record<Domain, number | null>, privateFlags
       if (hit.length) signals.push(`${SHORT[qid]}: ${lower(label(qid, hit))}`);
     }
     let analysis = signals.length ? `U vermeldt ${joinNl(signals.slice(0, 3))}.` : "U meldt hier geen problemen. Dat betekent niet dat dit onderdeel gecontroleerd of in orde is.";
-    if (code === "E" && has(a, "Q34", "aplus", "b")) analysis = `${signals.length ? analysis + " " : ""}Het EPC-label (${label("Q34", a.Q34)}) wijst op een goede energieprestatie. Een EPC is geen bouwkundige keuring.`.replace("U meldt hier geen problemen. Dat betekent niet dat dit onderdeel gecontroleerd of in orde is. ", "");
+    if (code === "E" && has(a, "Q34", "aplus", "b")) analysis = `${signals.length ? `U vermeldt ${joinNl(signals.slice(0, 3))}. ` : ""}Het EPC-label (${label("Q34", a.Q34)}) wijst op een goede energieprestatie. Een EPC is geen bouwkundige keuring.`;
     if (code === "S" && has(p, "Q30", "haar")) analysis = "U meldt een kleine, volgens u stabiele haarscheur. Dat is op zich geen ernstig structureel signaal. Volg op of ze groter wordt.";
     if (code === "V" && v === null && has(a, "Q24", "onbekend")) analysis = "U weet niet of er vochtproblemen zijn.";
     const unknown = MAIN_BY_DOMAIN[code].filter((m) => has(a, m.q, ...m.ids) || a[m.q] === SKIP).map((m) => m.name);
@@ -105,7 +105,7 @@ function domainCards(a: Answers, ds: Record<Domain, number | null>, privateFlags
       const commonHere = collectiveFlags.some((f) => SAFETY_DOMAIN[f] === code) || (code === "V" && has(a, "Q25A", "gemkelder")) || (code === "S" && has(a, "SC01", "gemeenschappelijk", "beide")) || (code === "T" && has(a, "H01", "collectief"));
       scopeNote = commonHere ? "Beoordeling binnen het appartement. Signalen aan gemeenschappelijke delen staan apart bij de mede-eigendom." : "Beoordeling binnen het appartement.";
     }
-    return { code, ...DOMAIN_CARD[code], status, statusLabel: DOMAIN_STATUS_LABEL[status], analysis, missing: unknown.length ? `Nog onbekend: ${joinNl(unknown)}.` : null, scopeNote };
+    return { code, ...DOMAIN_CARD[code], status, statusLabel: DOMAIN_STATUS_LABEL[status], analysis, missing: unknown.length ? `Nog onbekend: ${joinNl(unknown)}.` : null, missingItems: unknown, scopeNote };
   });
 }
 
@@ -283,7 +283,7 @@ export function technicalDomains(ds: Record<Domain, number | null>): Domain[] {
 export function recommendProduct(a: Answers, ctx: { domainScores: Record<Domain, number | null>; flags: SafetyId[]; unknownLevel: string; findings: Finding[]; apartmentSignals: number }): Recommendation {
   const tech = technicalDomains(ctx.domainScores).length;
   const planned = plannedCount(a);
-  const full = plans(a, "volledig") && (Array.isArray(a.Q46) ? a.Q46.includes("volledig") : Array.isArray(a.Q46A) && a.Q46A.includes("volledig"));
+  const full = plans(a, "volledig");
   const complex = full || planned >= 3;
   const buy = buyer(a);
   const apt = isApartment(a);
@@ -405,7 +405,7 @@ export function composeReport(answers: Answers) {
   const fs = findings(a);
   const links = connections(a);
   const cards = domainCards(a, base.domainScores, b.privateFlags, b.collectiveFlags);
-  const unknownCount = cards.reduce((n, c) => n + (c.missing ? c.missing.split(",").length + (c.missing.includes(" en ") ? 1 : 0) : 0), 0);
+  const unknownCount = cards.reduce((n, c) => n + c.missingItems.length, 0);
   const apartmentSignals = base.apartment?.signals.length ?? 0;
   const recommendation = recommendProduct(a, { domainScores: base.domainScores, flags: [...b.privateFlags, ...b.collectiveFlags], unknownLevel: base.unknown.level, findings: fs, apartmentSignals });
   // Asbestmelding afgestemd op de bouwjaargrens van 2001; gekende toepassingen blijven ongewijzigd.
