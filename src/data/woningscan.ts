@@ -116,9 +116,9 @@ export const PRODUCTS: ScanProduct[] = [
     items: [
       "Inspectie ter plaatse",
       "Controle van de belangrijkste bouwtechnische onderdelen",
-      "Overzicht van zichtbare technische aandachtspunten",
+      "Overzicht van technische aandachtspunten",
       "Prioritering van relevante vaststellingen",
-      "Beknopt digitaal rapport",
+      "Digitaal rapport",
     ],
     excludes: [
       "Uitgebreide fotodocumentatie",
