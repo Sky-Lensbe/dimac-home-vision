@@ -196,35 +196,33 @@ describe("2.2.1 routewissel, migratie en historische rapporten", () => {
   }
 });
 
-/** Nep-databank met unieke rapportnummers en ON DELETE CASCADE, zoals de echte tabellen. */
-function fakeDb(fail: Partial<Record<"lead" | "responses" | "report" | "events", boolean>> = {}) {
+/** Nep-databank die quickscan_register nabootst: alles-of-niets per oproep, unieke rapportnummers. */
+export function fakeDb(fail: Partial<Record<"lead" | "responses" | "report" | "events" | "throw" | "throwAfterCommit", boolean>> = {}) {
   const t = { leads: [] as { id: string }[], responses: [] as { lead_id: string }[], reports: [] as { lead_id: string; report_number: string; report_snapshot: unknown }[], events: [] as { lead_id: string }[] };
   let n = 0;
-  const err = { code: "XX000" };
   const db: QuickscanStore = {
     findReport: async (nr) => ({ data: t.reports.find((r) => r.report_number === nr) ?? null, error: null }),
-    insertLead: async () => (fail.lead ? { data: null, error: err } : (t.leads.push({ id: `L${++n}` }), { data: { id: `L${n}` }, error: null })),
-    insertResponses: async (rows) => (fail.responses ? { data: null, error: err } : (t.responses.push(...(rows as never[])), { data: null, error: null })),
-    insertReport: async (row) => {
-      if (fail.report) return { data: null, error: err };
-      if (t.reports.some((r) => r.report_number === row.report_number)) return { data: null, error: { code: "23505" } };
-      t.reports.push(row as never); return { data: null, error: null };
-    },
-    insertEvents: async (rows) => (fail.events ? { data: null, error: err } : (t.events.push(...(rows as never[])), { data: null, error: null })),
-    deleteLead: async (id) => {
-      t.leads = t.leads.filter((l) => l.id !== id);
-      t.responses = t.responses.filter((r) => r.lead_id !== id);
-      t.reports = t.reports.filter((r) => r.lead_id !== id);
-      t.events = t.events.filter((r) => r.lead_id !== id);
-      return { data: null, error: null };
+    register: async (args) => {
+      if (fail.throw) throw new Error("netwerk");
+      const ex = t.reports.find((r) => r.report_number === args.p_report_number);
+      if (ex) return { data: { duplicate: true, snapshot: ex.report_snapshot }, error: null };
+      // Transactie: eerst alles voorbereiden, pas bij volledig succes vastleggen.
+      const id = `L${++n}`;
+      for (const k of ["lead", "responses", "report", "events"] as const) if (fail[k]) return { data: null, error: { code: "23502" } };
+      t.leads.push({ id });
+      t.responses.push(...args.p_responses.map(() => ({ lead_id: id })));
+      t.reports.push({ lead_id: id, report_number: args.p_report_number, report_snapshot: args.p_report.report_snapshot });
+      t.events.push(...args.p_events.map(() => ({ lead_id: id })));
+      if (fail.throwAfterCommit) throw new Error("antwoord verloren");
+      return { data: { duplicate: false, snapshot: args.p_report.report_snapshot }, error: null };
     },
   };
   return { db, t };
 }
-const input = (nr: string) => ({
+export const input = (nr: string) => ({
   reportNumber: nr, snapshot: { nr }, lead: { email: "x@y.be" },
   responses: [{ question_id: "Q01", answer_value: "eigenaar" }],
-  report: (lead_id: string) => ({ lead_id, report_number: nr, report_snapshot: { nr } }),
+  report: { report_number: nr },
   events: [{ event_type: "rapport_aangemaakt" }],
 });
 
@@ -232,10 +230,10 @@ describe("2.2.1 betrouwbare opslag", () => {
   it("19. mislukte opslag van antwoorden: geen succes en geen achtergebleven records", async () => {
     const { db, t } = fakeDb({ responses: true });
     const r = await persistQuickscan(db, input("QS-A"));
-    expect(r).toEqual({ ok: false, status: 500, error: SAVE_ERROR });
+    expect(r).toEqual({ ok: false, status: 500, error: SAVE_ERROR, uncertain: false });
     expect(t.leads.length + t.responses.length + t.reports.length).toBe(0);
   });
-  it("20. mislukte opslag van rapportsnapshot: geen foutieve succesmelding, lead en antwoorden teruggedraaid", async () => {
+  it("20. mislukte opslag van rapportsnapshot: geen foutieve succesmelding, niets vastgelegd", async () => {
     const { db, t } = fakeDb({ report: true });
     const r = await persistQuickscan(db, input("QS-B"));
     expect(r.ok).toBe(false);
@@ -255,16 +253,6 @@ describe("2.2.1 betrouwbare opslag", () => {
     expect(t.leads).toHaveLength(1);
     expect(t.reports).toHaveLength(1);
     expect(t.responses).toHaveLength(1);
-  });
-  it("gelijktijdige dubbele indiening (unieke sleutel): extra lead teruggedraaid, bestaand rapport terug", async () => {
-    const { db, t } = fakeDb();
-    await persistQuickscan(db, input("QS-E"));
-    const racing = { ...db, findReport: (async () => ({ data: null, error: null })) as QuickscanStore["findReport"] };
-    let calls = 0;
-    racing.findReport = async (nr) => (calls++ === 0 ? { data: null, error: null } : db.findReport(nr));
-    const r = await persistQuickscan(racing, input("QS-E"));
-    expect(r).toMatchObject({ ok: true, duplicate: true });
-    expect(t.leads).toHaveLength(1);
   });
   it("rapportnummer is deterministisch per indiening en verschilt bij andere antwoorden", async () => {
     const a = await reportNumberFor("A@B.be", 1_700_000_000_000, { Q01: "koper", Q02: "open" });
