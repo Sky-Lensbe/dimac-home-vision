@@ -125,8 +125,21 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     font("sans", false, 6.5, MUTED); doc.text("WONINGSCAN / QUICKSCAN", W - M - 32, 19, { align: "right", charSpace: 0.7 });
   };
   const newPage = (first = false) => { if (!first) doc.addPage(); header(); y = TOP; };
+  /** Paginaovergang enkel wanneer een blok van hoogte h hier echt niet meer past. */
   const ensure = (h: number) => { if (y + h > BOTTOM) newPage(); };
-  const startSection = (minHeight = 48) => { y += 9; ensure(minHeight); sections.push(doc.getNumberOfPages()); };
+  /**
+   * Keep-with-next voor hoofdstuktitels: breek alleen wanneer de titel én het
+   * eerste blok (keep-together) er niet meer samen op passen. Zo ontstaan nooit
+   * verweesde titels en nooit onnodig vroege paginawissels.
+   */
+  const keepWithNext = (headingH: number, firstBlockH: number) => {
+    if (y + headingH + firstBlockH > BOTTOM) newPage();
+  };
+  const startSection = (headingH: number, firstBlockH: number) => {
+    y += 9;
+    keepWithNext(headingH, firstBlockH);
+    sections.push(doc.getNumberOfPages());
+  };
 
   // ---------- Pagina 1: cover ----------
   header(); sections.push(1);
@@ -208,7 +221,7 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   // ---------- Pagina 2: analyse ----------
   const firstDomain = v.domains[0];
   const firstDomainH = firstDomain ? 18 + [firstDomain.analysis, firstDomain.missing, firstDomain.scopeNote].filter(Boolean).reduce((n, text) => n + measure(text as string, CW - 70, "sans", false, 9), 0) : 25;
-  startSection(34 + firstDomainH);
+  startSection(34, firstDomainH);
   eyebrow("Analyse per bouwdeel", M, y + 4);
   font("serif", false, 26, INK); doc.text("De resultaten", M, y + 16); doc.text("in detail.", M, y + 26);
   font("sans", false, 7.6, MUTED); para("Op basis van uw antwoorden geven we per thema een eerste inschatting. Dit is een indicatie en geen technische diagnose. Een lage score bewijst niet dat een onderdeel in orde is.", 118, y + 12, W - M - 118, 7.6);
@@ -238,7 +251,7 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   if (v.connections.length) {
     const first = v.connections[0];
     const firstH = 48 + measure(first.title, CW - 16, "sans", true, 10) + Math.max(...first.nodes.map((n) => measure(n.caption, (CW - 24) / first.nodes.length - 8, "sans", false, 8.5))) + measure(first.text, CW - 16, "sans", false, 9);
-    ensure(firstH + 24); y += 5;
+    y += 5; keepWithNext(21, firstH);
     eyebrow("Wat vertellen uw antwoorden samen?", M, y + 4);
     font("serif", false, 18, INK); doc.text("Verbanden die het verschil maken.", M, y + 14); y += 21;
     for (const c of v.connections) {
@@ -278,7 +291,9 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   if (v.information?.topics.length || r.unknown.items.length || r.unknown.skipped?.length) textBlock(`Wat weten we nog niet? ${r.unknown.label}.`, [v.information?.sentence ?? r.unknown.sentence, r.unknown.skipped?.length ? `Overgeslagen: ${r.unknown.skipped.map((s) => s.label).join("; ")}.` : ""].filter(Boolean));
   for (const n of r.notices ?? []) textBlock(n.title, [n.text]);
   if (r.apartment) {
-    ensure(65); y += 6;
+    const firstCard = v.coOwnership?.cards[0];
+    const firstCardH = firstCard ? 19 + measure(firstCard.text, CW - 30, "sans", false, 9) + (firstCard.uncertain ? 5 : 0) : 25;
+    y += 6; keepWithNext(24, firstCardH);
     eyebrow("Mede-eigendom", M, y + 4);
     font("serif", false, 23, INK); doc.text("Uw appartement en de VME", M, y + 16); y += 24;
     if (v.coOwnership) {
@@ -292,7 +307,8 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
         y += h + 4;
       }
       for (const g of r.apartment.groups ?? []) if (g.title !== "Financiële onzekerheden" && g.signals.length) textBlock(g.title, g.signals);
-      ensure(25); font("serif", false, 17, INK); doc.text("Vragen voor de verkoper of syndicus", M, y + 5); y += 12;
+      const firstQH = v.coOwnership.questions[0] ? measure(v.coOwnership.questions[0], CW - 10, "sans", false, 9) + 5 : 10;
+      keepWithNext(12, firstQH); font("serif", false, 17, INK); doc.text("Vragen voor de verkoper of syndicus", M, y + 5); y += 12;
       v.coOwnership.questions.forEach((q, i) => { const h = measure(q, CW - 10, "sans", false, 9) + 5; ensure(h); font("sans", true, 9, ORANGE); doc.text(`${i + 1}.`, M, y + 3); font("sans", false, 9, BODY); y += para(q, M + 10, y + 3, CW - 10, 9) + 5; });
       textBlock("Aankoopchecklist", v.coOwnership.checklist.map((q) => `– ${q}`));
       textBlock("Privatief en gemeenschappelijk", ["Onbekende documenten zijn niet automatisch onbestaand. Gemeenschappelijke problemen tellen niet mee in de privatieve barometer; veiligheidsadvies blijft van toepassing."]);
@@ -302,15 +318,18 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     }
   }
 
-  // ---------- Pagina 3: advies ----------
-  const firstAction = v.actions[0];
-  const firstActionH = firstAction ? 20 + measure(firstAction.text, CW - 42, "sans", false, 9) + (firstAction.next ? measure(firstAction.next, CW - 42, "sans", false, 8.5) : 0) : 0;
-  startSection(50 + firstActionH);
-  eyebrow("Praktisch advies", M, y + 4);
-  font("serif", false, 22, INK); const tl = lines(v.adviceTitle, 112); tl.forEach((l, i) => doc.text(l, M, y + 15 + i * 9));
-  font("sans", false, 7.6, MUTED); para("Met deze acties verduidelijkt u de belangrijkste aandachtspunten en onzekerheden.", 140, y + 12, W - M - 140, 7.6);
-  y += 17 + tl.length * 9;
-  v.actions.forEach((x, i) => {
+  // ---------- Advies (alleen wanneer er acties zijn; nooit een titel zonder inhoud) ----------
+  if (v.actions.length) {
+    const firstAction = v.actions[0];
+    const firstActionH = 20 + measure(firstAction.text, CW - 42, "sans", false, 9) + (firstAction.next ? measure(firstAction.next, CW - 42, "sans", false, 8.5) : 0);
+    // Eerst het lettertype zetten, dan pas meten: splitTextToSize gebruikt het actieve font.
+    font("serif", false, 22, INK); const tl = lines(v.adviceTitle, 112);
+    startSection(17 + tl.length * 9, firstActionH);
+    eyebrow("Praktisch advies", M, y + 4);
+    font("serif", false, 22, INK); tl.forEach((l, i) => doc.text(l, M, y + 15 + i * 9));
+    font("sans", false, 7.6, MUTED); para("Met deze acties verduidelijkt u de belangrijkste aandachtspunten en onzekerheden.", 140, y + 12, W - M - 140, 7.6);
+    y += 17 + tl.length * 9;
+    v.actions.forEach((x, i) => {
     const tw = CW - 42;
     const h = 18 + measure(x.text, tw, "sans", false, 9) + (x.next ? measure(`Volgende stap: ${x.next}`, tw, "sans", false, 8.5) + 1 : 0);
     ensure(h + 3);
@@ -320,11 +339,13 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     font("sans", true, 9, INK); doc.text(x.title, M + 36, y + 7);
     font("sans", false, 9, BODY); let ty = y + 12 + para(x.text, M + 36, y + 12, tw, 9);
     if (x.next) { font("sans", false, 8.5, MUTED); ty += para(`Volgende stap: ${x.next}`, M + 36, ty + 1, tw, 8.5); }
-    y += h + 3;
-  });
+      y += h + 3;
+    });
+  }
 
   if (v.documents.length) {
-    ensure(45); y += 5;
+    const firstDocH = 16 + measure(v.documents[0].label, (CW - 5) / 2 - 22, "sans", true, 9);
+    y += 5; keepWithNext(22, firstDocH);
     eyebrow("Handige documenten", M, y + 4);
     font("serif", false, 18, INK); doc.text("Documenten om op te vragen.", M, y + 15); y += 22;
     const dw = (CW - 5) / 2;
@@ -349,19 +370,21 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     ensure(h);
     eyebrow("Grenzen van de Quickscan", M, y + 3, MUTED);
     font("sans", false, 8, MUTED); para(r.limits, M, y + 7, CW, 8);
+    y += h;
   }
 
 
   // Aanbeveling: dezelfde snapshot, leesbare volle breedte en deelblokken die mogen doorlopen.
   {
     const rec = v.recommendation;
-    const recommendationHeight = 78 + measure(rec.title, CW, "serif", false, 24) + measure(rec.motivation, CW, "sans", false, 9) + measure(rec.gains, CW, "sans", false, 9) + rec.benefits.reduce((n, b) => n + measure(b, CW, "sans", false, 9), 0) + (rec.drone ? 35 : 0) + (rec.secondary ? 20 : 0) + (model.ctaUrl ? 20 : 0);
-    ensure(Math.min(recommendationHeight, BOTTOM - TOP)); y += 5;
+    const th = measure(rec.title, CW, "serif", false, 24);
+    // Keep-with-next: scheidingslijn, eyebrow en titel blijven samen; de deelblokken
+    // eronder (motivatie, meerwaarde, prijs, links) breken zelfstandig via ensure().
+    y += 5; keepWithNext(13, (rec.safetyFirst ? 22 : 0) + th + 12);
     doc.setDrawColor(...ORANGE); doc.setLineWidth(0.6); doc.line(M, y, W - M, y);
     eyebrow("Uw aanbevolen volgende stap", M, y + 8); y += 13;
     if (rec.safetyFirst) textBlock("Veiligheid eerst", ["Volg eerst het veiligheidsadvies bovenaan dit rapport. Een Woningscan vervangt geen onmiddellijke veiligheidsmaatregel."]);
-    const th = measure(rec.title, CW, "serif", false, 24);
-    ensure(th + 25); font("serif", false, 24, INK); y += para(rec.title, M, y + 5, CW, 24) + 3;
+    ensure(th + 8); font("serif", false, 24, INK); y += para(rec.title, M, y + 5, CW, 24) + 3;
     textBlock("Waarom deze dienst?", [rec.motivation]);
     if (rec.gains || rec.benefits.length) textBlock("Concrete meerwaarde", [rec.gains, ...rec.benefits.map((b) => `– ${b}`)].filter(Boolean));
     if (rec.price !== null && model.priceLabel) {

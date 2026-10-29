@@ -41,3 +41,15 @@
 - PDF-links blijven bestaande absolute `www.dimac.be`-routes; daadwerkelijke publieke bereikbaarheid wacht op livegang/domeininstelling. Pakketselectie is lokaal gecontroleerd.
 - Appartement-VME is visueel en synthetisch getest; geen tweede echte appartementinschrijving uitgevoerd. Oude snapshots zijn getest op ongewijzigde versie/aanbeveling, niet als iedere historische PDF-variant opnieuw gecontroleerd.
 - Testmodus en e-mailconfiguratie ongewijzigd, geen e-mails verstuurd en niets gepubliceerd. Bestaande open punten rond geverifieerd verzenddomein, beheerder en productreview blijven buiten deze patch.
+## Addendum: PDF-layout- en paginatiefix (29 oktober 2026, tweede ronde)
+
+**Oorzaak van de beoordeelde lege pagina:** de beoordeelde PDF was door een verouderde bundle gegenereerd — hij toonde de disclaimer ná de aanbeveling, terwijl de actuele code die er vóór zet. De downloadketen is geverifieerd correct: `Quickscan.tsx` → `buildReportPdf()` → dynamische import van `buildReportPdf23()` voor `v23`-snapshots; oudere snapshots behouden de legacy-generator.
+
+**Werkelijk gevonden en hersteld in `src/lib/quickscanPdf23.ts`:**
+1. `startSection(minHeight)` reserveerde titel + volledig eerste blok; vervangen door `keepWithNext(headingH, firstBlockH)` — een titel breekt alleen wanneer titel én eerste keep-together-blok niet meer samen passen.
+2. Het blok "Grenzen van de Quickscan" tekende tekst zonder `y` bij te werken — de aanbeveling kon eroverheen tekenen. Nu `y += h`.
+3. De aanbeveling reserveerde tot een volledige pagina (`ensure(Math.min(recommendationHeight, ...))`) waardoor een bijna lege pagina ontstond; nu keep-with-next (lijn + eyebrow + titel) en doorlopende deelblokken.
+4. De adviestitel werd gemeten met het verkeerde actieve lettertype (`lines()` vóór `font()`), waardoor de toelichting de titel overlapte; nu eerst font, dan meten.
+5. De adviessectie toonde een titel zonder inhoud wanneer er geen acties zijn; nu alleen gerenderd bij `v.actions.length`.
+
+**Visuele regressietest:** vier profielen opnieuw gegenereerd met de actuele code en echte fonts (eenvoudig 3p, highlights 5p, renovatie+drone 6p, appartement-VME 6p), per pagina als afbeelding gecontroleerd plus contact sheets. Geen verweesde conclusiepagina, geen verweesde titels, geen overlap, correcte kop-/voetteksten en paginanummers. 205/205 tests en typecheck groen.
