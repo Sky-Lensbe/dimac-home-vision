@@ -27,7 +27,7 @@ describe("Quickscan rapportpatch 2.3.1", () => {
     expect(rec.availability).toBe("coming_soon"); expect(rec.ctaPath).toBeNull(); expect(rec.secondary).toBeNull(); expect(rec.drone).toBeNull();
   });
   it("twee technische domeinen met overeenkomende geplande ingrepen onderbouwen Plus €449", () => {
-    const r = composeReport(fill({ ...clean, Q14: "beschadigd", Q41: "storingen", Q46: ["dak", "elektriciteit", "interieur"] }));
+    const r = composeReport(fill({ ...clean, Q14: "beschadigd", Q41: "beschadigd", Q46: ["dak", "elektriciteit", "interieur"] }));
     expect(r.v23.recommendation.productId).toBe("woningscan-plus"); expect(r.v23.recommendation.price).toBe(449);
   });
   it("één technisch domein plus drie werken of werkvolgorde blijft Woningscan €299", () => {
