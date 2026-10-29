@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { TextField } from "@/components/site/FormFields";
 import { Barometer, ReportView, SafetyAlerts } from "@/components/quickscan/ReportView";
+import { Report23 } from "@/components/quickscan/Report23";
+import type { QuickscanReport23 } from "@/lib/quickscanReport";
 import {
   activeAnswers, buildReport, questionText, safetyFlags, stepTitle, visibleQuestions, SKIP, STEP_TITLES,
   type Answers, type Question, type QuickscanReport,
@@ -300,7 +302,7 @@ const FinalReport = ({ report, meta, onRestart }: { report: QuickscanReport; met
   };
   return (
     <section className="py-16 md:py-24 bg-background">
-      <div className="container-tight max-w-3xl">
+      <div className={cn("container-tight", "v23" in report ? "max-w-5xl" : "max-w-3xl")}>
         <p className="mb-5 text-xs uppercase tracking-[0.24em] text-accent">DIMAC Quickscan · Rapport {meta.reportNumber}</p>
         <h1 className="font-display text-4xl md:text-5xl leading-tight text-primary">Uw persoonlijke woninganalyse</h1>
         <p className="mt-4 text-muted-foreground">{meta.name} · {meta.municipality} · {new Date(meta.date).toLocaleDateString("nl-BE")}</p>
@@ -309,7 +311,9 @@ const FinalReport = ({ report, meta, onRestart }: { report: QuickscanReport; met
           <Button variant="outline" onClick={() => window.print()}><Printer /> Rapport printen</Button>
           <Button variant="ghost" onClick={onRestart}><RotateCcw /> Nieuwe Quickscan</Button>
         </div>
-        <div className="mt-10"><ReportView report={report} /></div>
+        <div className="mt-10">
+          {"v23" in report && (report as QuickscanReport23).v23 ? <Report23 report={report as QuickscanReport23} reportNumber={meta.reportNumber} /> : <ReportView report={report} />}
+        </div>
       </div>
     </section>
   );
