@@ -25,3 +25,8 @@
 - [x] Doorklik naar aanvraag met juist pakket, drone uit, rapportnummer als referentie
 - [x] Tessenderlo-case end-to-end in de browser; 188 tests geslaagd
 - [ ] Prijzen/teksten in productkaarten laten nalezen door DIMAC — wacht op gebruiker
+
+# Quickscan 2.3.1 (testmodus)
+- [ ] Terughoudend productadvies, conditionele verbanden, consistente informatiezekerheid
+- [ ] Volwaardige VME-presentatie online en PDF; dynamische leesbare PDF
+- [ ] Regressietests, browserdoorloop en PDF-controle; serverrapportpatch uitrollen zonder publicatie
