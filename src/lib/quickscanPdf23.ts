@@ -128,13 +128,12 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   /** Paginaovergang enkel wanneer een blok van hoogte h hier echt niet meer past. */
   const ensure = (h: number) => { if (y + h > BOTTOM) newPage(); };
   /**
-   * Keep-with-next voor hoofdstuktitels: breek alleen wanneer de titel én een
-   * eerste zinnig stuk inhoud (max KEEP mm) niet meer samen op deze pagina passen.
-   * Zo ontstaan nooit verweesde titels en nooit onnodig vroege paginawissels.
+   * Keep-with-next voor hoofdstuktitels: breek alleen wanneer de titel én het
+   * eerste blok (keep-together) er niet meer samen op passen. Zo ontstaan nooit
+   * verweesde titels en nooit onnodig vroege paginawissels.
    */
-  const KEEP = 42;
   const keepWithNext = (headingH: number, firstBlockH: number) => {
-    if (y + headingH + Math.min(firstBlockH, KEEP) > BOTTOM) newPage();
+    if (y + headingH + firstBlockH > BOTTOM) newPage();
   };
   const startSection = (headingH: number, firstBlockH: number) => {
     y += 9;
@@ -322,7 +321,8 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   // ---------- Pagina 3: advies ----------
   const firstAction = v.actions[0];
   const firstActionH = firstAction ? 20 + measure(firstAction.text, CW - 42, "sans", false, 9) + (firstAction.next ? measure(firstAction.next, CW - 42, "sans", false, 8.5) : 0) : 0;
-  const tl = lines(v.adviceTitle, 112);
+  // Eerst het lettertype zetten, dan pas meten: splitTextToSize gebruikt het actieve font.
+  font("serif", false, 22, INK); const tl = lines(v.adviceTitle, 112);
   startSection(17 + tl.length * 9, firstActionH);
   eyebrow("Praktisch advies", M, y + 4);
   font("serif", false, 22, INK); tl.forEach((l, i) => doc.text(l, M, y + 15 + i * 9));
