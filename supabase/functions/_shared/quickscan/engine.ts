@@ -4,11 +4,13 @@
  * De server herberekent altijd zelf; scores uit de browser worden nooit vertrouwd.
  * Gewichten en drempels zijn ontwerpwaarden, geen gevalideerde technische schaal.
  * De scoringsmatrix van nieuwe vragen staat in docs/quickscan-2.2-scoringsmatrix.md.
+ * Patch 2.2.1: strikte scheiding tussen privatieve en gemeenschappelijke signalen bij appartementen,
+ * en veiligheid los van de technische barometer. Geen nieuwe scorewaarden of gewichten.
  */
 
-export const RULE_VERSION = "qs-rules-2.2";
-export const QUESTION_VERSION = "qs-questions-2.2";
-export const REPORT_VERSION = "qs-report-2.2";
+export const RULE_VERSION = "qs-rules-2.2.1";
+export const QUESTION_VERSION = "qs-questions-2.2.1";
+export const REPORT_VERSION = "qs-report-2.2.1";
 
 export type Domain = "B" | "V" | "E" | "T" | "S";
 export const DOMAINS: { code: Domain; name: string; weight: number }[] = [
@@ -64,14 +66,18 @@ const has = (a: Answers, q: string, ...ids: string[]) => {
   return Array.isArray(v) ? v.some((y) => ids.includes(y)) : ids.includes(v);
 };
 const answered = (a: Answers, q: string) => a[q] !== undefined && a[q] !== SKIP;
+/** Routeafhankelijke vraag-ID's (woning / appartement) met dezelfde betekenis voor de vervolglogica. */
+const ROUTE_PAIRS: Record<string, string> = { Q04: "Q04A", Q07: "Q07A", Q13: "Q13A", Q25: "Q25A", Q46: "Q46A" };
+const hasR = (a: Answers, q: string, ...ids: string[]) => has(a, q, ...ids) || has(a, ROUTE_PAIRS[q], ...ids);
+const valR = (a: Answers, q: string) => a[q] ?? a[ROUTE_PAIRS[q]];
 
 /** Gedeelde leeftijdscategorieën voor eerder vernieuwde onderdelen. Geen technische score: ouderdom is geen gebrek. */
 export const RENOVATION_AGE = [o("0-5", "0–5 jaar geleden"), o("6-10", "6–10 jaar geleden"), o("11-20", "11–20 jaar geleden"), o("gt20", "Meer dan 20 jaar geleden"), o("onbekend", "Weet ik niet")];
 const ROOM_AGE = [o("0-5", "0–5 jaar geleden"), o("6-10", "6–10 jaar geleden"), o("11-20", "11–20 jaar geleden"), o("gt20", "Meer dan 20 jaar geleden"), o("nooit", "Nooit vernieuwd voor zover bekend"), unkCtx];
 const RENOVATED = ["dak", "ramen", "gevel", "isolatie", "elektriciteit", "verwarming", "sanitair"];
 const WORKS = ["dak", "ramen", "gevel", "isolatie", "elektriciteit", "verwarming", "sanitair", "vloeren", "interieur", "volledig"];
-const plannedCount = (a: Answers) => (Array.isArray(a.Q46) ? a.Q46.filter((y) => WORKS.includes(y)).length : 0);
-const plans = (a: Answers, w: string) => has(a, "Q46", w, "volledig");
+const plannedCount = (a: Answers) => { const v = valR(a, "Q46"); return Array.isArray(v) ? v.filter((y) => WORKS.includes(y)).length : 0; };
+const plans = (a: Answers, w: string) => hasR(a, "Q46", w, "volledig");
 export const isApartment = (a: Answers) => has(a, "Q02", "appartement");
 const house = (a: Answers) => a.Q02 !== undefined && !isApartment(a);
 export const OLD_BUILDING = ["voor1945", "1945-1969"];
@@ -100,7 +106,7 @@ export function followUpBudget(g: FollowUpGroup, a: Answers): number {
     case "vocht": {
       if (!moistureReported(a)) return 0;
       const base = has(a, "Q24", "vochtplekken") ? 4 : 3;
-      return base + (has(a, "Q26", "regelmatig", "voortdurend") || has(a, "Q25", "meerdere") ? 1 : 0);
+      return base + (has(a, "Q26", "regelmatig", "voortdurend") || hasR(a, "Q25", "meerdere") ? 1 : 0);
     }
     case "scheur": return has(a, "Q30", "groot", "verzakking") ? 9 : 0;
     case "comfort": return has(a, "Q34", "e", "f") || has(a, "DI01", "niet") || has(a, "MI01", "niet") || has(a, "G01", "enkel") ? 2 : 1;
@@ -126,23 +132,33 @@ export const QUESTIONS: Question[] = [
     options: [o("0-5", "0–5 jaar geleden"), o("6-10", "6–10 jaar geleden"), o("11-20", "11–20 jaar geleden"), o("21-30", "21–30 jaar geleden"), o("gt30", "Meer dan 30 jaar geleden"), o("nooit", "Nooit grondig gerenoveerd"), unkCtx],
   },
   {
-    id: "Q04", step: 1, main: true, multi: true, text: "Welke onderdelen werden volgens u ooit vernieuwd?", help: "Meerdere antwoorden mogelijk.",
+    id: "Q04", step: 1, main: true, multi: true, showIf: house, text: "Welke onderdelen werden volgens u ooit vernieuwd?", help: "Meerdere antwoorden mogelijk.",
     textFor: (a) => (has(a, "R01", "nooit") ? "Werden er wel afzonderlijke onderdelen vernieuwd?" : undefined),
     options: [o("dak", "Dak"), o("ramen", "Ramen"), o("gevel", "Gevel"), o("isolatie", "Isolatie"), o("elektriciteit", "Elektriciteit"), o("verwarming", "Verwarming"), o("sanitair", "Sanitair"), x("geen", "Geen gekende renovaties"), x("onbekend", "Weet ik niet")],
   },
+  {
+    // Appartement: alleen renovaties binnen het appartement. Dak en gevel horen bij de VME-vragen (CD01).
+    id: "Q04A", step: 1, main: true, multi: true, showIf: isApartment, text: "Welke onderdelen binnen het appartement werden volgens u ooit vernieuwd?",
+    help: "Meerdere antwoorden mogelijk. Werken aan het gemeenschappelijke dak of de gevel komen later aan bod bij de mede-eigendom. Of ramen privatief zijn, hangt af van de basisakte.",
+    textFor: (a) => (has(a, "R01", "nooit") ? "Werden er binnen het appartement wel afzonderlijke onderdelen vernieuwd?" : undefined),
+    options: [o("ramen", "Ramen"), o("isolatie", "Isolatie binnen het appartement"), o("elektriciteit", "Elektriciteit"), o("verwarming", "Eigen verwarming"), o("sanitair", "Sanitair"), x("geen", "Geen gekende renovaties"), x("onbekend", "Weet ik niet")],
+  },
   { id: "Q08", step: 1, text: "Wanneer werd het dak vernieuwd?", showIf: (a) => house(a) && has(a, "Q04", "dak"), options: RENOVATION_AGE },
-  { id: "Q09", step: 1, text: "Wanneer werden de ramen vernieuwd?", showIf: (a) => has(a, "Q04", "ramen"), options: RENOVATION_AGE },
+  { id: "Q09", step: 1, text: "Wanneer werden de ramen vernieuwd?", showIf: (a) => hasR(a, "Q04", "ramen"), options: RENOVATION_AGE },
   { id: "Q11", step: 1, text: "Welke gevelwerken werden uitgevoerd?", showIf: (a) => house(a) && has(a, "Q04", "gevel"), options: [o("reiniging", "Reiniging"), o("voegwerk", "Voegwerk"), o("isolatie", "Gevelisolatie"), o("grondig", "Grondige gevelrenovatie"), o("onbekend", "Weet ik niet")] },
-  { id: "Q13", step: 1, multi: true, text: "Welke isolatiewerken zijn uitgevoerd?", showIf: (a) => has(a, "Q04", "isolatie"), options: [o("dak", "Dak"), o("gevel", "Gevel"), o("vloer", "Vloer"), o("beglazing", "Beglazing"), o("andere", "Andere"), x("onbekend", "Weet ik niet")] },
-  { id: "Q10", step: 1, text: "Wanneer werd de elektrische installatie vernieuwd?", showIf: (a) => has(a, "Q04", "elektriciteit"), options: RENOVATION_AGE },
-  { id: "Q05", step: 1, text: "Beschikt u over bewijs van de uitgevoerde renovaties?", showIf: (a) => has(a, "Q04", ...RENOVATED), options: [o("facturen", "Facturen of attesten"), o("mondeling", "Enkel mondelinge informatie"), o("geen", "Geen documenten"), o("onbekend", "Weet ik niet")] },
+  { id: "Q13A", step: 1, multi: true, text: "Welke isolatiewerken zijn binnen het appartement uitgevoerd?", help: "Isolatie van het gemeenschappelijke dak of de gevel valt onder de mede-eigendom.", showIf: (a) => isApartment(a) && has(a, "Q04A", "isolatie"), options: [o("muren", "Binnenzijde van buitenmuren"), o("vloer", "Vloer"), o("plafond", "Plafond"), o("beglazing", "Beglazing"), o("andere", "Andere"), x("onbekend", "Weet ik niet")] },
+  { id: "Q13", step: 1, multi: true, text: "Welke isolatiewerken zijn uitgevoerd?", showIf: (a) => house(a) && has(a, "Q04", "isolatie"), options: [o("dak", "Dak"), o("gevel", "Gevel"), o("vloer", "Vloer"), o("beglazing", "Beglazing"), o("andere", "Andere"), x("onbekend", "Weet ik niet")] },
+  { id: "Q10", step: 1, text: "Wanneer werd de elektrische installatie vernieuwd?", showIf: (a) => hasR(a, "Q04", "elektriciteit"), options: RENOVATION_AGE },
+  { id: "Q05", step: 1, text: "Beschikt u over bewijs van de uitgevoerde renovaties?", showIf: (a) => hasR(a, "Q04", ...RENOVATED), options: [o("facturen", "Facturen of attesten"), o("mondeling", "Enkel mondelinge informatie"), o("geen", "Geen documenten"), o("onbekend", "Weet ik niet")] },
   {
     id: "Q06", step: 1, multi: true, text: "Welke documenten zijn beschikbaar?", help: "Meerdere antwoorden mogelijk.",
     showIf: (a) => buyer(a) || has(a, "Q05", "mondeling", "geen", "onbekend"),
     options: [o("epc", "EPC"), o("keuring", "Elektrische keuring"), o("plannen", "Bouwplannen"), o("asbest", "Asbestattest"), o("onderhoud", "Onderhoudsverslagen"), o("andere", "Andere"), x("geen", "Geen documenten"), x("onbekend", "Weet ik niet")],
   },
-  { id: "Q07", step: 1, text: "Is een eerder hersteld probleem opnieuw opgedoken?", showIf: (a) => has(a, "Q04", ...RENOVATED), options: [o("nee", "Nee"), o("vocht", "Ja, vocht", "V", 7), o("dak", "Ja, dak", "B", 7), o("technieken", "Ja, technieken", "T", 7), o("anders", "Ja, iets anders")] },
-  { id: "Q12", step: 1, text: "Heeft de eerdere vochtbehandeling geholpen?", showIf: (a) => has(a, "Q07", "vocht"), options: [o("ja", "Ja", "V", 0), o("gedeeltelijk", "Gedeeltelijk", "V", 5), o("nee", "Nee", "V", 8), unk("V")] },
+  { id: "Q07", step: 1, text: "Is een eerder hersteld probleem opnieuw opgedoken?", showIf: (a) => house(a) && has(a, "Q04", ...RENOVATED), options: [o("nee", "Nee"), o("vocht", "Ja, vocht", "V", 7), o("dak", "Ja, dak", "B", 7), o("technieken", "Ja, technieken", "T", 7), o("anders", "Ja, iets anders")] },
+  // Appartement: privatief en gemeenschappelijk gescheiden; een gemeenschappelijk probleem scoort niet privatief (dezelfde scores als Q07).
+  { id: "Q07A", step: 1, text: "Is een eerder hersteld probleem opnieuw opgedoken?", showIf: (a) => isApartment(a) && has(a, "Q04A", ...RENOVATED), options: [o("nee", "Nee"), o("vocht", "Ja, vocht binnen het appartement", "V", 7), o("technieken", "Ja, technieken binnen het appartement", "T", 7), o("gemeenschappelijk", "Ja, aan gemeenschappelijke delen, zoals dak of gevel"), o("anders", "Ja, iets anders")] },
+  { id: "Q12", step: 1, text: "Heeft de eerdere vochtbehandeling geholpen?", showIf: (a) => hasR(a, "Q07", "vocht"), options: [o("ja", "Ja", "V", 0), o("gedeeltelijk", "Gedeeltelijk", "V", 5), o("nee", "Nee", "V", 8), unk("V")] },
   { id: "K01", step: 1, showIf: house, text: "Heeft de woning een kelder of kruipruimte?", options: [o("kelder", "Kelder"), o("kruip", "Kruipruimte of kruipkelder"), o("beide", "Beide"), o("geen", "Geen"), unkCtx] },
   { id: "B01", step: 1, optional: true, showIf: (a) => buyer(a) && has(a, "Q02", "open", "halfopen", "ander"), text: "Zijn er bijgebouwen aanwezig?", help: "Bijvoorbeeld een garage, tuinhuis of berging. Enkel voor het woningprofiel.", options: [o("ja", "Ja"), o("nee", "Nee"), unkCtx] },
   { id: "ST01", step: 1, optional: true, showIf: buyer, text: "Bent u op de hoogte van mogelijke stedenbouwkundige onregelmatigheden aan het pand?", help: "Optioneel. Dit antwoord wijzigt de bouwtechnische barometer niet.", options: [o("nee", "Nee, geen gekende onregelmatigheden"), o("ja", "Ja, er zijn aandachtspunten bekend"), o("onduidelijk", "Er zijn onduidelijkheden over vergunningen"), unkCtx] },
@@ -177,14 +193,19 @@ export const QUESTIONS: Question[] = [
   { id: "VL02", step: 2, optional: true, showIf: (a) => house(a) && (a.VL01 !== undefined) && !has(a, "VL01", "recent"), text: "Is de vloer op het gelijkvloers geïsoleerd?", options: [o("ja", "Ja", "E", 0), o("gedeeltelijk", "Gedeeltelijk", "E", 2), o("nee", "Nee", "E", 4), unk("E"), o("nvt", "Niet van toepassing")] },
   { id: "Q24", step: 2, main: true, safety: true, text: "Zijn er vocht-, schimmel- of waterproblemen?", options: [o("geen", "Geen gekende problemen", "V", 0), o("terugkerend", "Terugkerende condens of schimmel", "V", 5), o("vochtplekken", "Vochtplekken", "V", 8), unk("V")] },
   // Vochtgroep in prioriteitsvolgorde: waar, hoe vaak, aard, wanneer, insijpeling
-  { id: "Q25", step: 2, group: "vocht", multi: true, text: "Waar merkt u dit probleem?", help: "Meerdere antwoorden mogelijk.", showIf: moistureReported, options: [o("zolder", "Dak of zolder"), o("buitenmuur", "Buitenmuur"), o("ramen", "Rond ramen"), o("badkamer", "Badkamer"), o("kelder", "Kelder"), o("meerdere", "Meerdere ruimtes")] },
+  { id: "Q25A", step: 2, group: "vocht", multi: true, text: "Waar merkt u dit probleem?", help: "Meerdere antwoorden mogelijk.", showIf: (a) => isApartment(a) && moistureReported(a), options: [o("plafond", "Plafond, onder dak of bovenliggende ruimte"), o("buitenmuur", "Buitenmuur van het appartement"), o("ramen", "Rond ramen"), o("badkamer", "Badkamer"), o("meerdere", "Meerdere ruimtes in het appartement"), o("gemkelder", "Gemeenschappelijke kelder of berging")] },
+  { id: "Q25", step: 2, group: "vocht", multi: true, text: "Waar merkt u dit probleem?", help: "Meerdere antwoorden mogelijk.", showIf: (a) => house(a) && moistureReported(a), options: [o("zolder", "Dak of zolder"), o("buitenmuur", "Buitenmuur"), o("ramen", "Rond ramen"), o("badkamer", "Badkamer"), o("kelder", "Kelder"), o("meerdere", "Meerdere ruimtes")] },
   { id: "Q26", step: 2, group: "vocht", text: "Is het probleem terugkerend?", showIf: moistureReported, options: [o("eenmalig", "Eenmalig", "V", 2), o("afentoe", "Af en toe", "V", 4), o("regelmatig", "Regelmatig", "V", 7), o("voortdurend", "Vrijwel voortdurend", "V", 8)] },
   { id: "Q29", step: 2, group: "vocht", text: "Hoe uitgebreid is de zichtbare schimmelvorming?", showIf: (a) => has(a, "Q24", "terugkerend"), options: [o("plaatselijk", "Plaatselijk", "V", 3), o("meerdere", "Meerdere plekken", "V", 6), o("ruimtes", "In verschillende ruimtes", "V", 8), unk("V")] },
   { id: "Q27", step: 2, group: "vocht", optional: true, text: "Wanneer treedt het probleem vooral op?", showIf: moistureReported, options: [o("regen", "Na regen"), o("koude", "In koude periodes"), o("douchen", "Na douchen of koken"), o("geenpatroon", "Geen duidelijk patroon")] },
-  { id: "M01", step: 2, safety: true, text: "Komt er daadwerkelijk water naar binnen?", help: "Bijvoorbeeld druppels, natte plekken die groeien bij regen of water dat binnenloopt.", showIf: (a) => has(a, "Q24", "vochtplekken") || has(a, "Q27", "regen") || has(a, "Q25", "buitenmuur", "zolder"), options: [o("nee", "Nee, alleen vochtige plekken", "V", 0), o("vermoeden", "Mogelijk, bij regen", "V", 6), o("regen", "Ja, bij regen", "V", 8), o("actief", "Ja, actieve lekkage", "V", 10), unk("V")] },
-  { id: "Q23", step: 2, text: "Zijn er vochtplekken rond ramen of gevel na regen?", showIf: (a) => has(a, "Q25", "ramen", "buitenmuur") && !has(a, "M01", "regen", "actief"), options: [o("nee", "Nee", "V", 0), o("soms", "Soms", "V", 5), o("herhaaldelijk", "Herhaaldelijk", "V", 8), unk("V")] },
-  { id: "Q28", step: 2, safety: true, text: "Komt er water in de kelder?", showIf: (a) => hasBasement(a) && (moistureReported(a) || has(a, "Q03", ...OLD_BUILDING)) || has(a, "Q25", "kelder"), options: [o("nee", "Nee", "V", 0), o("soms", "Soms na regen", "V", 7), o("regelmatig", "Regelmatig", "V", 8), o("actief", "Actieve waterinstroom", "V", 10), unk("V")] },
+  { id: "M01", step: 2, safety: true, text: "Komt er daadwerkelijk water naar binnen?", help: "Bijvoorbeeld druppels, natte plekken die groeien bij regen of water dat binnenloopt.", showIf: (a) => !has(a, "Q14", "lek") && (has(a, "Q24", "vochtplekken") || has(a, "Q27", "regen") || has(a, "Q25", "buitenmuur", "zolder") || has(a, "Q25A", "buitenmuur", "plafond")), options: [o("nee", "Nee, alleen vochtige plekken", "V", 0), o("vermoeden", "Mogelijk, bij regen", "V", 6), o("regen", "Ja, bij regen", "V", 8), o("actief", "Ja, actieve lekkage", "V", 10), unk("V")] },
+  { id: "Q23", step: 2, text: "Zijn er vochtplekken rond ramen of gevel na regen?", showIf: (a) => hasR(a, "Q25", "ramen", "buitenmuur") && !has(a, "M01", "regen", "actief"), options: [o("nee", "Nee", "V", 0), o("soms", "Soms", "V", 5), o("herhaaldelijk", "Herhaaldelijk", "V", 8), unk("V")] },
+  { id: "Q28", step: 2, safety: true, text: "Komt er water in de kelder?", showIf: (a) => house(a) && ((hasBasement(a) && (moistureReported(a) || has(a, "Q03", ...OLD_BUILDING))) || (has(a, "Q25", "kelder") && !has(a, "K01", "geen", "kruip"))), options: [o("nee", "Nee", "V", 0), o("soms", "Soms na regen", "V", 7), o("regelmatig", "Regelmatig", "V", 8), o("actief", "Actieve waterinstroom", "V", 10), unk("V")] },
+  // Appartement: water in een gemeenschappelijke kelder is VME-context zonder privatieve score; actieve instroom blijft een veiligheidsmelding.
+  { id: "KV01", step: 2, safety: true, showIf: (a) => has(a, "Q25A", "gemkelder"), text: "Komt er water in de gemeenschappelijke kelder of berging?", help: "Dit telt niet mee in de privatieve barometer en wordt vermeld bij de gemeenschappelijke delen.", options: [o("nee", "Nee, alleen vochtig"), o("soms", "Soms na regen"), o("regelmatig", "Regelmatig"), o("actief", "Actieve waterinstroom"), unkCtx] },
   { id: "Q30", step: 2, main: true, safety: true, text: "Zijn er scheuren, verzakkingen of vervormingen?", options: [o("geen", "Geen gekende problemen", "S", 0), o("haar", "Kleine, volgens u stabiele haarscheuren", "S", 2), o("groot", "Grote of toenemende scheuren", "S", 10), o("verzakking", "Zichtbare verzakking of vervorming", "S", 10), unk("S")] },
+  // Appartement: waar zit het signaal? Bepaalt alleen de toewijzing (privatief of gemeenschappelijk), nooit de juridische verantwoordelijkheid.
+  { id: "SC01", step: 2, safety: true, showIf: (a) => isApartment(a) && has(a, "Q30", "haar", "groot", "verzakking"), text: "Waar ziet u deze scheuren of vervormingen?", help: "Welke delen privatief of gemeenschappelijk zijn, hangt af van de basisakte. De Quickscan bepaalt niet wie verantwoordelijk is.", options: [o("binnen", "Binnen het appartement"), o("gemeenschappelijk", "Alleen aan gemeenschappelijke delen, zoals traphal, gevel of kelder"), o("beide", "Zowel binnen als aan gemeenschappelijke delen"), o("onbekend", "Weet ik niet of niet duidelijk")] },
   { id: "Q31", step: 2, group: "scheur", safety: true, text: "Zijn de scheuren groter geworden?", showIf: (a) => has(a, "Q30", "groot"), options: [o("nee", "Niet voor zover bekend", "S", 2), o("onzeker", "Onzeker", "S", null), o("groter", "Duidelijk groter", "S", 10)] },
   { id: "Q32", step: 2, group: "scheur", safety: true, text: "Zijn vloeren opvallend verzakt of vervormd?", showIf: (a) => has(a, "Q30", "groot", "verzakking"), options: [o("nee", "Nee", "S", 0), o("licht", "Mogelijk licht", "S", 5), o("duidelijk", "Duidelijk", "S", 9), unk("S")] },
   { id: "Q33", step: 2, group: "scheur", text: "Klemmen ramen of deuren zonder duidelijke oorzaak?", showIf: (a) => has(a, "Q30", "groot", "verzakking"), options: [o("nee", "Nee", "S", 0), o("ja", "Ja", "S", 4), unk("S")] },
@@ -211,7 +232,7 @@ export const QUESTIONS: Question[] = [
   { id: "Q44", step: 3, text: "Wanneer werd de verwarmingsinstallatie voor het laatst onderhouden?", showIf: (a) => has(a, "H01", ...COMBUSTION, "warmtepomp") && !has(a, "Q42", "gas") && !has(a, "H02", "0-5"), options: [o("12m", "In de afgelopen 12 maanden", "T", 0), o("1-3j", "Eén tot drie jaar geleden", "T", 1), o("gt3j", "Meer dan drie jaar geleden", "T", 3), o("onbekend", "Nooit of niet bekend", "T", null), o("nvt", "Niet van toepassing")] },
   { id: "Q41", step: 3, main: true, safety: true, text: "Zijn er gekende problemen met de elektriciteit?", options: [o("geen", "Geen gekende problemen", "T", 0), o("gedateerd", "Verouderd, zonder gekende problemen", "T", 3), o("zekeringen", "Regelmatig uitvallende zekeringen", "T", 6), o("beschadigd", "Beschadigde onderdelen", "T", 9), o("rook", "Rook, vonken of brandlucht", "T", 10), unk("T")] },
   { id: "Q40", step: 3, text: "Is er een recent keuringsverslag van de elektrische installatie?", help: "Een ontbrekend verslag betekent niet dat de installatie onveilig is.", showIf: (a) => buyer(a) || has(a, "Q41", "gedateerd", "zekeringen", "beschadigd", "rook", "onbekend"), options: [o("conform", "Ja, gunstig zonder opmerkingen", "T", 0), o("beperkt", "Ja, met beperkte opmerkingen", "T", 4), o("inbreuken", "Ja, met belangrijke inbreuken", "T", 8), o("geen", "Geen recent verslag", "T", null), unk("T")] },
-  { id: "V01", step: 3, text: "Hoe wordt de woning geventileerd?", showIf: (a) => moistureReported(a) || has(a, "Q04", "isolatie", "ramen") || plans(a, "isolatie"), options: [o("natuurlijk", "Natuurlijk of via roosters"), o("mechanisch", "Mechanisch systeem"), o("geen", "Geen duidelijk systeem"), o("onbekend", "Weet ik niet")] },
+  { id: "V01", step: 3, text: "Hoe wordt de woning geventileerd?", showIf: (a) => moistureReported(a) || hasR(a, "Q04", "isolatie", "ramen") || plans(a, "isolatie"), options: [o("natuurlijk", "Natuurlijk of via roosters"), o("mechanisch", "Mechanisch systeem"), o("geen", "Geen duidelijk systeem"), o("onbekend", "Weet ik niet")] },
   { id: "Q39", step: 3, text: "Zijn er problemen met de ventilatie?", showIf: (a) => has(a, "V01", "natuurlijk", "mechanisch", "geen"), options: [o("normaal", "Geen gekende problemen", "T", 0), o("beperkt", "Beperkt of onduidelijk", "T", 3), o("defect", "Defect of duidelijk onvoldoende", "T", 7), unk("T")] },
   {
     id: "SL01", step: 3, optional: true, showIf: (a) => (isApartment(a) ? oldRenovation(a) : oldBuild(a)) || plans(a, "sanitair"),
@@ -220,7 +241,7 @@ export const QUESTIONS: Question[] = [
     help: "Ouderdom is context. Gekende lekkages en afvoerproblemen wegen zwaarder.",
     options: [o("0-15", "0–15 jaar", "T", 0), o("16-25", "16–25 jaar", "T", 1), o("gt25", "Meer dan 25 jaar", "T", 3), o("gedeeltelijk", "Gedeeltelijk vernieuwd", "T", 1), o("origineel", "Vermoedelijk origineel", "T", 3), unk("T")],
   },
-  { id: "Q45", step: 3, safety: true, text: "Zijn er problemen met sanitair of afvoer?", showIf: (a) => has(a, "Q25", "badkamer") || has(a, "Q04", "sanitair") || has(a, "Q03", ...OLD_BUILDING) || has(a, "Q41", "onbekend") || has(a, "SL01", "gt25", "origineel", "onbekend") || has(a, "RI01", "septisch", "niet", "onbekend"), options: [o("geen", "Geen gekende problemen", "T", 0), o("verstopping", "Terugkerende verstoppingen", "T", 3), o("terugkerend", "Afvoerproblemen of rioolgeur", "T", 7), o("actief", "Actieve lekkage", "T", 9), unk("T")] },
+  { id: "Q45", step: 3, safety: true, text: "Zijn er problemen met sanitair of afvoer?", showIf: (a) => hasR(a, "Q25", "badkamer") || hasR(a, "Q04", "sanitair") || plans(a, "sanitair") || has(a, "Q03", ...OLD_BUILDING) || has(a, "SL01", "gt25", "origineel", "onbekend") || has(a, "RI01", "septisch", "niet", "onbekend"), options: [o("geen", "Geen gekende problemen", "T", 0), o("verstopping", "Terugkerende verstoppingen", "T", 3), o("terugkerend", "Afvoerproblemen of rioolgeur", "T", 7), o("actief", "Actieve lekkage", "T", 9), unk("T")] },
   // Appartement — mede-eigendom (geen invloed op de privatieve barometer)
   { id: "A01", step: 3, main: true, showIf: isApartment, text: "Wat weet u over de toestand van de overige gemeenschappelijke delen?", help: "Bijvoorbeeld balkons, lift, traphal en collectieve installaties.", options: [o("geen", "Geen gekende problemen"), o("enkele", "Enkele aandachtspunten"), o("duidelijk", "Duidelijke problemen"), o("onbekend", "Weet ik niet")] },
   { id: "CD01", step: 3, main: true, showIf: isApartment, text: "Wat weet u over de renovatie van het gemeenschappelijke dak en de gevel?", help: "Welke delen gemeenschappelijk of privatief zijn, hangt af van de basisakte.", options: [o("beide", "Beide recent aangepakt"), o("dak", "Alleen dak aangepakt"), o("gevel", "Alleen gevel aangepakt"), o("verouderd", "Beide vermoedelijk verouderd"), o("problemen", "Er zijn gekende problemen"), unkCtx] },
@@ -234,13 +255,17 @@ export const QUESTIONS: Question[] = [
 
   // STAP 4 — Renovatieplannen
   {
-    id: "Q46", step: 4, main: true, multi: true, text: "Welke werken overweegt u?", help: "Meerdere antwoorden mogelijk.",
+    id: "Q46A", step: 4, main: true, multi: true, showIf: isApartment, text: "Welke werken binnen het appartement overweegt u?", help: "Meerdere antwoorden mogelijk. Werken aan gemeenschappelijk dak of gevel beslist de VME; die staan bij de mede-eigendom.",
+    options: [x("geen", "Geen concrete werken"), o("ramen", "Ramen"), o("isolatie", "Isolatie binnen het appartement"), o("elektriciteit", "Elektriciteit"), o("verwarming", "Verwarming"), o("sanitair", "Sanitair"), o("vloeren", "Vloeren"), o("interieur", "Interieur"), o("volledig", "Volledige renovatie van het appartement")],
+  },
+  {
+    id: "Q46", step: 4, main: true, multi: true, showIf: house, text: "Welke werken overweegt u?", help: "Meerdere antwoorden mogelijk.",
     options: [x("geen", "Geen concrete werken"), o("dak", "Dak"), o("ramen", "Ramen"), o("gevel", "Gevel"), o("isolatie", "Isolatie"), o("elektriciteit", "Elektriciteit"), o("verwarming", "Verwarming"), o("sanitair", "Sanitair"), o("vloeren", "Vloeren"), o("interieur", "Interieur"), o("volledig", "Volledige renovatie")],
   },
-  { id: "Q47", step: 4, optional: true, text: "Wilt u de verschillende werken in een logische volgorde plannen?", showIf: (a) => plannedCount(a) >= 2 || has(a, "Q46", "volledig"), options: [o("ja", "Ja"), o("nee", "Nee"), o("twijfel", "Ik twijfel")] },
+  { id: "Q47", step: 4, optional: true, text: "Wilt u de verschillende werken in een logische volgorde plannen?", showIf: (a) => plannedCount(a) >= 2 || hasR(a, "Q46", "volledig"), options: [o("ja", "Ja"), o("nee", "Nee"), o("twijfel", "Ik twijfel")] },
   { id: "AK01", step: 4, optional: true, showIf: (a) => isApartment(a) && (oldRenovation(a) || plans(a, "interieur")), text: "Wanneer werd de keuken voor het laatst grondig vernieuwd?", help: "Een oudere keuken is op zich geen technisch gebrek.", options: ROOM_AGE },
   { id: "AB01", step: 4, optional: true, showIf: (a) => isApartment(a) && (oldRenovation(a) || plans(a, "interieur") || plans(a, "sanitair")), text: "Wanneer werd de badkamer voor het laatst grondig vernieuwd?", options: ROOM_AGE },
-  { id: "AB02", step: 4, safety: true, showIf: (a) => isApartment(a) && (has(a, "AB01", "gt20", "nooit", "onbekend") || has(a, "Q25", "badkamer")), text: "Zijn er gekende problemen met vocht of waterdichting in de badkamer?", options: [o("geen", "Geen gekende problemen", "V", 0), o("beperkt", "Beperkte vochtsporen of losse voegen", "V", 4), o("duidelijk", "Duidelijke vochtschade of lekkage", "V", 7), unk("V")] },
+  { id: "AB02", step: 4, safety: true, showIf: (a) => isApartment(a) && (has(a, "AB01", "gt20", "nooit", "onbekend") || has(a, "Q25A", "badkamer")), text: "Zijn er gekende problemen met vocht of waterdichting in de badkamer?", options: [o("geen", "Geen gekende problemen", "V", 0), o("beperkt", "Beperkte vochtsporen of losse voegen", "V", 4), o("duidelijk", "Duidelijke vochtschade of lekkage", "V", 7), unk("V")] },
   { id: "Q48", step: 4, main: true, text: "Wilt u weten hoeveel uw renovatie ongeveer kan kosten?", options: [o("ja", "Ja"), o("nee", "Nee"), o("twijfel", "Ik twijfel")] },
   {
     id: "Q49", step: 4, main: true, text: "Wanneer verwacht u verdere stappen te zetten?",
