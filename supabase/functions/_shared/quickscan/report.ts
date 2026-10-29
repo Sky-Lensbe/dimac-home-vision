@@ -14,7 +14,7 @@ import {
 } from "./engine.ts";
 import { DRONE_OPTION, getProduct, VAT_RATE, type ProductId } from "./catalog.ts";
 
-export const REPORT_VERSION_23 = "qs-report-2.3";
+export const REPORT_VERSION_23 = "qs-report-2.3.1";
 const { has, plans, plannedCount, buyer, label } = answerHelpers;
 
 const scoreOf = (a: Answers, qid: string): number => {
@@ -74,7 +74,7 @@ const MAIN_BY_DOMAIN: Record<Domain, { q: string; name: string; ids: string[] }[
   B: [{ q: "Q14", name: "de toestand van het dak", ids: ["onbekend"] }, { q: "Q20", name: "de toestand van de ramen", ids: ["onbekend"] }, { q: "Q18", name: "de gevel", ids: ["onbekend"] }],
   V: [{ q: "Q24", name: "mogelijke vochtproblemen", ids: ["onbekend"] }],
   E: [{ q: "Q34", name: "het EPC-label", ids: ["onbekend"] }, { q: "DI01", name: "de dakisolatie", ids: ["onbekend"] }, { q: "MI01", name: "de muurisolatie", ids: ["onbekend", "spouw", "massief"] }, { q: "G01", name: "het exacte beglazingstype", ids: ["onbekend"] }],
-  T: [{ q: "Q41", name: "de elektrische installatie", ids: ["onbekend"] }, { q: "Q40", name: "het elektrische keuringsverslag", ids: ["onbekend", "geen"] }, { q: "Q42", name: "de verwarming", ids: ["onbekend"] }, { q: "Q39", name: "de ventilatie", ids: ["onbekend"] }],
+  T: [{ q: "Q41", name: "de elektrische installatie", ids: ["onbekend"] }, { q: "Q40", name: "het elektrische keuringsverslag", ids: ["onbekend", "geen"] }, { q: "Q42", name: "de verwarming", ids: ["onbekend"] }, { q: "H01", name: "de verwarming", ids: ["onbekend"] }, { q: "SL01", name: "sanitair en afvoer", ids: ["onbekend"] }, { q: "Q45", name: "sanitair en afvoer", ids: ["onbekend"] }, { q: "Q39", name: "de ventilatie", ids: ["onbekend"] }],
   S: [{ q: "Q30", name: "scheuren of vervormingen", ids: ["onbekend"] }],
 };
 
@@ -103,7 +103,7 @@ function domainCards(a: Answers, ds: Record<Domain, number | null>, privateFlags
     if (code === "E" && has(a, "Q34", "aplus", "b")) analysis = `${signals.length ? `U vermeldt ${joinNl(signals.slice(0, 3))}. ` : ""}Het EPC-label (${label("Q34", a.Q34)}) wijst op een goede energieprestatie. Een EPC is geen bouwkundige keuring.`;
     if (code === "S" && has(p, "Q30", "haar")) analysis = "U meldt een kleine, volgens u stabiele haarscheur. Dat is op zich geen ernstig structureel signaal. Volg op of ze groter wordt.";
     if (code === "V" && v === null && has(a, "Q24", "onbekend")) analysis = "U weet niet of er vochtproblemen zijn.";
-    const unknown = MAIN_BY_DOMAIN[code].filter((m) => has(a, m.q, ...m.ids) || a[m.q] === SKIP).map((m) => m.name);
+    const unknown = missingTopics(a, code);
     let scopeNote: string | null = null;
     if (apt) {
       const commonHere = collectiveFlags.some((f) => SAFETY_DOMAIN[f] === code) || (code === "V" && has(a, "Q25A", "gemkelder")) || (code === "S" && has(a, "SC01", "gemeenschappelijk", "beide")) || (code === "T" && has(a, "H01", "collectief"));
@@ -111,6 +111,16 @@ function domainCards(a: Answers, ds: Record<Domain, number | null>, privateFlags
     }
     return { code, ...DOMAIN_CARD[code], status, statusLabel: DOMAIN_STATUS_LABEL[status], analysis, missing: unknown.length ? `Nog onbekend: ${joinNl(unknown)}.` : null, missingItems: unknown, scopeNote };
   });
+}
+
+/** Eén lijst van unieke privatieve technische onderwerpen voor samenvatting, domeinen en detail. */
+export function missingTopics(a: Answers, code: Domain): string[] {
+  const p = privateSignals(a);
+  return [...new Set(MAIN_BY_DOMAIN[code].filter((m) => has(p, m.q, ...m.ids) || p[m.q] === SKIP).map((m) => m.name))];
+}
+export function informationOverview(a: Answers) {
+  const topics = (Object.keys(MAIN_BY_DOMAIN) as Domain[]).flatMap((code) => missingTopics(a, code).map((name) => ({ code, name })));
+  return { topics, sentence: topics.length ? `Over ${joinNl(topics.map((t) => t.name))} ontbreken nog gegevens. Onbekende informatie betekent niet dat een onderdeel defect is.` : "Over de beantwoorde technische onderwerpen zijn geen bijkomende onzekerheden gemeld. Niet alle onderdelen zijn daarmee onderzocht." };
 }
 
 // ---------- Bevindingen en highlights ----------
@@ -162,7 +172,7 @@ function findings(a: Answers): Finding[] {
 export interface LinkNode { icon: IconId; label: string; caption: string }
 export interface Connection { id: string; title: string; text: string; nodes: LinkNode[] }
 
-function connections(a: Answers): Connection[] {
+export function connections(a: Answers): Connection[] {
   const p = privateSignals(a);
   const moisture = has(p, "Q24", "terugkerend", "vochtplekken");
   const vent = has(p, "Q39", "beperkt", "defect", "onbekend") || has(p, "V01", "geen");
@@ -178,8 +188,9 @@ function connections(a: Answers): Connection[] {
   add({ id: "LINK-GEVEL-RAMEN", title: "Gevel en schrijnwerk", nodes: [{ icon: "building", label: "Gevel", caption: "Verwering, voegen of infiltratie." }, RAMEN], text: "Gevelproblemen en schrijnwerk raken elkaar aan de raamaansluitingen. Bekijk ze samen, zeker wanneer u werken plant." }, (has(p, "Q18", "verwering", "voegen", "infiltratie") && windows) || (plans(a, "gevel") && plans(a, "ramen")));
   add({ id: "LINK-VOCHT-AFWERKING", title: "Vocht en binnenafwerking", nodes: [V, { icon: "house", label: "Binnenafwerking", caption: "Geplande vloer- of interieurwerken." }], text: "U plant binnenwerken terwijl er vochtsignalen gemeld zijn. Onderzoek eerst de mogelijke oorzaak, zodat nieuwe afwerkingen niet opnieuw beschadigd raken." }, (moisture || (scoreOf(p, "M01") >= 6)) && (plans(a, "interieur") || plans(a, "vloeren")));
   add({ id: "LINK-VERW-ISOL", title: "Verwarming en isolatie", nodes: [{ icon: "flame", label: "Verwarming", caption: "Geplande vervanging of aanpassing." }, { icon: "leaf", label: "Isolatie", caption: "Bepaalt de toekomstige warmtebehoefte." }], text: "U overweegt werken aan de verwarming. De isolatie bepaalt mee hoeveel warmte de woning later nodig heeft; beoordeel beide samen voor u een installatie kiest." }, plans(a, "verwarming") && (plans(a, "isolatie") || has(p, "DI01", "niet", "gedeeltelijk", "beperkt") || has(p, "MI01", "niet", "gedeeltelijk") || has(p, "Q34", "d", "e", "f")));
-  add({ id: "LINK-SANITAIR-VLOER", title: "Leidingen en vloerwerken", nodes: [{ icon: "pipe", label: "Leidingen", caption: "Oudere of geplande sanitaire leidingen." }, { icon: "house", label: "Vloeren", caption: "Geplande vloerwerken." }], text: "Leidingen lopen vaak onder de vloer. Bekijk ze vóór nieuwe vloerafwerkingen, zodat u de vloer niet twee keer moet openen." }, (plans(a, "sanitair") || has(p, "SL01", "gt25", "origineel")) && plans(a, "vloeren"));
-  add({ id: "LINK-WERKVOLGORDE", title: "Logische werkvolgorde", nodes: [{ icon: "plan", label: "Werkvolgorde", caption: "Meerdere geplande werken." }, { icon: "house", label: "Woning als geheel", caption: "Buitenschil, technieken en afwerking." }], text: "U overweegt een volledige renovatie of meerdere werken. Een logische volgorde, van buitenschil en technieken naar afwerking, voorkomt dubbel werk." }, plans(a, "volledig") || plannedCount(a) >= 3);
+  add({ id: "LINK-SANITAIR-VLOER", title: "Leidingen en vloerwerken", nodes: [{ icon: "pipe", label: "Leidingen", caption: has(p, "SL01", "gt25", "origineel") ? "Ouderdom gemeld, geen bewezen gebrek." : "Aanpassing van leidingen nog te verifiëren." }, { icon: "house", label: "Vloeren", caption: "Geplande vloerwerken." }], text: has(p, "Q45", "actief", "terugkerend", "verstopping") ? "U meldt sanitaire of afvoerproblemen en plant vloerwerken. Laat de gemelde problemen beoordelen vóór de definitieve vloerafwerking." : "Wanneer bij de geplande sanitaire werken ook leidingen worden aangepast, is het verstandig deze werkzaamheden met de nieuwe vloerafwerking af te stemmen. De Quickscan kan niet bepalen of leidingen vervangen moeten worden." }, (plans(a, "sanitair") || has(p, "SL01", "gt25", "origineel") || has(p, "Q45", "actief", "terugkerend", "verstopping")) && plans(a, "vloeren"));
+  const sequence = workSequence(a);
+  add({ id: "LINK-WERKVOLGORDE", title: "Afstemming van uw geplande werken", nodes: [{ icon: "plan", label: "Werkvolgorde", caption: "Afstemming, geen veronderstelde omvang." }, { icon: "house", label: "Geplande werken", caption: sequence.labels.join(", ") }], text: sequence.text }, sequence.relevant);
   add({ id: "LINK-VME-KOSTEN", title: "Appartement en gemeenschappelijke kosten", nodes: [{ icon: "building", label: "Mede-eigendom", caption: "Aangekondigde werken of bijdragen." }, { icon: "doc", label: "VME-documenten", caption: "Verslagen, reservefonds en besluiten." }], text: "Er zijn werken of bijkomende bijdragen in de mede-eigendom aangekondigd. Die staan los van de privatieve barometer, maar kunnen uw kosten beïnvloeden. De VME-documenten geven daar meer duidelijkheid over." }, isApartment(a) && (has(a, "A02", "middel", "ingrijpend", "besproken") || has(a, "A03", "beperkt", "substantieel", "omvang")));
   return out.slice(0, 2);
 }
@@ -206,7 +217,7 @@ function actions(a: Answers, fs: Finding[], links: Connection[], syndic: string[
     }
     if (out.length >= 4) break;
   }
-  if (links.some((l) => l.id === "LINK-WERKVOLGORDE")) push({ id: "ACT-VOLGORDE", icon: "plan", title: "Leg een logische werkvolgorde vast", text: "Plan eerst de buitenschil en de technieken, daarna de afwerking. Zo voorkomt u dubbel werk.", next: null });
+  if (links.some((l) => l.id === "LINK-WERKVOLGORDE")) push({ id: "ACT-VOLGORDE", icon: "plan", title: "Leg een logische werkvolgorde vast", text: workSequence(a).text, next: null });
   if (has(a, "DI01", "onbekend") || has(a, "MI01", "onbekend", "spouw", "massief")) push({ id: "ACT-ISOLATIE", icon: "leaf", title: "Verduidelijk de isolatie", text: `Vraag na hoe dak en buitenmuren geïsoleerd zijn. Het volledige EPC-verslag bevat vaak die gegevens${buy ? "; vraag het op bij de verkoper" : ""}.`, next: null });
   if (has(a, "Q40", "geen", "onbekend")) push({ id: "ACT-KEURING", icon: "bolt", title: "Vraag het elektrische keuringsverslag op", text: "Een ontbrekend verslag bewijst geen defect, maar het verslag geeft duidelijkheid over de installatie.", next: null });
   if (syndic.length) push({ id: "ACT-SYNDICUS", icon: "building", title: "Stel uw vragen aan de syndicus", text: syndic[0], next: null });
@@ -252,9 +263,36 @@ function documents(a: Answers): DocItem[] {
     const vme = (key: string): DocStatus => (a05?.includes(key) ? "beschikbaar" : !a05 || a05.includes("onbekend") ? "onbekend" : "verifieren");
     items.push({ id: "DOC-VME-AV", label: "Verslagen van de algemene vergadering", status: vme("verslagen"), note: null });
     items.push({ id: "DOC-VME-FONDS", label: "Informatie over het reservefonds", status: vme("reservefonds"), note: null });
+    items.push({ id: "DOC-VME-PLAN", label: "Meerjarig onderhoudsplan", status: vme("onderhoudsplan"), note: "Indien beschikbaar; onbekend betekent niet onbestaand." });
+    items.push({ id: "DOC-VME-BIJDRAGEN", label: "Informatie over bijzondere bijdragen", status: vme("bijdragen"), note: null });
+    items.push({ id: "DOC-VME-BASISAKTE", label: "Basisakte", status: "onbekend", note: "Afbakening van privatieve en gemeenschappelijke delen." });
     if (has(a, "A02", "klein", "middel", "ingrijpend", "besproken") || has(a, "A03", "beperkt", "substantieel", "omvang")) items.push({ id: "DOC-VME-BESLUIT", label: "Renovatiebesluiten en bijzondere bijdragen", status: vme("besluiten"), note: null });
   }
   return items.map((d) => ({ ...d, statusLabel: DOC_STATUS_LABEL[d.status] }));
+}
+
+export interface CoOwnership { cards: { id: string; title: string; icon: IconId; text: string; uncertain: boolean }[]; questions: string[]; checklist: string[] }
+export function coOwnership(a: Answers, base: ReturnType<typeof buildReport>["apartment"]): CoOwnership | null {
+  if (!base) return null;
+  const unknown = (q: string) => a[q] === undefined || a[q] === SKIP || has(a, q, "onbekend");
+  const value = (q: string) => unknown(q) ? "Nog te verifiëren bij de verkoper of syndicus." : `Volgens uw antwoorden: ${label(q, a[q])}.`;
+  const cards: CoOwnership["cards"] = [
+    { id: "VME-STATE", title: "Gemeenschappelijke delen", icon: "building", text: value("A01"), uncertain: unknown("A01") },
+    { id: "VME-SHELL", title: "Dak, gevel en leidingen", icon: "roof", text: `${value("CD01")} Leidingen: ${unknown("CL01") ? "toestand en vernieuwing nog te verifiëren" : lower(label("CL01", a.CL01))}. De basisakte bepaalt welke delen gemeenschappelijk zijn.`, uncertain: unknown("CD01") || unknown("CL01") },
+    { id: "VME-WORKS", title: "Werken en beslissingen", icon: "plan", text: `${value("A02")}${a.A06 && a.A06 !== SKIP && !has(a, "A06", "onbekend") ? ` Betrokken onderdelen: ${label("A06", a.A06)}.` : ""}${a.A07 && a.A07 !== SKIP ? ` Stand van zaken: ${label("A07", a.A07)}.` : ""}`, uncertain: unknown("A02") || has(a, "A02", "besproken") },
+    { id: "VME-FUNDS", title: "Reservefonds en bijdragen", icon: "doc", text: `Reservefonds: ${unknown("A04") ? "nog te verifiëren" : lower(label("A04", a.A04))}. Bijzondere bijdragen: ${unknown("A03") ? "nog te verifiëren" : lower(label("A03", a.A03))}. De Quickscan bepaalt geen bedragen of toekomstige kosten en beoordeelt niet of het fonds toereikend is.`, uncertain: unknown("A04") || unknown("A03") || has(a, "A03", "omvang") },
+  ];
+  const questions = [...base.syndic];
+  const add = (ok: boolean, text: string) => { if (ok) questions.push(text); };
+  add(unknown("A01") || has(a, "A01", "enkele", "duidelijk"), "Welke aandachtspunten zijn gekend aan lift, balkons en collectieve installaties, en welke controles of herstellingen zijn uitgevoerd?");
+  add(unknown("CD01") || unknown("CL01") || has(a, "CD01", "problemen", "verouderd"), "Wat is gekend over de toestand van dak, gevel en gemeenschappelijke leidingen? Kunt u inspectie- en onderhoudsgegevens bezorgen?");
+  add(unknown("A02") || has(a, "A02", "besproken"), "Welke gemeenschappelijke werken zijn besproken of gepland, welke onderdelen betreffen ze en wat is al door de VME beslist?");
+  add(unknown("A04") || !has(a, "A05", "reservefonds"), "Kunt u de actuele informatie over het reservefonds, de bestemming ervan en de laatst goedgekeurde rekeningen bezorgen?");
+  add(unknown("A03") || !has(a, "A05", "bijdragen"), "Zijn bijzondere bijdragen beslist of besproken, hoe worden ze verdeeld en wanneer zijn ze verschuldigd?");
+  add(!has(a, "A05", "verslagen"), "Kunt u de verslagen van de laatste algemene vergaderingen bezorgen? De beschikbaarheid is nog niet bevestigd.");
+  add(!has(a, "A05", "onderhoudsplan"), "Is er een meerjarig onderhoudsplan beschikbaar? Zo ja, kunt u dit bezorgen?");
+  add(!has(a, "A05", "besluiten"), "Kunt u de relevante VME-beslissingen en goedgekeurde renovatiebesluiten bezorgen?");
+  return { cards, questions: [...new Set(questions)], checklist: ["Basisakte en afbakening privatieve/gemeenschappelijke delen", "Verslagen algemene vergadering en relevante VME-beslissingen", "Reservefonds, rekeningen en bijzondere bijdragen", "Meerjarig onderhoudsplan, indien beschikbaar"] };
 }
 
 // ---------- Productaanbeveling (deterministisch, los van de scoring) ----------
@@ -294,42 +332,69 @@ export function technicalDomains(ds: Record<Domain, number | null>): Domain[] {
   return (Object.keys(ds) as Domain[]).filter((d) => (ds[d] ?? 0) >= 5);
 }
 
+/** Expliciete werkkeuze: 'volledig' is geen bewijs dat elk onderdeel wordt vervangen. */
+export function selectedWorks(a: Answers): string[] {
+  const value = a[isApartment(a) ? "Q46A" : "Q46"];
+  return Array.isArray(value) ? value.filter((w) => w !== "geen" && w !== "volledig") : [];
+}
+const WORK_DOMAIN: Record<string, Domain> = { dak: "B", gevel: "B", ramen: "B", isolatie: "E", elektriciteit: "T", verwarming: "T", sanitair: "T" };
+export function renovationEvidence(a: Answers, scores: Record<Domain, number | null>) {
+  const relevant = technicalDomains(scores);
+  const matchedDomains = [...new Set(selectedWorks(a).map((w) => WORK_DOMAIN[w]).filter((d) => d && relevant.includes(d)))];
+  // Uitgebreid traject: meerdere technische domeinen én een volledige renovatie of werken
+  // die minstens twee van die domeinen daadwerkelijk raken. Q47 of cosmetische werken volstaan nooit.
+  return { matchedDomains, complex: relevant.length >= 2 && (plans(a, "volledig") || matchedDomains.length >= 2) };
+}
+export function workSequence(a: Answers) {
+  const works = selectedWorks(a);
+  const shell = works.filter((w) => ["dak", "gevel", "ramen", "isolatie"].includes(w));
+  const systems = works.filter((w) => ["elektriciteit", "verwarming", "sanitair"].includes(w));
+  const finishes = works.filter((w) => ["vloeren", "interieur"].includes(w));
+  const labels = works.map((w) => label(isApartment(a) ? "Q46A" : "Q46", w));
+  const relevant = (shell.length > 0 && systems.length > 0) || (systems.length > 0 && finishes.length > 0) || (works.includes("vloeren") && works.includes("interieur") && has(a, "Q47", "ja"));
+  const text = shell.length && systems.length
+    ? `Stem de geplande ${joinNl(shell.map((w) => lower(label("Q46", w))))} af op ${joinNl(systems.map((w) => lower(label("Q46", w))))}. Leg de aansluitingen en volgorde vast vóór de uitvoering${finishes.length ? "; voorzie de definitieve afwerking daarna" : ""}.`
+    : systems.length && finishes.length
+      ? `Wanneer bij de geplande ${joinNl(systems.map((w) => lower(label("Q46", w))))} ingrepen in wanden of vloeren nodig zijn, stemt u die best af vóór de nieuwe ${joinNl(finishes.map((w) => lower(label("Q46", w))))}.`
+      : "Stem de geplande vloer- en interieurafwerking op elkaar af. De geschikte volgorde hangt af van de gekozen materialen en de werkelijke ingrepen.";
+  return { relevant, labels, text };
+}
+
 export function recommendProduct(a: Answers, ctx: { domainScores: Record<Domain, number | null>; flags: SafetyId[]; unknownLevel: string; findings: Finding[]; apartmentSignals: number }): Recommendation {
   const tech = technicalDomains(ctx.domainScores).length;
   const planned = plannedCount(a);
   const full = plans(a, "volledig");
-  const complex = full || planned >= 3;
+  const evidence = renovationEvidence(a, ctx.domainScores);
   const buy = buyer(a);
   const apt = isApartment(a);
   const cost = has(a, "Q48", "ja");
 
   let code: ReasonCode;
-  if (complex && tech >= 1) code = "PLUS-COMPLEX-TECH";
-  else if (complex && has(a, "Q47", "ja")) code = "PLUS-COMPLEX-SEQUENCE";
-  else if (buy && has(a, "Q03", ...PLUS_OLD) && has(a, "R01", "gt30", "nooit") && tech >= 2 && planned >= 2) code = "PLUS-BUYER-RENOVATION";
+  if (evidence.complex && tech >= 2) code = "PLUS-COMPLEX-TECH";
+  else if (buy && has(a, "Q03", ...PLUS_OLD) && has(a, "R01", "gt30", "nooit") && tech >= 2 && evidence.matchedDomains.length >= 2) code = "PLUS-BUYER-RENOVATION";
   else if (buy && tech >= 1) code = "WS-TECH-BUYER";
   else if (tech >= 1) code = "WS-TECH-OWNER";
   else if (apt && buy && ctx.apartmentSignals > 0) code = "WS-APT-COMMON";
-  else if (cost && planned >= 1) code = "BUDGET-COST";
+  else if (cost && planned >= 1 && ctx.unknownLevel !== "beperkt") code = "BUDGET-COST";
   else if (buy && ctx.unknownLevel === "beperkt") code = "WS-UNKNOWN-BUYER";
   else code = "NONE-NEUTRAL";
 
   const topics = joinNl(ctx.findings.slice(0, 3).map((f) => lower(f.title)));
   const productId: ProductId | null = code.startsWith("PLUS") ? "woningscan-plus" : code.startsWith("WS") ? "woningscan" : code === "BUDGET-COST" ? "online-budgetindicator" : null;
-  const p = productId ? getProduct(productId)! : null;
+  const p = productId ? getProduct(productId) ?? null : null;
   const safetyFirst = ctx.flags.length > 0;
   const decision = buy ? "voordat u een aankoopbeslissing neemt" : "voordat u werken laat uitvoeren";
 
   const MOTIVATION: Record<ReasonCode, string> = {
-    "PLUS-COMPLEX-TECH": `U overweegt ${full ? "een volledige renovatie" : `${planned} soorten werken`} en meldt daarnaast technische aandachtspunten${topics ? ` (${topics})` : ""}. Woningscan Plus brengt die punten uitgebreider in kaart en vertaalt ze naar een renovatiestappenplan.`,
-    "PLUS-COMPLEX-SEQUENCE": `U overweegt ${full ? "een volledige renovatie" : `${planned} soorten werken`} en wilt ze in een logische volgorde plannen. Woningscan Plus combineert een uitgebreidere inspectie met een renovatiestappenplan.`,
+    "PLUS-COMPLEX-TECH": `U overweegt ${full ? "een volledige renovatie" : "werken aan verschillende technische onderdelen"} en meldt daarnaast technische aandachtspunten${topics ? ` (${topics})` : ""}. Woningscan Plus brengt die punten uitgebreider in kaart en vertaalt ze naar een renovatiestappenplan.`,
+    "PLUS-COMPLEX-SEQUENCE": `U overweegt ${full ? "een volledige renovatie" : "werken aan verschillende technische onderdelen"} en wilt ze in een logische volgorde plannen. Woningscan Plus combineert een uitgebreidere inspectie met een renovatiestappenplan.`,
     "PLUS-BUYER-RENOVATION": `U overweegt een oudere woning die volgens u nooit of lang geleden grondig gerenoveerd werd, met meerdere technische aandachtspunten${topics ? ` (${topics})` : ""} en geplande werken. Woningscan Plus helpt u de toestand en de renovatieprioriteiten grondig voor te bereiden ${decision}.`,
     "WS-TECH-BUYER": `Uw antwoorden wijzen op enkele technische aandachtspunten die online niet definitief beoordeeld kunnen worden. Een plaatsbezoek kan helpen om ${topics ? `de gemelde ${topics}` : "de gemelde signalen"} gerichter te beoordelen ${decision}.`,
     "WS-TECH-OWNER": `Uw antwoorden bevatten technische aandachtspunten${topics ? ` (${topics})` : ""} die online niet definitief beoordeeld kunnen worden. Een plaatsbezoek helpt om prioriteiten te bepalen ${decision}.`,
     "WS-APT-COMMON": "U meldt vooral aandachtspunten aan de gemeenschappelijke delen. Een Woningscan beoordeelt de privatieve delen van het appartement ter plaatse en helpt u de juiste vragen aan de syndicus te stellen. De gemeenschappelijke delen worden niet volledig geïnspecteerd.",
     "WS-UNKNOWN-BUYER": "Meerdere belangrijke onderdelen zijn voor u nog onbekend. Een plaatsbezoek kan die onderdelen visueel beoordelen voor u een aankoopbeslissing neemt.",
     "BUDGET-COST": "U wilt vooral weten wat uw geplande werken ongeveer kosten, en uw antwoorden bevatten geen duidelijke technische aandachtspunten die eerst ter plaatse beoordeeld moeten worden. Een online budgetindicatie sluit daar het best bij aan.",
-    "NONE-NEUTRAL": "Uw antwoorden bevatten weinig aandachtspunten en geen concrete renovatieplannen. Dit rapport geeft u een eerste overzicht; een betalende vervolgstap is op dit moment niet nodig.",
+    "NONE-NEUTRAL": "Op basis van de gekende antwoorden is er onvoldoende aanleiding voor een specifieke betalende vervolgstap. Verduidelijk eerst eventuele ontbrekende informatie en de omvang van uw plannen; de Quickscan kan die niet bepalen.",
   };
   const GAINS: Partial<Record<ReasonCode, string>> = {
     "PLUS-COMPLEX-TECH": "Extra inzicht: fotodocumentatie, gedetailleerdere aanbevelingen en een logische volgorde van de werken.",
@@ -344,7 +409,8 @@ export function recommendProduct(a: Answers, ctx: { domainScores: Record<Domain,
 
   let secondary: Recommendation["secondary"] = null;
   const sec = (id: ProductId, text: string) => {
-    const s = getProduct(id)!;
+    const s = getProduct(id);
+    if (!s) return;
     secondary = { productId: id, name: s.name, price: s.price, text, path: s.ctaTo ?? "/woningscan#pakketten" };
   };
   if (productId === "woningscan" && (planned >= 2 || has(a, "Q47", "ja"))) sec("woningscan-plus", "Wenst u uitgebreidere documentatie en een renovatiestappenplan, dan is Woningscan Plus een alternatief.");
@@ -353,7 +419,7 @@ export function recommendProduct(a: Answers, ctx: { domainScores: Record<Domain,
   else if (productId === "online-budgetindicator" && ctx.unknownLevel === "beperkt") sec("woningscan", "Omdat meerdere onderdelen onbekend zijn, kan een Woningscan ter plaatse de technische toestand eerst verduidelijken.");
 
   const physical = p?.delivery === "ter-plaatse";
-  const drone = physical && p!.droneAllowed && droneAdvice(a)
+  const drone = physical && p?.droneAllowed && droneAdvice(a)
     ? { price: DRONE_OPTION.price, text: "Omdat u aandachtspunten aan het dak vermeldt of het dak moeilijk zichtbaar is, kan een drone-dakscreening zichtbare dakonderdelen van bovenaf bekijken. Een drone detecteert geen verborgen gebreken.", condition: DRONE_OPTION.condition }
     : null;
 
@@ -405,7 +471,7 @@ const OPENING: Record<string, string> = {
 function conclusion(a: Answers, categoryId: string, links: Connection[], unknownCount: number) {
   const parts = [OPENING[categoryId] ?? ""];
   if (links[0]) parts.push(`De gemelde signalen rond ${joinNl(links[0].nodes.map((n) => lower(n.label)))} kunnen met elkaar samenhangen en worden best samen bekeken.`);
-  if (unknownCount >= 2) parts.push(`Daarnaast zijn ${unknownCount} onderdelen nog onbekend, waardoor deze analyse op die punten beperkt blijft.`);
+  if (unknownCount > 0) parts.push("Over verschillende technische onderwerpen ontbreekt nog informatie; het detailoverzicht geeft aan welke gegevens u nog kunt verduidelijken.");
   if (buyer(a) && categoryId !== "beperkt") parts.push("Voor een aankoopbeslissing loont het om deze punten eerst te verduidelijken.");
   if (isApartment(a)) parts.push("De barometer beoordeelt de privatieve delen; gemeenschappelijke delen staan apart.");
   return parts.filter(Boolean).join(" ");
@@ -419,7 +485,8 @@ export function composeReport(answers: Answers) {
   const fs = findings(a);
   const links = connections(a);
   const cards = domainCards(a, base.domainScores, b.privateFlags, b.collectiveFlags);
-  const unknownCount = cards.reduce((n, c) => n + c.missingItems.length, 0);
+  const information = informationOverview(a);
+  const unknownCount = information.topics.length;
   const apartmentSignals = base.apartment?.signals.length ?? 0;
   const recommendation = recommendProduct(a, { domainScores: base.domainScores, flags: [...b.privateFlags, ...b.collectiveFlags], unknownLevel: base.unknown.level, findings: fs, apartmentSignals });
   // Asbestmelding afgestemd op de bouwjaargrens van 2001; gekende toepassingen blijven ongewijzigd.
@@ -433,13 +500,15 @@ export function composeReport(answers: Answers) {
     // Neutrale vervolgstap blijft bewaard voor compatibiliteit; de 2.3-weergave gebruikt de aanbeveling.
     v23: {
       illustration,
+      information,
+      coOwnership: coOwnership(a, base.apartment),
       facts: heroFacts(a),
       conclusion: conclusion(a, base.category.id, links, unknownCount),
       highlights: fs.slice(0, 3),
       domains: cards,
       connections: links,
       adviceTitle: adviceTitle(a),
-      actions: actions(a, fs, links, base.apartment?.syndic ?? [], b.privateFlags.length > 0),
+      actions: actions(a, fs, links, coOwnership(a, base.apartment)?.questions ?? [], b.privateFlags.length > 0),
       documents: documents(a),
       recommendation,
     },
