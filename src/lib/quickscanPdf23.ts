@@ -36,7 +36,7 @@ export function reportPdfModel(r: QuickscanReport23, meta: ReportMeta) {
   };
 }
 
-export interface PdfLoadOptions { load?: (url: string) => Promise<ArrayBuffer> }
+export interface PdfLoadOptions { load?: (url: string) => Promise<ArrayBuffer>; arrayBuffer?: boolean }
 const defaultLoad = async (url: string) => {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -405,5 +405,5 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     font("sans", false, 6.5, MUTED); doc.text(`${String(i).padStart(2, "0")} / ${String(pages).padStart(2, "0")}`, W - M, 19, { align: "right" });
   }
   void H;
-  return doc.output("blob");
+  return opts.arrayBuffer ? (doc.output("arraybuffer") as unknown as Blob) : doc.output("blob");
 }

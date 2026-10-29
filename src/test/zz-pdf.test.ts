@@ -11,7 +11,7 @@ const load = async (u: string) => { if (!map[u]) throw new Error("x"); const b =
 it("pdf", async () => {
   for (const [n, s] of [["tessenderlo", T], ["plus", { Q01: "eigenaar", Q02: "open", Q03: "1970-1990", Q14: "slijtage", Q17: "nauwelijks", Q46: ["dak", "isolatie", "ramen", "verwarming"] }], ["apt", { Q01: "koper", Q02: "appartement", Q03: "1970-1990", G01: "hr", A01: "duidelijk", CD01: "problemen", A02: "ingrijpend", A03: "substantieel" }]] as const) {
     const r = composeReport(fill(s as Answers));
-    const b = await buildReportPdf23(r, { reportNumber: "QS-20261029-ABCDEF12", name: "Test", municipality: "3980", date: "2026-10-29T10:00:00Z" }, { load });
-    writeFileSync(`/tmp/pdf-${n}.pdf`, Buffer.from(await new Response(b).arrayBuffer()));
+    const b = await buildReportPdf23(r, { reportNumber: "QS-20261029-ABCDEF12", name: "Test", municipality: "3980", date: "2026-10-29T10:00:00Z" }, { load, arrayBuffer: true });
+    writeFileSync(`/tmp/pdf-${n}.pdf`, Buffer.from(b as unknown as ArrayBuffer));
   }
 }, 60000);
