@@ -134,7 +134,7 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   font("serif", false, 42, INK); doc.text("Uw woning", M, 62); doc.text("in beeld.", M, 78);
   font("sans", false, 8.6, INK);
   let cy = 88;
-  if (v.facts.length) cy += para(v.facts.map((f) => f.value.replace(/ /g, "\u00a0")).join("  ·  "), M, cy, 92, 8.6) + 3;
+  if (v.facts.length) cy += para(v.facts.map((f) => f.value.replace(/ /g, "\u00a0")).join("  ·  "), M, cy, 80, 8.6) + 3;
   font("sans", false, 8.8, BODY);
   cy += para(`Een heldere eerste analyse van uw ${r.apartment ? "appartement" : "woning"}, op basis van uw eigen antwoorden in de DIMAC Quickscan.`, M, cy, 84, 8.8) + 2;
   font("sans", false, 7.2, MUTED); doc.text(new Date(meta.date).toLocaleDateString("nl-BE", { day: "numeric", month: "long", year: "numeric" }) + `  ·  Rapport ${meta.reportNumber}`, M, cy + 3);

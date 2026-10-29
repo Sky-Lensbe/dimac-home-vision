@@ -24,7 +24,7 @@ const scoreOf = (a: Answers, qid: string): number => {
   return Math.max(0, ...(Array.isArray(v) ? v : [v]).map((id) => q.options.find((y) => y.id === id)?.score?.v ?? 0));
 };
 const joinNl = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} en ${xs[xs.length - 1]}`);
-const lower = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
+const lower = (s: string) => (/^[A-Z]{2}/.test(s) ? s : s.charAt(0).toLowerCase() + s.slice(1));
 
 export type IconId = "roof" | "drop" | "leaf" | "gear" | "crack" | "window" | "fan" | "bolt" | "doc" | "house" | "shield" | "plan" | "building" | "pipe" | "flame";
 
