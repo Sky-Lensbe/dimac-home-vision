@@ -41,9 +41,9 @@ const SITUATIONS: Record<Situation, { label: string; icon: typeof Home; heading:
     icon: KeyRound,
     heading: "Woninginspectie vóór aankoop",
     title: "U overweegt een woning te kopen.",
-    text: "Een woning kan er verzorgd uitzien en toch bouwtechnische aandachtspunten hebben. Met een Woningscan krijgt u beter inzicht in de zichtbare toestand van het pand en de mogelijke renovatiebehoeften.",
+    text: "Een woning kan er verzorgd uitzien en toch bouwtechnische aandachtspunten hebben. Met een Woningscan krijgt u beter inzicht in de toestand van het pand en de mogelijke renovatiebehoeften.",
     questions: [
-      "Welke zichtbare aandachtspunten zijn er?",
+      "\nWelke aandachtspunten zijn er?",
       "Welke werken verdienen prioriteit?",
       "Welke renovaties moet ik mogelijk voorzien?",
     ],
