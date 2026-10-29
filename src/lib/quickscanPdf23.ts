@@ -176,13 +176,13 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
 
   // Highlights
   if (v.highlights.length) {
-    font("serif", false, 15, INK); doc.text("Dit verdient uw aandacht", M, y + 4);
-    font("sans", false, 6.2, MUTED); doc.text("OP BASIS VAN UW ANTWOORDEN", W - M, y + 4, { align: "right" });
-    y += 9;
     const gap = 4, cw = (CW - gap * (v.highlights.length - 1)) / v.highlights.length;
     const hs = v.highlights.map((h) => 26 + measure(h.title, cw - 20, "sans", true, 8.6, 1.3) + measure(h.short, cw - 10, "sans", false, 7.8));
     const ch = Math.max(...hs);
-    ensure(ch);
+    ensure(ch + 9);
+    font("serif", false, 15, INK); doc.text("Dit verdient uw aandacht", M, y + 4);
+    font("sans", false, 6.2, MUTED); doc.text("OP BASIS VAN UW ANTWOORDEN", W - M, y + 4, { align: "right" });
+    y += 9;
     v.highlights.forEach((h, i) => {
       const x = M + i * (cw + gap);
       doc.setDrawColor(...(h.safety ? RED : LINE)); doc.setLineWidth(0.25); doc.rect(x, y, cw, ch, "S");
@@ -206,7 +206,9 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   }
 
   // ---------- Pagina 2: analyse ----------
-  startSection();
+  const firstDomain = v.domains[0];
+  const firstDomainH = firstDomain ? 18 + [firstDomain.analysis, firstDomain.missing, firstDomain.scopeNote].filter(Boolean).reduce((n, text) => n + measure(text as string, CW - 70, "sans", false, 9), 0) : 25;
+  startSection(34 + firstDomainH);
   eyebrow("Analyse per bouwdeel", M, y + 4);
   font("serif", false, 26, INK); doc.text("De resultaten", M, y + 16); doc.text("in detail.", M, y + 26);
   font("sans", false, 7.6, MUTED); para("Op basis van uw antwoorden geven we per thema een eerste inschatting. Dit is een indicatie en geen technische diagnose. Een lage score bewijst niet dat een onderdeel in orde is.", 118, y + 12, W - M - 118, 7.6);
@@ -218,7 +220,7 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   for (const d of v.domains) {
     const tw = CW - 70;
     const body = [d.analysis, d.missing, d.scopeNote].filter(Boolean) as string[];
-    const h = 13 + measure(d.title, tw, "sans", true, 9, 1.25) + body.reduce((n, t, i) => n + measure(t, tw, "sans", false, i ? 8.5 : 9) + 1, 0);
+    const h = 10 + measure(d.title, tw, "sans", true, 9, 1.25) + body.reduce((n, t, i) => n + measure(t, tw, "sans", false, i ? 8.5 : 9) + 1, 0);
     ensure(h + 3);
     doc.setDrawColor(...LINE); doc.setLineWidth(0.25); doc.rect(M, y, CW, h, "S");
     icon(d.icon, M + 5, y + (h - 11) / 2, 11);
@@ -301,7 +303,9 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   }
 
   // ---------- Pagina 3: advies ----------
-  startSection();
+  const firstAction = v.actions[0];
+  const firstActionH = firstAction ? 20 + measure(firstAction.text, CW - 42, "sans", false, 9) + (firstAction.next ? measure(firstAction.next, CW - 42, "sans", false, 8.5) : 0) : 0;
+  startSection(50 + firstActionH);
   eyebrow("Praktisch advies", M, y + 4);
   font("serif", false, 22, INK); const tl = lines(v.adviceTitle, 112); tl.forEach((l, i) => doc.text(l, M, y + 15 + i * 9));
   font("sans", false, 7.6, MUTED); para("Met deze acties verduidelijkt u de belangrijkste aandachtspunten en onzekerheden.", 140, y + 12, W - M - 140, 7.6);
