@@ -89,7 +89,7 @@ function domainCards(a: Answers, ds: Record<Domain, number | null>, privateFlags
   return (Object.keys(DOMAIN_CARD) as Domain[]).map((code) => {
     const v = ds[code];
     const severe = privateFlags.some((f) => SAFETY_DOMAIN[f] === code);
-    const mainUnknown = CORE[code].every((q) => a[q] === undefined || a[q] === SKIP || has(a, q, "onbekend", "spouw", "massief"));
+  const mainUnknown = CORE[code].every((q) => p[q] === undefined || p[q] === SKIP || has(p, q, "onbekend", "spouw", "massief"));
     const status: DomainStatus = v === null || (v === 0 && mainUnknown) ? "onvoldoende" : severe || v >= 9 ? "ernstig" : v >= 5 ? "duidelijk" : v >= 1 ? "beperkt" : "geen";
     const signals: string[] = [];
     for (const [qid, val] of Object.entries(p)) {
@@ -217,9 +217,9 @@ function actions(a: Answers, fs: Finding[], links: Connection[], syndic: string[
     }
     if (out.length >= 4) break;
   }
-  if (links.some((l) => l.id === "LINK-WERKVOLGORDE")) push({ id: "ACT-VOLGORDE", icon: "plan", title: "Leg een logische werkvolgorde vast", text: workSequence(a).text, next: null });
   if (has(a, "DI01", "onbekend") || has(a, "MI01", "onbekend", "spouw", "massief")) push({ id: "ACT-ISOLATIE", icon: "leaf", title: "Verduidelijk de isolatie", text: `Vraag na hoe dak en buitenmuren geïsoleerd zijn. Het volledige EPC-verslag bevat vaak die gegevens${buy ? "; vraag het op bij de verkoper" : ""}.`, next: null });
   if (has(a, "Q40", "geen", "onbekend")) push({ id: "ACT-KEURING", icon: "bolt", title: "Vraag het elektrische keuringsverslag op", text: "Een ontbrekend verslag bewijst geen defect, maar het verslag geeft duidelijkheid over de installatie.", next: null });
+  if (links.some((l) => l.id === "LINK-WERKVOLGORDE")) push({ id: "ACT-VOLGORDE", icon: "plan", title: "Leg een logische werkvolgorde vast", text: workSequence(a).text, next: null });
   if (syndic.length) push({ id: "ACT-SYNDICUS", icon: "building", title: "Stel uw vragen aan de syndicus", text: syndic[0], next: null });
   return out.slice(0, 5);
 }
@@ -470,8 +470,8 @@ const OPENING: Record<string, string> = {
 };
 function conclusion(a: Answers, categoryId: string, links: Connection[], unknownCount: number) {
   const parts = [OPENING[categoryId] ?? ""];
-  if (links[0]) parts.push(`De gemelde signalen rond ${joinNl(links[0].nodes.map((n) => lower(n.label)))} kunnen met elkaar samenhangen en worden best samen bekeken.`);
-  if (unknownCount > 0) parts.push("Over verschillende technische onderwerpen ontbreekt nog informatie; het detailoverzicht geeft aan welke gegevens u nog kunt verduidelijken.");
+  if (links[0]) parts.push(`De gemelde signalen of geplande werken rond ${joinNl(links[0].nodes.map((n) => lower(n.label)))} worden best in samenhang bekeken, zonder dat dit een bewezen oorzaak of noodzakelijke ingreep betekent.`);
+  if (unknownCount > 0) parts.push(unknownCount === 1 ? "Over een technisch onderwerp ontbreekt nog informatie; het detailoverzicht geeft aan welke gegevens u nog kunt verduidelijken." : "Over verschillende technische onderwerpen ontbreekt nog informatie; het detailoverzicht geeft aan welke gegevens u nog kunt verduidelijken.");
   if (buyer(a) && categoryId !== "beperkt") parts.push("Voor een aankoopbeslissing loont het om deze punten eerst te verduidelijken.");
   if (isApartment(a)) parts.push("De barometer beoordeelt de privatieve delen; gemeenschappelijke delen staan apart.");
   return parts.filter(Boolean).join(" ");
