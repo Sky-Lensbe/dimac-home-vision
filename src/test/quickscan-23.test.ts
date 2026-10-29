@@ -25,7 +25,7 @@ const TESSENDERLO: Answers = {
   Q34: "aplus", Q35: "lt5", H01: "gas", H02: "6-10", Q42: "normaal", Q44: "12m", Q41: "geen", Q40: "onbekend", V01: "mechanisch", Q39: "beperkt", Q45: "geen",
   Q46: ["ramen", "verwarming"], Q47: "nee", Q48: "twijfel", Q49: "3m",
 };
-const RECENT_OK: Answers = { Q01: "interesse", Q02: "open", Q03: "vanaf2011", R01: "0-5", Q34: "aplus", Q46: ["geen"], Q48: "nee", H01: "warmtepomp", H02: "0-5" };
+const RECENT_OK: Answers = { Q01: "interesse", Q02: "open", Q03: "vanaf2011", R01: "0-5", Q34: "aplus", G01: "hr", DI01: "degelijk", MI01: "geisoleerd", Q46: ["geen"], Q48: "nee", H01: "warmtepomp", H02: "0-5" };
 
 describe("2.3 Tessenderlo-acceptatie", () => {
   const r = composeReport(fill(TESSENDERLO));
@@ -46,7 +46,7 @@ describe("2.3 Tessenderlo-acceptatie", () => {
     expect(rec.ctaLabel).toBe("Vraag mijn Woningscan aan");
   });
   it("highlights: schimmel/condens, tocht en sluitproblemen, ventilatie", () => {
-    expect(r.v23.highlights.map((h) => h.id)).toEqual(["AP-SCHIMMEL", "FND-RAMEN", "FND-VENT"]);
+    expect(r.v23.highlights.map((h) => h.id)).toEqual(["AP-SCHIMMEL", "AP-TOCHT", "AP-VENT"]);
   });
   it("verbandenanalyse bespreekt vocht, schrijnwerk en ventilatie samen, zonder causaliteit te claimen", () => {
     const l = r.v23.connections[0];
@@ -101,14 +101,14 @@ describe("2.3 technische rapportage", () => {
     expect(r.v23.actions[0].id).toBe("ACT-VEILIGHEID");
   });
   it("6./16. appartement met uitsluitend gemeenschappelijke problemen: privatief geen signaal, koper krijgt Woningscan van de privatieve delen", () => {
-    const r = composeReport(fill({ Q01: "koper", Q02: "appartement", Q03: "1970-1990", A01: "duidelijk", CD01: "problemen", A02: "ingrijpend", A03: "substantieel" }));
+    const r = composeReport(fill({ Q01: "koper", Q02: "appartement", Q03: "1970-1990", G01: "hr", A01: "duidelijk", CD01: "problemen", A02: "ingrijpend", A03: "substantieel" }));
     expect(r.v23.recommendation.reasonCode).toBe("WS-APT-COMMON");
     expect(r.v23.recommendation.motivation).toContain("niet volledig geïnspecteerd");
     expect(r.v23.domains.every((d) => d.scopeNote?.startsWith("Beoordeling binnen het appartement"))).toBe(true);
     expect(r.v23.documents.some((d) => d.id === "DOC-VME-AV")).toBe(true);
   });
   it("6b. eigenaar van een appartement met alleen VME-problemen: geen geforceerde verkoop", () => {
-    const r = composeReport(fill({ Q01: "eigenaar", Q02: "appartement", Q03: "1970-1990", A01: "duidelijk", Q46A: ["geen"], Q48: "nee" }));
+    const r = composeReport(fill({ Q01: "eigenaar", Q02: "appartement", Q03: "1970-1990", G01: "hr", A01: "duidelijk", Q46A: ["geen"], Q48: "nee" }));
     expect(r.v23.recommendation.productId).toBeNull();
   });
   it("7. appartement met privatieve en gemeenschappelijke problemen: domeinkaart vermeldt de scheiding", () => {
@@ -142,7 +142,7 @@ describe("2.3 asbest en bouwjaar (OVAM: verplicht bij verkoop vóór 2001)", () 
 
 describe("2.3 commerciële aanbeveling", () => {
   it("9./17. alleen behoefte aan budget: online budgetindicator blijft aanbevolen, zonder bestelknop", () => {
-    const r = composeReport(fill({ Q01: "eigenaar", Q02: "open", Q03: "vanaf2011", R01: "0-5", Q34: "aplus", Q46: ["interieur", "vloeren"], Q48: "ja", H01: "warmtepomp", H02: "0-5" }));
+    const r = composeReport(fill({ Q01: "eigenaar", Q02: "open", Q03: "vanaf2011", R01: "0-5", Q34: "aplus", G01: "hr", DI01: "degelijk", MI01: "geisoleerd", Q46: ["interieur", "vloeren"], Q48: "ja", H01: "warmtepomp", H02: "0-5" }));
     const rec = r.v23.recommendation;
     expect(rec.productId).toBe("online-budgetindicator");
     expect(rec.availability).toBe("coming_soon");

@@ -123,20 +123,30 @@ const POINT_SHORT: Record<string, string> = {
   "AP-DAK-LOS": "Mogelijk losse dakonderdelen: houd afstand en laat dit snel bekijken.",
   "AP-EPC": "Het EPC-label wijst op energetische verbetermogelijkheden.",
   "AP-ELEK": "Aandachtspunten bij de elektrische installatie.",
+  "AP-TOCHT": "Signalen van luchtlekken of een slechte afstelling ter hoogte van het schrijnwerk.",
+  "AP-VENT": "De ventilatie werkt volgens u beperkt, onduidelijk of onvoldoende.",
   "AP-VERW": "De verwarming is verouderd, vertoont problemen of werd lang niet onderhouden.",
+};
+
+const WINDOW_POINTS = ["AP-TOCHT", "AP-RAMEN-OUD", "AP-CONDENS-GLAS"];
+const POINT_ICON_BY_ID: Record<string, IconId> = { "AP-TOCHT": "window", "AP-RAMEN-OUD": "window", "AP-CONDENS-GLAS": "window", "AP-VENT": "fan", "AP-ELEK": "bolt", "AP-VERW": "flame", "AP-GEVEL": "building", "AP-SANITAIR": "pipe", "AP-LEIDINGEN": "pipe" };
+const POINT_TITLE: Record<string, (p: Answers) => string> = {
+  "AP-TOCHT": (p) => (has(p, "Q20", "tocht") ? "Tocht en sluitproblemen" : "Tocht"),
+  "AP-VENT": () => "Werking van de ventilatie",
 };
 
 function findings(a: Answers): Finding[] {
   const p = privateSignals(a);
   const pts = attentionPoints(a, 20).map((x, order) => ({
-    id: x.id, domain: x.domain, title: x.title, short: POINT_SHORT[x.id] ?? x.text.split(". ")[0] + ".", icon: POINT_ICON[x.domain], severity: x.severity, safety: x.safety, next: x.next, order,
+    id: x.id, domain: x.domain, title: POINT_TITLE[x.id]?.(p) ?? x.title, short: POINT_SHORT[x.id] ?? x.text.split(". ")[0] + ".", icon: POINT_ICON_BY_ID[x.id] ?? POINT_ICON[x.domain], severity: x.severity, safety: x.safety, next: x.next, order,
   }));
+  const ids = new Set(pts.map((x) => x.id));
   const extra: (Finding & { order: number })[] = [];
   const ramen = Math.max(scoreOf(p, "Q20"), scoreOf(p, "Q22"), scoreOf(p, "Q21"));
-  if (ramen >= 5 || has(p, "Q20", "tocht", "beschadigd")) {
+  if (!WINDOW_POINTS.some((id) => ids.has(id)) && (ramen >= 5 || has(p, "Q20", "tocht", "beschadigd"))) {
     extra.push({ id: "FND-RAMEN", domain: "B", title: has(p, "Q20", "beschadigd") ? "Beschadigd schrijnwerk" : "Tocht en sluitproblemen", short: "Signalen van luchtlekken of een slechte afstelling ter hoogte van het schrijnwerk.", icon: "window", severity: ramen, safety: false, next: "Laat de raamafstelling, dichtingen en aansluitingen bekijken.", order: 100 });
   }
-  if (has(p, "Q39", "beperkt", "defect")) {
+  if (!ids.has("AP-VENT") && has(p, "Q39", "beperkt", "defect")) {
     extra.push({ id: "FND-VENT", domain: "T", title: "Werking van de ventilatie", short: has(p, "Q39", "defect") ? "De ventilatie is volgens u defect of duidelijk onvoldoende." : "De ventilatie werkt volgens u beperkt of is onduidelijk.", icon: "fan", severity: scoreOf(p, "Q39"), safety: false, next: "Verifieer de werking en het onderhoud van het ventilatiesysteem.", order: 101 });
   }
   return [...pts, ...extra]
@@ -183,9 +193,9 @@ function actions(a: Answers, fs: Finding[], links: Connection[], syndic: string[
   for (const f of fs) {
     if (MOISTURE_POINTS.includes(f.id)) {
       push({ id: "ACT-VOCHT", icon: "drop", title: "Onderzoek de vochtplek", text: `De gemelde ${f.id === "AP-SCHIMMEL" ? "condens- of schimmelvorming" : lower(f.title)} verdient een gerichte beoordeling. Noteer waar en wanneer het optreedt; dat helpt om de oorzaak te bepalen.`, next: f.next });
-    } else if (f.id === "FND-RAMEN") {
+    } else if (f.id === "FND-RAMEN" || WINDOW_POINTS.includes(f.id)) {
       push({ id: "ACT-RAMEN", icon: "window", title: "Controleer het schrijnwerk", text: "Onderzoek de raamafstelling, de dichtingen en de aansluitingen tussen raamkaders en muren.", next: null });
-    } else if (f.id === "FND-VENT") {
+    } else if (f.id === "FND-VENT" || f.id === "AP-VENT") {
       push({ id: "ACT-VENT", icon: "fan", title: "Controleer de ventilatie", text: has(a, "V01", "mechanisch") ? "Verifieer de werking van het mechanische systeem en vraag de onderhoudsinformatie op." : "Ga na hoe de woning geventileerd wordt en of roosters of afvoeren goed werken.", next: null });
     } else {
       push({ id: `ACT-${f.id}`, icon: f.icon, title: `Laat ${lower(f.title)} beoordelen`, text: f.short, next: f.next });
