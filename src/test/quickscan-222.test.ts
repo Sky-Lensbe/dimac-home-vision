@@ -6,7 +6,7 @@ import {
 import { storedReport } from "@/lib/quickscanSnapshot";
 import { readSaved, SESSION_KEY } from "@/lib/quickscanSession";
 import { persistQuickscan, SAVE_ERROR, UNCERTAIN_ERROR } from "../../supabase/functions/_shared/quickscan/persist";
-import { fakeDb, input } from "./quickscan-221.test";
+import { fakeDb, input } from "./fakeQuickscanDb";
 import { readFileSync } from "node:fs";
 
 const defaultFor = (q: Question) => (q.multi ? [q.options.find((o) => o.exclusive)?.id ?? q.options[0].id] : q.options[0].id);
