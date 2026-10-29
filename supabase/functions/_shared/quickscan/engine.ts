@@ -348,7 +348,7 @@ const DROPPED_21 = ["Q36"];
  * als ze eenduidig privatief zijn; antwoorden met dak, gevel, zolder of kelder (privatief of gemeenschappelijk?)
  * worden nooit stilzwijgend geïnterpreteerd en dus opnieuw gevraagd.
  */
-const AMBIGUOUS_APT: Record<string, string[]> = { Q04: ["dak", "gevel"], Q13: ["dak", "gevel"], Q25: ["zolder", "kelder", "buitenmuur", "meerdere"], Q46: ["dak", "gevel"] };
+const AMBIGUOUS_APT: Record<string, string[]> = { Q04: ["dak", "gevel"], Q13: ["dak", "gevel"], Q25: ["zolder", "kelder"], Q46: ["dak", "gevel"] };
 function migrate22(answers: Answers): Answers {
   const apt = answers.Q02 === "appartement";
   const out: Answers = {};
