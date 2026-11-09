@@ -25,7 +25,7 @@ const meta = { reportNumber: "QS-TEST", name: "Test", municipality: "Diest", dat
 const allText = (r: QuickscanReport23) => JSON.stringify(r);
 
 // ---------- De vijf praktijkcases uit de 2.3.3-brief ----------
-const CASE01_TESSENDERLO: Answers = { Q01: "eigenaar", Q02: "halfopen", Q03: "vanaf2011", R01: "0-5", Q20: "tocht", Q24: "terugkerend", Q25: ["ramen"], Q26: "afentoe", Q29: "geen", Q34: "a", G01: "hr", Q46: ["geen"], Q48: "nee" };
+const CASE01_TESSENDERLO: Answers = { Q01: "eigenaar", Q02: "halfopen", Q03: "vanaf2011", R01: "0-5", Q20: "tocht", Q24: "terugkerend", Q25: ["ramen"], Q26: "afentoe", Q27: "douchen", Q29: "geen", Q34: "a", G01: "hr", Q46: ["geen"], Q48: "nee" };
 const CASE02_HALEN: Answers = { Q01: "koper", Q02: "appartement", Q03: "1991-2010", BJ01: "vanaf2001", R01: "11-20", Q04A: ["geen"], Q24: "geen", Q34: "a", G01: "hr", FL01: "d", FL02: "d", A02: "ingrijpend", A03: "onbekend", Q46A: ["geen"], Q48: "nee" };
 const CASE03_1962: Answers = { Q01: "koper", Q02: "open", Q03: "1945-1969", R01: "gt30", Q14: "slijtage", DI01: "niet", Q34: "f", Q40: "inbreuken", Q46: ["dak", "isolatie", "elektriciteit", "verwarming"], Q48: "nee" };
 const CASE04_1976: Answers = { Q01: "eigenaar", Q02: "open", Q03: "1970-1990", R01: "gt30", Q14: "slijtage", Q24: "vochtplekken", Q25: ["kelder"], Q26: "regelmatig", Q28: "actief", M01: "regen", Q34: "f", H01: "mazout", H02: "gt20", Q46: ["volledig"], Q48: "nee" };
