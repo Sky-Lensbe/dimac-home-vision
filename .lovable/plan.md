@@ -1,75 +1,62 @@
-# Quickscan 2.3 — Architectural Intelligence
+# Quickscan 2.3.2 — Persoonlijke renovatie-intelligentie (testmodus)
 
-Een nieuw rapport (online en als PDF) in de stijl van de goedgekeurde mock-up, met een persoonlijk actieplan en een onderbouwde aanbeveling voor het juiste DIMAC-product. De vragenlijst, scores, drempels, veiligheidsregels, prijzen en het logo veranderen niet. De testmodus blijft actief en er wordt niets gepubliceerd.
+Scores, gewichten, barometerdrempels, veiligheidsregels, prijzen, logo, historische rapporten, databasebeveiliging en PDF-pagineringscorrecties blijven ongewijzigd. Geen AI, betalingen, productiemails of publicatie.
 
-## Wat de bezoeker te zien krijgt
+## Versies
+- Rapport: `qs-report-2.3.2`
+- Vragen: nieuwe vragenversie (Q26 "Weet ik niet", optionele P-/G-score, eventuele andere "Weet ik niet"-hiaten)
+- Scoreregels: `qs-rules-2.2.2` ongewijzigd
+- Sessie: nieuwe sessiesleutel met veilige migratie vanaf 2.2.1 (hervat altijd in de vragenlijst)
 
-**Pagina 1 – Voorblad en samenvatting**
-- Het echte DIMAC-logo van de websiteheader, "WONINGSCAN / QUICKSCAN", het rapportnummer en de paginering.
-- "Uw woning in beeld." met alleen de gegevens die de bezoeker zelf heeft ingevuld: type, bouwperiode, oppervlakte en EPC.
-- Een architecturale lijntekening per woningtype (rijwoning, halfopen, open bebouwing, appartement), duidelijk als illustratie en niet als foto van de woning.
-- De renovatiebarometer zoals nu, met een korte persoonlijke uitleg.
-- Hoogstens drie highlightkaarten met icoon en nummer. Zijn er minder bevindingen, dan komen er ook minder kaarten.
-- Een korte eerste conclusie.
+## 1. Vragenlogica
+- Resolver wordt afhankelijkheidsbewust: na elk antwoord herberekenen tot stabiel (fixpoint, met iteratielimiet tegen lussen).
+- Vragen die door stap 4 (renovatieplannen) geactiveerd worden (RI01, V01, SL01, Q39) worden alsnog gesteld: de gebruiker wordt naar de eerste nieuw geactiveerde open vraag geleid vóór het voorbeeldresultaat.
+- Niet meer toepasselijke antwoorden vervallen; geldige blijven bewaard (ook bij wissel woning/appartement).
+- Vervolgvraagbudgetten herzien: veiligheidskritische en inhoudelijk noodzakelijke vragen vallen nooit weg door een budget.
+- Server gebruikt dezelfde resolver en weigert registratie bij ontbrekende verplichte vragen.
 
-**Pagina 2 – Analyse**
-- Vijf domeinkaarten met icoon, korte analyse en een status in woorden én kleur: geen gekende problemen gemeld, beperkte signalen, duidelijke aandachtspunten, ernstige signalen of onvoldoende informatie.
-- Bij appartementen blijven eigen delen en gemeenschappelijke delen gescheiden.
-- "Verbanden die het verschil maken": een diagram met hoogstens twee verbanden die de antwoorden echt ondersteunen, zoals vocht, ventilatie en schrijnwerk. Nooit gebracht als bewezen oorzaak.
+## 2. Renovatieplannen
+- "Volledige renovatie" = brede intentie, niet langer gelijk aan alle deelwerken. Onderscheid: intentie, expliciete werken, gemelde problemen, mogelijke toekomstige maatregelen.
+- Alleen volledige renovatie → advies rond scopebepaling en technische voorbereiding. Alle afhankelijke helpers worden nagekeken.
 
-**Pagina 3 – Advies en actieplan**
-- De titel past zich aan: voor kopers "Wat controleert u best vóór uw aankoopbeslissing?", voor eigenaars "Hoe pakt u uw renovatie verstandig aan?". Appartementen krijgen een eigen variant.
-- Drie tot vijf actiekaarten, gebaseerd op de antwoorden.
-- "Documenten om op te vragen" met per document een status: beschikbaar, nog te verifiëren, onbekend of niet van toepassing.
-- Het asbestattest verschijnt alleen voor gebouwen van vóór 2001, volgens de Vlaamse regel. Een woning uit 2020 krijgt dus geen asbestwaarschuwing.
-- De kaart "Uw aanbevolen volgende stap" met:
-  - de reden en twee tot drie voordelen;
-  - de prijs incl. btw op de rapportdatum;
-  - de drone-optie alleen als daar een aanleiding voor is;
-  - een knop "Vraag mijn Woningscan aan" en de link "Vergelijk de Woningscans".
+## 3. Verbanden
+- Deterministische relevantierangschikking (bewijs, locatie, frequentie, ernst, link met plannen, onzekerheid, overlap) met stabiele ID's en bewijsverwijzingen naar vraag-ID's; max twee, liever geen dan een kunstmatig.
+- Minimaal: keldervocht na regen (bron onderzoeken, niet aan raamcondens koppelen), raamcondens/schimmel (binnenzijde ≠ tussen glas), dak + dakisolatie, verwarming na isolatie (warmtebehoefte eerst), sanitair + vloeren (conditioneel), VME-kosten alleen bij concrete aanwijzing.
 
-Is er weinig te zeggen, dan blijft het rapport kort. Is er veel te zeggen, dan krijgt het meer pagina's.
+## 4. EPC en wettelijke context
+- EPC voedt de analyse: A+/A/B geen bewijs van bouwtechnische goede staat; C/D gerichte verbeterpunten; E/F duidelijke energetische prioriteit + volledig EPC-verslag raadplegen. Geen labelvoorspelling, berekening of besparingsbelofte.
+- Renovatieverplichting: kandidaat-koper E/F → EPC D binnen zes jaar na toepasselijke overdracht, met verificatie van toepasselijkheid/uitzonderingen en nieuw EPC; eigenaar → geen persoonlijke deadline, wel verificatieadvies; appartement → eenheid, gemene delen en VME gescheiden.
+- Juridische teksten in één centrale configuratie met bron-URL en verificatiedatum. Ik controleer eerst de officiële Vlaamse/OVAM/Waterinfo-pagina's uit de brief.
 
-## Hoe de productaanbeveling beslist
+## 5. Documenten, asbest, overstroming
+- Persoonlijke checklist met statussen: beschikbaar, niet beschikbaar, nog te verifiëren, onbekend, niet van toepassing. Niet-uitgevraagd ≠ ontbrekend; ontbrekende keuring ≠ defect.
+- Asbest volgens OVAM (grens 2001, 1991–2010 verifiëren), apart attest gemene delen (deadline 31/12/2026, regels vanaf 2027).
+- EPC Gemeenschappelijke Delen als VME-document met syndicusvragen.
+- Nieuwe optionele P-score (A–D, weet ik niet) en G-score (A–D, n.v.t., weet ik niet): geen invloed op barometer; C/D → verificatieadvies.
 
-```text
-1. Urgente veiligheidsmelding?    → eerst veiligheidsadvies; productkaart pas daarna, ingetogen
-2. Weinig signalen, geen plannen,
-   geen kostenvraag                → geen aanbeveling, neutrale afsluiting
-3. Meerdere geplande werkdomeinen,
-   of een koper van een
-   renovatiewoning met meerdere
-   technische punten               → Woningscan Plus (Woningscan als alternatief)
-4. Concrete technische twijfels
-   (vooral bij kopers)             → Woningscan (Plus als alternatief)
-5. Vooral een kostenvraag zonder
-   technische twijfels             → online budgetindicator, "Binnenkort beschikbaar",
-                                     zonder bestelknop, met link naar de productinfo
-Drone: alleen bij een fysiek pakket én een aanleiding volgens de bestaande droneAdvice().
-       Nooit vooraf aangevinkt.
-Appartement met alleen VME-problemen: Woningscan van het eigen deel, zonder belofte
-       van een volledige inspectie van de gemeenschappelijke delen.
-```
+## 6. Renovatietraject en acties
+- Nieuwe sectie "Uw voorlopig renovatietraject" met fasen A–D, alleen toepasselijke fasen; geen traject zonder plannen; geen dak/gevel bij cosmetisch.
+- Acties gesplitst in drie groepen (technische prioriteiten, planning via fasen, documenten/verplichtingen) zodat niets wegvalt door een kaartlimiet; vaste prioriteitsvolgorde.
 
-- Een hoge barometer leidt op zich nooit tot Plus.
-- De aanbeveling heeft geen invloed op de barometer.
-- De knoppen gebruiken de bestaande pakketlinks. Het pakket wordt vooraf gekozen en de drone staat uit.
-- De link geeft alleen het pakket en het rapportnummer mee, nooit persoonsgegevens of antwoorden.
-- De PDF bevat dezelfde aanbeveling, met een volledige werkende link en de melding dat prijzen na de rapportdatum kunnen veranderen.
+## 7. Productadvies
+- Eerst behoefte/onzekerheid/complexiteit bepalen, dan product. Budgetindicator blijft "binnenkort"; Woningscan bij concrete twijfel; Plus alleen bij onderbouwde complexiteit; EPC F alleen of enkel VME-onzekerheid geen automatisch Plus; drone alleen bij dakindicatie en fysiek pakket.
 
-## Wat ik ga testen
+## 8. Rapport en PDF
+- Alle inhoud samengesteld in de gedeelde rapportmodule, online en PDF tonen exact dezelfde opgeslagen gegevens.
+- Volgorde: profiel + barometer, bevindingen, vijf domeinen, verbanden, energie/verplichtingen/documenten, traject, acties en ontbrekende info, vervolgstap. Oude 2.3/2.3.1-snapshots blijven ongewijzigd weergegeven.
 
-- Alle bestaande tests, plus de 22 nieuwe scenario's uit de brief. De Tessenderlo-case moet uitkomen op "Enkele aandachtspunten", Woningscan €299, geen Plus en geen drone.
-- De pakketkeuze in de browser na een klik vanuit het rapport.
-- De Tessenderlo-PDF zelf genereren, elke pagina als afbeelding bekijken en naast de mock-up leggen.
-- Nagaan dat oude rapporten ongewijzigd openen.
+## 9. Tests en controle
+- Nieuwe testbestand met alle verplichte scenario's uit de brief (vraagroutering 10, bouwtechniek 12, EPC/wettelijk 15, commercieel 9) plus bestaande 205 regressietests.
+- Vier volledige dossiers (A recente woning, B appartement, C kandidaat-koper renovatiewoning, D eigenaar totaalrenovatie) via de browser doorlopen tot rapport en PDF; PDF-pagina's renderen en visueel nakijken; testgegevens nadien verwijderen.
+- Serverfunctie opnieuw uitrollen (testmodus blijft; dezelfde testomgeving als voorheen).
+- Opleveringsdocument `docs/quickscan-2.3.2-oplevering.md` met de 13 gevraagde punten.
 
 ## Technische details
+- `engine.ts`: fixpoint-resolver in `visibleQuestions/activeAnswers/isComplete`, budgetclassificatie, Q26-optie, P/G-vragen, `plans()` gesplitst in `renovationIntent()` en `explicitWorks()`; scorefuncties ongemoeid.
+- `report.ts`: `connections()` met scoring, nieuwe modules `energyContext`, `legalContext`, `documents`, `renovationPhases`, actiegroepen; `v232`-vlag in snapshot.
+- Nieuw `_shared/quickscan/legal.ts` (zonder imports): regels, bronnen, verificatiedatum.
+- `Quickscan.tsx`: na antwoord springen naar eerste nieuw geactiveerde open vraag. `quickscanSession.ts`: nieuwe sleutel + migratie.
+- `Report23.tsx` / `quickscanPdf23.ts`: optionele 2.3.2-secties renderen; `quickscan-submit`: volledigheidscontrole.
 
-- **Nieuw `_shared/quickscan/catalog.ts`:** de productgegevens (prijzen, namen, voordelen, beschikbaarheid, routes) zonder imports. `src/data/woningscan.ts` haalt ze daaruit en blijft de bron voor de website. Er is dus maar één plek met prijzen. De regel in AGENTS.md wordt hierop aangepast.
-- **Nieuw `_shared/quickscan/report23.ts`:** domeinstatussen, verbanden, actiekaarten, documentchecklist en `recommendProduct()` met vaste redenencodes. Het bestand gebruikt alleen de engine en de catalogus en raakt de scores niet aan.
-- **Rapportversie:** wordt `qs-report-2.3`. De regel- en vragenversies blijven 2.2.2. Nieuwe velden (`domains`, `links`, `actions`, `documents`, `recommendation`, `illustration`) komen in de snapshot. Oude snapshots tonen met de bestaande weergave en worden nooit herberekend.
-- **Weergave:** een nieuwe rapportweergave met een eigen lijnicoon- en illustratieset in SVG.
-- **PDF:** `quickscanPdf.ts` wordt herschreven naar een A4-opmaak met het echte logo als afbeelding (eventueel een scherpe export van hetzelfde bestand), de lettertypes Playfair Display en Inter, en dezelfde rapportgegevens.
-- **Statistieken:** nieuwe meetpunten via `track()`: `quickscan_recommendation_shown`, `_view`, `_cta_click`, `_compare_click` en `_drone_info_view`, telkens met product-ID en redenencode, zonder persoonsgegevens.
-- **Server:** de server-side functie wordt opnieuw uitgerold met de nieuwe rapportversie. De bestaande beveiliging, de bescherming tegen dubbele inzendingen, de limiet per uur en de testmodus blijven ongewijzigd.
+## Open punt
+- Twijfelgevallen ouderdomsscores blijven wachten op goedkeuring DIMAC (ongewijzigd).
