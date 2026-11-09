@@ -35,5 +35,6 @@
 # Quickscan 2.3.2 (testmodus)
 - [x] Vragenresolver, renovatie-intentie, verbanden, EPC/wettelijk, documenten, fasen, acties, rapport/PDF
 - [x] Tests, typecheck, lokale PDF- en browsercontroles
-- [ ] Heruitrol serverfunctie — wacht op afzonderlijke toestemming
+- [x] Heruitrol quickscan-submit + end-to-end-tests (testgegevens verwijderd)
+- [ ] Dashboardtest met beheerdersaccount — wacht op beheerdersaccount
 - [ ] Publicatie — wacht op toestemming
