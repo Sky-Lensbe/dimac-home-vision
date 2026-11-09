@@ -397,7 +397,10 @@ export function workSequence(a: Answers) {
 }
 
 export function recommendProduct(a: Answers, ctx: { domainScores: Record<Domain, number | null>; flags: SafetyId[]; unknownLevel: string; findings: Finding[]; apartmentSignals: number }): Recommendation {
-  const tech = technicalDomains(ctx.domainScores).length;
+  // 2.3.2: een zwak EPC-label alleen is geen reden voor een plaatsbezoek; het EPC-verslag bevat de officiële aanbevelingen.
+  const pp = privateSignals(a);
+  const energyOnlyLabel = !has(pp, "DI01", "niet", "gedeeltelijk", "beperkt") && !has(pp, "MI01", "niet", "gedeeltelijk") && !has(pp, "G01", "enkel");
+  const tech = technicalDomains(ctx.domainScores).filter((d) => !(d === "E" && energyOnlyLabel)).length;
   const planned = plannedCount(a);
   const full = plans(a, "volledig");
   const evidence = renovationEvidence(a, ctx.domainScores);
