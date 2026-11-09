@@ -8,23 +8,23 @@ import { reportEmail } from "./delivery.ts";
 const ASSET_BASE = "https://id-preview--9898680e-4724-4e20-8227-2a5082382f19.lovable.app/__l5e/assets-v1";
 const ASSETS: Record<string, string> = {
   "dimac-logo.jpg": "eac0e65c-d1d6-415e-8f37-ce51fbc93e7d",
+  "PlayfairDisplay-Regular.ttf": "825c3cfc-9327-4ef2-b563-b89261eb309c",
+  "PlayfairDisplay-SemiBold.ttf": "4165c84c-1c29-415c-b7ae-79f7a0113a8f",
+  "Inter-Regular.ttf": "2788c9b1-ed65-497a-bb5d-fdc86391ff74",
+  "Inter-SemiBold.ttf": "a38f5209-6d60-447e-b242-43722b7f6b74",
 };
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/resend";
-
-async function assetIds(): Promise<Record<string, string>> {
-  return ASSETS;
-}
 
 export function mayReceiveTestMail(email: string): boolean {
   return MAIL_MODE === "test" && (TEST_ALLOWLIST as readonly string[]).includes(email.trim().toLowerCase());
 }
 
-export async function sendReportMail(snapshot: any, meta: { reportNumber: string; name: string; municipality: string; date: string }, email: string, firstName: string, fontIds: Record<string, string>) {
+export async function sendReportMail(snapshot: any, meta: { reportNumber: string; name: string; municipality: string; date: string }, email: string, firstName: string) {
   if (!mayReceiveTestMail(email)) return { status: "niet_geconfigureerd" as const };
   const lovableKey = Deno.env.get("LOVABLE_API_KEY");
   const resendKey = Deno.env.get("RESEND_API_KEY");
   if (!lovableKey || !resendKey) return { status: "failed" as const, detail: "Mailsleutels ontbreken" };
-  const ids = { ...(await assetIds()), ...fontIds };
+  const ids = ASSETS;
   const deps = {
     jsPDF,
     categories: ["Beperkte renovatiesignalen", "Enkele aandachtspunten", "Verhoogde renovatiesignalen", "Prioritaire beoordeling aanbevolen"].map((label) => ({ label })),
