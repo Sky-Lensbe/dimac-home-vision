@@ -39,6 +39,7 @@ export default function Quickscan() {
   const [index, setIndex] = useState(saved?.index ?? 0);
   const [startedAt, setStartedAt] = useState(saved?.startedAt ?? 0);
   const [catchUp, setCatchUp] = useState(false);
+  const [curId, setCurId] = useState<string | null>(null);
   const [final, setFinal] = useState<{ report: QuickscanReport; meta: ReportMeta } | null>(null);
   const topRef = useRef<HTMLDivElement>(null);
 
@@ -50,7 +51,11 @@ export default function Quickscan() {
   const active = resolved.active;
   const visible = resolved.visible;
   const flags = useMemo(() => safetyFlags(active), [active]);
-  const q: Question | undefined = visible[Math.min(index, visible.length - 1)];
+  // De huidige vraag volgt haar ID: als een antwoord eerdere vragen activeert, verspringt het scherm niet.
+  const byId = curId ? visible.findIndex((x) => x.id === curId) : -1;
+  const qPos = byId >= 0 ? byId : Math.min(index, visible.length - 1);
+  const q: Question | undefined = visible[qPos];
+  const go = (list: Question[], i: number) => { setIndex(i); setCurId(list[i]?.id ?? null); };
 
   useEffect(() => { track("quickscan_view", { page_type: "quickscan" }); }, []);
   useEffect(() => {
@@ -59,8 +64,8 @@ export default function Quickscan() {
   }, [stage, active, index, startedAt]);
   useEffect(() => { topRef.current?.scrollIntoView({ block: "start" }); }, [stage, index]);
 
-  const start = () => { setStage("questions"); setIndex(0); setStartedAt(Date.now()); track("quickscan_start"); };
-  const restart = () => { sessionStorage.removeItem(KEY); setAnswers({}); setIndex(0); setCatchUp(false); setFinal(null); setStage("intro"); };
+  const start = () => { setStage("questions"); setIndex(0); setCurId(null); setStartedAt(Date.now()); track("quickscan_start"); };
+  const restart = () => { sessionStorage.removeItem(KEY); setAnswers({}); setIndex(0); setCurId(null); setCatchUp(false); setFinal(null); setStage("intro"); };
 
   const select = (opt: string) => {
     if (!q) return;
@@ -92,13 +97,13 @@ export default function Quickscan() {
     // Eerst de huidige stroom afmaken; daarna pas eerder in de lijst nieuw geactiveerde vragen tonen.
     if (catchUp) {
       const n = open(0);
-      if (n >= 0) { setIndex(n); return; }
+      if (n >= 0) { go(after, n); return; }
       setCatchUp(false); setStage("preview"); track("quickscan_result_preview"); return;
     }
     if (after[pos + 1] && after[pos + 1].step !== q.step) track("quickscan_step_complete", { item_id: String(q.step) });
-    if (pos + 1 < after.length) { setIndex(pos + 1); return; }
+    if (pos + 1 < after.length) { go(after, pos + 1); return; }
     const missing = open(0);
-    if (missing >= 0) { setCatchUp(true); setIndex(missing); return; }
+    if (missing >= 0) { setCatchUp(true); go(after, missing); return; }
     setStage("preview"); track("quickscan_result_preview");
   };
 
@@ -149,7 +154,7 @@ export default function Quickscan() {
             </div>
             {flags.length > 0 && <div className="mt-8"><SafetyAlerts ids={flags} /></div>}
             <div className="mt-10 flex items-center justify-between gap-3">
-              <Button type="button" variant="ghost" onClick={() => { setCatchUp(false); if (index === 0) setStage("intro"); else setIndex(index - 1); }}>
+              <Button type="button" variant="ghost" onClick={() => { setCatchUp(false); if (qPos <= 0) setStage("intro"); else go(visible, qPos - 1); }}>
                 <ArrowLeft /> Vorige
               </Button>
               <div className="flex items-center gap-2">
@@ -185,7 +190,7 @@ export default function Quickscan() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button size="lg" onClick={() => { setStage("form"); track("quickscan_lead_form_view"); }}>Ontvang mijn volledige gratis rapport <ArrowRight /></Button>
-              <Button variant="ghost" onClick={() => { setStage("questions"); setIndex(visible.length - 1); }}><ArrowLeft /> Antwoorden aanpassen</Button>
+              <Button variant="ghost" onClick={() => { setStage("questions"); go(visible, visible.length - 1); }}><ArrowLeft /> Antwoorden aanpassen</Button>
             </div>
           </div>
         </section>
