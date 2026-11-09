@@ -60,7 +60,7 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
     doc.addFileToVFS("Inter-Regular.ttf", toBase64(ir)); doc.addFont("Inter-Regular.ttf", "Inter", "normal");
     doc.addFileToVFS("Inter-SemiBold.ttf", toBase64(is)); doc.addFont("Inter-SemiBold.ttf", "Inter", "bold");
     SERIF = "Playfair"; SANS = "Inter";
-  } catch (error) { if (opts.strictAssets) throw new Error("PDF fonts unavailable", { cause: error }); }
+  } catch { if (opts.strictAssets) throw new Error("PDF fonts unavailable"); }
   let logo: { data: string; fmt: "PNG" | "JPEG"; ratio: number } | null = null;
   for (const url of PDF_ASSETS.logo) {
     try {
