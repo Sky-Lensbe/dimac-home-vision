@@ -38,13 +38,24 @@ export default function Quickscan() {
   const [answers, setAnswers] = useState<Answers>(saved?.answers ?? {});
   const [index, setIndex] = useState(saved?.index ?? 0);
   const [startedAt, setStartedAt] = useState(saved?.startedAt ?? 0);
+  const [catchUp, setCatchUp] = useState(false);
+  const [curId, setCurId] = useState<string | null>(null);
   const [final, setFinal] = useState<{ report: QuickscanReport; meta: ReportMeta } | null>(null);
   const topRef = useRef<HTMLDivElement>(null);
 
-  const active = useMemo(() => activeAnswers(answers), [answers]);
-  const visible = useMemo(() => visibleQuestions(active), [active]);
+  // Een niet-convergerende vragenlogica faalt expliciet; er wordt dan nooit een rapport opgemaakt.
+  const resolved = useMemo(() => {
+    try { const act = activeAnswers(answers); return { active: act, visible: visibleQuestions(act), error: false }; }
+    catch { return { active: {} as Answers, visible: [] as Question[], error: true }; }
+  }, [answers]);
+  const active = resolved.active;
+  const visible = resolved.visible;
   const flags = useMemo(() => safetyFlags(active), [active]);
-  const q: Question | undefined = visible[Math.min(index, visible.length - 1)];
+  // De huidige vraag volgt haar ID: als een antwoord eerdere vragen activeert, verspringt het scherm niet.
+  const byId = curId ? visible.findIndex((x) => x.id === curId) : -1;
+  const qPos = byId >= 0 ? byId : Math.min(index, visible.length - 1);
+  const q: Question | undefined = visible[qPos];
+  const go = (list: Question[], i: number) => { setIndex(i); setCurId(list[i]?.id ?? null); };
 
   useEffect(() => { track("quickscan_view", { page_type: "quickscan" }); }, []);
   useEffect(() => {
@@ -53,8 +64,8 @@ export default function Quickscan() {
   }, [stage, active, index, startedAt]);
   useEffect(() => { topRef.current?.scrollIntoView({ block: "start" }); }, [stage, index]);
 
-  const start = () => { setStage("questions"); setIndex(0); setStartedAt(Date.now()); track("quickscan_start"); };
-  const restart = () => { sessionStorage.removeItem(KEY); setAnswers({}); setIndex(0); setFinal(null); setStage("intro"); };
+  const start = () => { setStage("questions"); setIndex(0); setCurId(null); setStartedAt(Date.now()); track("quickscan_start"); };
+  const restart = () => { sessionStorage.removeItem(KEY); setAnswers({}); setIndex(0); setCurId(null); setCatchUp(false); setFinal(null); setStage("intro"); };
 
   const select = (opt: string) => {
     if (!q) return;
@@ -80,11 +91,20 @@ export default function Quickscan() {
   const next = () => advance(active);
   const advance = (cur: Answers) => {
     if (!q) return;
-    const after = visibleQuestions(cur);
+    const after = visibleQuestions(activeAnswers(cur));
     const pos = after.findIndex((x) => x.id === q.id);
+    const open = (from: number) => after.findIndex((x, i) => i >= from && cur[x.id] === undefined);
+    // Eerst de huidige stroom afmaken; daarna pas eerder in de lijst nieuw geactiveerde vragen tonen.
+    if (catchUp) {
+      const n = open(0);
+      if (n >= 0) { go(after, n); return; }
+      setCatchUp(false); setStage("preview"); track("quickscan_result_preview"); return;
+    }
     if (after[pos + 1] && after[pos + 1].step !== q.step) track("quickscan_step_complete", { item_id: String(q.step) });
-    if (pos + 1 >= after.length) { setStage("preview"); track("quickscan_result_preview"); return; }
-    setIndex(pos + 1);
+    if (pos + 1 < after.length) { go(after, pos + 1); return; }
+    const missing = open(0);
+    if (missing >= 0) { setCatchUp(true); go(after, missing); return; }
+    setStage("preview"); track("quickscan_result_preview");
   };
 
   const preview = useMemo(() => (stage === "preview" || stage === "form" ? buildReport(active) : null), [stage, active]);
@@ -99,10 +119,14 @@ export default function Quickscan() {
       />
       {stage === "intro" && <Intro onStart={start} resume={saved && saved.stage !== "intro" && Object.keys(saved.answers).length ? () => setStage(saved.stage) : undefined} />}
 
+      {resolved.error && stage !== "intro" && (
+        <section className="py-16 bg-background"><div className="container-tight max-w-3xl"><p role="alert" className="text-destructive">Uw antwoorden konden niet consistent verwerkt worden. Start de Quickscan opnieuw.</p><Button className="mt-6" onClick={() => restart()}>Opnieuw beginnen</Button></div></section>
+      )}
       {stage === "questions" && q && (
         <section className="py-12 md:py-20 bg-background min-h-[70vh]">
           <div className="container-tight max-w-3xl">
             <StepBar step={q.step} />
+            {catchUp && <p role="status" className="mt-6 border-l-2 border-accent pl-4 text-sm text-primary/85">Door uw latere antwoorden zijn enkele eerdere vragen nu relevant. Beantwoord ze nog, daarna ziet u uw resultaat.</p>}
             <p className="mt-10 text-xs uppercase tracking-[0.24em] text-accent">Stap {q.step} van 4 — {stepTitle(q.step, active)}</p>
             <h1 className="mt-3 font-display text-3xl md:text-4xl leading-tight text-primary">{questionText(q, active)}</h1>
             {q.help && <p className="mt-3 text-sm text-muted-foreground">{q.help}</p>}
@@ -129,15 +153,15 @@ export default function Quickscan() {
               })}
             </div>
             {flags.length > 0 && <div className="mt-8"><SafetyAlerts ids={flags} /></div>}
-            <div className="mt-10 flex items-center justify-between gap-3">
-              <Button type="button" variant="ghost" onClick={() => (index === 0 ? setStage("intro") : setIndex(index - 1))}>
+            <div className="mt-10 flex items-center justify-between gap-2">
+              <Button type="button" variant="ghost" className="px-2 sm:px-4" onClick={() => { setCatchUp(false); if (qPos <= 0) setStage("intro"); else go(visible, qPos - 1); }}>
                 <ArrowLeft /> Vorige
               </Button>
               <div className="flex items-center gap-2">
                 {q.optional && !q.safety && (
-                  <Button type="button" variant="outline" onClick={skip}>Overslaan</Button>
+                  <Button type="button" variant="outline" className="px-3 sm:px-4" onClick={skip}>Overslaan</Button>
                 )}
-                <Button type="button" onClick={next} disabled={active[q.id] === undefined || active[q.id] === SKIP}>
+                <Button type="button" className="px-3 sm:px-4" onClick={next} disabled={active[q.id] === undefined || active[q.id] === SKIP}>
                   Volgende <ArrowRight />
                 </Button>
               </div>
@@ -166,7 +190,7 @@ export default function Quickscan() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button size="lg" onClick={() => { setStage("form"); track("quickscan_lead_form_view"); }}>Ontvang mijn volledige gratis rapport <ArrowRight /></Button>
-              <Button variant="ghost" onClick={() => { setStage("questions"); setIndex(visible.length - 1); }}><ArrowLeft /> Antwoorden aanpassen</Button>
+              <Button variant="ghost" onClick={() => { setStage("questions"); go(visible, visible.length - 1); }}><ArrowLeft /> Antwoorden aanpassen</Button>
             </div>
           </div>
         </section>

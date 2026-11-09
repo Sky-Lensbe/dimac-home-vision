@@ -90,7 +90,7 @@ describe("Quickscan rapportpatch 2.3.1", () => {
   });
   it("uitsluitend rapportversie verandert, scores en veiligheidsregels blijven 2.2.2", () => {
     const a = fill(clean); const r = composeReport(a);
-    expect(r.reportVersion).toBe("qs-report-2.3.1"); expect(r.ruleVersion).toBe("qs-rules-2.2.2"); expect(r.questionVersion).toBe("qs-questions-2.2.2");
+    expect(r.reportVersion).toBe("qs-report-2.3.2"); expect(r.ruleVersion).toBe("qs-rules-2.2.2"); expect(r.questionVersion).toBe("qs-questions-2.3.2");
     expect(r.domainScores).toEqual(buildReport(a).domainScores); expect(r.safety).toEqual(buildReport(a).safety);
   });
 });

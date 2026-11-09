@@ -13,9 +13,11 @@ import {
   type Answers, type Domain, type SafetyId,
 } from "./engine.ts";
 import { DRONE_OPTION, getProduct, VAT_RATE, type ProductId } from "./catalog.ts";
+import { ASBESTOS, LEGAL_SOURCES, LEGAL_VERIFIED_AT, LEGAL_VERSION, RENOVATION_OBLIGATION, type LegalSourceId } from "./legal.ts";
 
-export const REPORT_VERSION_23 = "qs-report-2.3.1";
-const { has, plans, plannedCount, buyer, label } = answerHelpers;
+export const REPORT_VERSION_23 = "qs-report-2.3.2";
+export const REPORT_EXTENSION_232 = "v232";
+const { has, plans, fullIntent, plannedCount, buyer, label } = answerHelpers;
 
 const scoreOf = (a: Answers, qid: string): number => {
   const v = a[qid];
@@ -170,9 +172,10 @@ function findings(a: Answers): Finding[] {
 
 // ---------- Verbanden ----------
 export interface LinkNode { icon: IconId; label: string; caption: string }
-export interface Connection { id: string; title: string; text: string; nodes: LinkNode[] }
+export interface Connection { id: string; title: string; text: string; nodes: LinkNode[]; evidence?: string[]; relevance?: number }
 
-export function connections(a: Answers): Connection[] {
+/** Alle kandidaatverbanden (ongerangschikt). */
+export function connectionCandidates(a: Answers): Connection[] {
   const p = privateSignals(a);
   const moisture = has(p, "Q24", "terugkerend", "vochtplekken");
   const vent = has(p, "Q39", "beperkt", "defect", "onbekend") || has(p, "V01", "geen");
@@ -191,8 +194,41 @@ export function connections(a: Answers): Connection[] {
   add({ id: "LINK-SANITAIR-VLOER", title: "Leidingen en vloerwerken", nodes: [{ icon: "pipe", label: "Leidingen", caption: has(p, "SL01", "gt25", "origineel") ? "Ouderdom gemeld, geen bewezen gebrek." : "Aanpassing van leidingen nog te verifiëren." }, { icon: "house", label: "Vloeren", caption: "Geplande vloerwerken." }], text: has(p, "Q45", "actief", "terugkerend", "verstopping") ? "U meldt sanitaire of afvoerproblemen en plant vloerwerken. Laat de gemelde problemen beoordelen vóór de definitieve vloerafwerking." : plans(a, "sanitair") ? "Wanneer bij de geplande sanitaire werken ook leidingen worden aangepast, is het verstandig deze werkzaamheden met de nieuwe vloerafwerking af te stemmen. De Quickscan kan niet bepalen of leidingen vervangen moeten worden." : "U vermeldt oudere leidingen en plant vloerwerken. Verifieer vóór de nieuwe vloerafwerking of leidingwerken nodig zijn; ouderdom alleen bewijst geen gebrek of noodzaak tot vervanging." }, (plans(a, "sanitair") || has(p, "SL01", "gt25", "origineel") || has(p, "Q45", "actief", "terugkerend", "verstopping")) && plans(a, "vloeren"));
   const sequence = workSequence(a);
   add({ id: "LINK-WERKVOLGORDE", title: "Afstemming van uw geplande werken", nodes: [{ icon: "plan", label: "Werkvolgorde", caption: "Afstemming, geen veronderstelde omvang." }, { icon: "house", label: "Geplande werken", caption: sequence.labels.join(", ") }], text: sequence.text }, sequence.relevant);
+  const basementOnly = has(p, "Q25", "kelder") && Array.isArray(p.Q25) && p.Q25.length === 1;
+  const basementWater = has(p, "Q28", "soms", "regelmatig", "actief");
+  const active = has(p, "Q28", "actief");
+  add({ id: "LINK-KELDER-REGEN", title: "Keldervocht en mogelijke vochtbron", nodes: [{ icon: "drop", label: active ? "Waterinstroom" : "Keldervocht", caption: active ? "Actieve instroom gemeld." : has(p, "Q28", "soms") ? "Vooral na regen." : "Vocht of water in de kelder." }, { icon: "building", label: "Mogelijke bron", caption: "Grondwater, afvoer, aansluitingen of buitenwanden." }], text: active ? "U meldt actieve waterinstroom in de kelder. Dat is iets anders dan vochtplekken: laat de instroomroute gericht onderzoeken (bijvoorbeeld afvoer, aansluitingen, buitenwanden of grondwater) vóór u afwerkt of isoleert." : "U meldt vocht in de kelder, vooral in samenhang met regen. Een gericht onderzoek naar de mogelijke vochtbron helpt bepalen of het om insijpeling, afvoer of condensatie gaat. Dit staat los van eventuele ventilatie in de woonruimtes." }, basementWater || (has(p, "Q25", "kelder") && has(p, "Q27", "regen")));
+  add({ id: "LINK-RAAM-CONDENS", title: "Condens en schimmel rond ramen", nodes: [{ icon: "window", label: "Rond ramen", caption: "Condens of schimmel aan de binnenzijde." }, VENT, { icon: "leaf", label: "Koude oppervlakken", caption: "Glas, kaders en aansluitingen." }], text: `U meldt condens of schimmel rond ramen. Dat kan samenhangen met ventilatie, koude oppervlakken en de aansluiting van het schrijnwerk. ${has(p, "Q21", "ja") ? "Condens tussen de glasplaten is een afzonderlijk signaal van de beglazing zelf. " : ""}Laat deze factoren samen bekijken voor u kiest wat u aanpakt.` }, (has(p, "Q25", "ramen") || has(p, "Q25A", "ramen")) && has(p, "Q24", "terugkerend", "vochtplekken"));
   add({ id: "LINK-VME-KOSTEN", title: "Appartement en gemeenschappelijke kosten", nodes: [{ icon: "building", label: "Mede-eigendom", caption: "Aangekondigde werken of bijdragen." }, { icon: "doc", label: "VME-documenten", caption: "Verslagen, reservefonds en besluiten." }], text: "Er zijn werken of bijkomende bijdragen in de mede-eigendom aangekondigd. Die staan los van de privatieve barometer, maar kunnen uw kosten beïnvloeden. De VME-documenten geven daar meer duidelijkheid over." }, isApartment(a) && (has(a, "A02", "middel", "ingrijpend", "besproken") || has(a, "A03", "beperkt", "substantieel", "omvang")));
-  return out.slice(0, 2);
+  return out.filter((c) => !(basementOnly && ["LINK-VOCHT-VENT-RAMEN", "LINK-VOCHT-VENT"].includes(c.id)));
+}
+
+/** Bewijsgrond en deterministische relevantie per verband (hoger = relevanter). */
+const LINK_EVIDENCE: Record<string, string[]> = {
+  "LINK-KELDER-REGEN": ["Q28", "Q25", "Q27"], "LINK-RAAM-CONDENS": ["Q24", "Q25", "Q25A", "Q39", "Q21"], "LINK-VOCHT-VENT-RAMEN": ["Q24", "Q20", "Q22", "Q39", "V01"],
+  "LINK-VOCHT-VENT": ["Q24", "Q39", "V01"], "LINK-DAK-ISOL": ["Q14", "Q15", "DI01", "Q46"], "LINK-GEVEL-RAMEN": ["Q18", "Q20", "Q46"],
+  "LINK-VOCHT-AFWERKING": ["Q24", "M01", "Q46", "Q46A"], "LINK-VERW-ISOL": ["Q46", "Q46A", "DI01", "MI01", "Q34"], "LINK-SANITAIR-VLOER": ["Q46", "Q46A", "SL01", "Q45"],
+  "LINK-WERKVOLGORDE": ["Q46", "Q46A", "Q47"], "LINK-VME-KOSTEN": ["A02", "A03"],
+};
+const LINK_SPECIFIC: Record<string, number> = { "LINK-KELDER-REGEN": 3, "LINK-RAAM-CONDENS": 3, "LINK-VOCHT-VENT-RAMEN": 2, "LINK-DAK-ISOL": 2, "LINK-VERW-ISOL": 2, "LINK-SANITAIR-VLOER": 1, "LINK-VOCHT-VENT": 1, "LINK-GEVEL-RAMEN": 1, "LINK-VOCHT-AFWERKING": 1, "LINK-VME-KOSTEN": 1, "LINK-WERKVOLGORDE": 0 };
+const OVERLAP: Record<string, string[]> = { "LINK-VOCHT-VENT-RAMEN": ["LINK-VOCHT-VENT", "LINK-RAAM-CONDENS"], "LINK-RAAM-CONDENS": ["LINK-VOCHT-VENT"], "LINK-SANITAIR-VLOER": ["LINK-WERKVOLGORDE"], "LINK-VERW-ISOL": ["LINK-WERKVOLGORDE"] };
+
+export function connectionRelevance(a: Answers, c: Connection): number {
+  const p = privateSignals(a);
+  const ev = (LINK_EVIDENCE[c.id] ?? []).filter((q) => p[q] !== undefined && p[q] !== SKIP);
+  const severity = Math.max(0, ...ev.map((q) => scoreOf(p, q)));
+  const planned = ev.some((q) => q === "Q46" || q === "Q46A") && selectedWorks(a).length > 0 ? 2 : 0;
+  const unknown = ev.filter((q) => has(p, q, "onbekend")).length;
+  return severity + (LINK_SPECIFIC[c.id] ?? 0) * 2 + planned + Math.min(ev.length, 4) - unknown;
+}
+
+/** Maximaal twee werkelijk relevante verbanden, gerangschikt; specifiekere verbanden vervangen overlappende. */
+export function connections(a: Answers): Connection[] {
+  const p = privateSignals(a);
+  const scored = connectionCandidates(a).map((c, i) => ({ ...c, evidence: (LINK_EVIDENCE[c.id] ?? []).filter((q) => p[q] !== undefined && p[q] !== SKIP && a[q] !== undefined), relevance: connectionRelevance(a, c), i }));
+  const ids = new Set(scored.map((c) => c.id));
+  const kept = scored.filter((c) => !Object.entries(OVERLAP).some(([k, v]) => ids.has(k) && v.includes(c.id)));
+  return kept.sort((x, y) => y.relevance - x.relevance || x.i - y.i).slice(0, 2).map(({ i: _i, ...c }) => c);
 }
 
 // ---------- Actiekaarten ----------
@@ -361,7 +397,10 @@ export function workSequence(a: Answers) {
 }
 
 export function recommendProduct(a: Answers, ctx: { domainScores: Record<Domain, number | null>; flags: SafetyId[]; unknownLevel: string; findings: Finding[]; apartmentSignals: number }): Recommendation {
-  const tech = technicalDomains(ctx.domainScores).length;
+  // 2.3.2: een zwak EPC-label alleen is geen reden voor een plaatsbezoek; het EPC-verslag bevat de officiële aanbevelingen.
+  const pp = privateSignals(a);
+  const energyOnlyLabel = !has(pp, "DI01", "niet", "gedeeltelijk", "beperkt") && !has(pp, "MI01", "niet", "gedeeltelijk") && !has(pp, "G01", "enkel");
+  const tech = technicalDomains(ctx.domainScores).filter((d) => !(d === "E" && energyOnlyLabel)).length;
   const planned = plannedCount(a);
   const full = plans(a, "volledig");
   const evidence = renovationEvidence(a, ctx.domainScores);
@@ -477,6 +516,154 @@ function conclusion(a: Answers, categoryId: string, links: Connection[], unknown
   return parts.filter(Boolean).join(" ");
 }
 
+// ---------- 2.3.2: energie, wettelijke context, documenten, fasen, actiegroepen ----------
+const answeredQ = (a: Answers, q: string) => a[q] !== undefined && a[q] !== SKIP;
+const EPC_TEXT: Record<string, string> = { aplus: "A+ of A", b: "B", c: "C", d: "D", e: "E", f: "F" };
+
+export interface EnergyContext { label: string | null; band: "gunstig" | "midden" | "zwak" | "onbekend"; title: string; text: string; points: string[]; evidence: string[] }
+export function energyContext(a: Answers): EnergyContext {
+  const p = privateSignals(a);
+  const v = typeof p.Q34 === "string" && p.Q34 !== SKIP ? p.Q34 : null;
+  const lbl = v && EPC_TEXT[v] ? EPC_TEXT[v] : null;
+  const evidence = ["Q34", "Q35", "DI01", "MI01", "VL02", "G01", "H01", "H02", "Q42"].filter((q) => answeredQ(p, q));
+  const points: string[] = [];
+  if (has(p, "DI01", "niet", "gedeeltelijk", "beperkt")) points.push("Volgens uw antwoorden is de dakisolatie beperkt of onvolledig.");
+  if (has(p, "MI01", "niet", "gedeeltelijk")) points.push("De buitenmuren zijn volgens u niet of gedeeltelijk geïsoleerd.");
+  if (has(p, "VL02", "nee", "gedeeltelijk")) points.push("De vloer op het gelijkvloers is volgens u niet of gedeeltelijk geïsoleerd.");
+  if (has(p, "G01", "enkel", "dubbel", "gemengd")) points.push(`Beglazing: ${lower(label("G01", p.G01))}.`);
+  if (has(p, "H02", "gt20")) points.push("De verwarmingsinstallatie is volgens u meer dan 20 jaar oud; ouderdom alleen is geen gebrek.");
+  const unknownInsul = ["DI01", "MI01", "G01"].filter((q) => has(p, q, "onbekend") || p[q] === SKIP).length;
+  if (unknownInsul) points.push("Een deel van de isolatie- of beglazingsgegevens is onbekend; het volledige EPC-verslag kan die aanvullen.");
+  if (has(p, "Q35", "ouder")) points.push("Het EPC is ouder; de gegevens weerspiegelen mogelijk niet de huidige toestand.");
+  const plan = selectedWorks(a).filter((w) => ["isolatie", "ramen", "verwarming", "dak", "gevel"].includes(w));
+  if (!lbl) return { label: null, band: "onbekend", title: "Energieprestatie nog niet gekend", text: "Het EPC-label is niet gekend. Het EPC is een officiële bron voor de energieprestatie en bevat aanbevelingen; vraag het op of raadpleeg het voor u beslissingen neemt.", points, evidence };
+  if (["aplus", "b"].includes(v!)) return { label: lbl, band: "gunstig", title: `EPC-label ${lbl}: gunstige energieprestatie`, text: `Een EPC-label ${lbl} wijst op een gunstige energieprestatie. Het zegt niets over vocht, stabiliteit, elektriciteit of veiligheid; die onderdelen blijven afzonderlijk beoordeeld in dit rapport.`, points, evidence };
+  if (["c", "d"].includes(v!)) return { label: lbl, band: "midden", title: `EPC-label ${lbl}: gerichte verbeterpunten`, text: `Met label ${lbl} zijn er doorgaans gerichte energetische verbeterpunten, zonder dat een ingrijpende energetische renovatie automatisch nodig is. ${points.length ? "Uw antwoorden geven al enkele aanknopingspunten." : "Het volledige EPC-verslag bevat de officiële aanbevelingen."}`, points, evidence };
+  return { label: lbl, band: "zwak", title: `EPC-label ${lbl}: duidelijke energetische prioriteit`, text: `Label ${lbl} wijst op een zwakke energieprestatie. Raadpleeg het volledige EPC-verslag met de officiële aanbevelingen: het label alleen vertelt niet welke werken exact nodig zijn${plan.length ? `. Uw geplande ${joinNl(plan.map((w) => lower(label("Q46", w))))} sluiten hier mogelijk bij aan; laat de onderlinge afstemming beoordelen` : ""}. De Quickscan voorspelt geen toekomstig label en belooft geen besparing.`, points, evidence };
+}
+
+export interface LegalItem { id: string; title: string; text: string; verify: string[]; sources: { label: string; url: string }[]; level: "melding" | "verificatie" | "info" }
+const src = (...ids: LegalSourceId[]) => ids.map((i) => ({ ...LEGAL_SOURCES[i] }));
+export function legalContext(a: Answers): LegalItem[] {
+  const out: LegalItem[] = [];
+  const apt = isApartment(a);
+  const buy = buyer(a);
+  const epc = typeof a.Q34 === "string" ? a.Q34 : null;
+  const ef = epc !== null && (RENOVATION_OBLIGATION.labels as readonly string[]).includes(epc);
+  const unit = apt ? "het appartement" : "de woning";
+  const R = RENOVATION_OBLIGATION;
+  if (ef && buy) out.push({ id: "LEG-RENO-KOPER", level: "melding", title: "Mogelijke renovatieverplichting", text: `Bij een toepasselijke aankoop of andere overdracht van ${unit} met label ${EPC_TEXT[epc!]} geldt in principe de verplichting om binnen ${R.years} jaar minimaal label ${R.minimumLabel} te behalen. De termijn start op ${R.start}. De verbetering moet met een nieuw EPC aangetoond worden.`, verify: ["Controleer of de verplichting op uw overdracht van toepassing is en welke uitzonderingen kunnen gelden.", "Vraag na of er voor het pand al een lopende renovatieverplichting bestaat uit een eerdere overdracht; bij doorverkoop kan een bestaande verplichting en resterende termijn relevant zijn.", ...(apt ? ["De verplichting betreft het individuele appartement; werken aan gemeenschappelijke delen beslist de VME."] : [])], sources: src("renovatieplicht") });
+  else if (ef) out.push({ id: "LEG-RENO-VERIFIEER", level: "verificatie", title: "Renovatieverplichting: te verifiëren", text: `Voor ${unit} is label ${EPC_TEXT[epc!]} opgegeven. Of er een renovatieverplichting geldt, hangt af van de datum en aard van de verwerving. Er kan al een lopende verplichting bestaan uit een eerdere overdracht. De Quickscan berekent geen persoonlijke termijn.`, verify: ["Ga na wanneer en hoe het eigendom verworven werd en of daarbij een renovatieverplichting ontstond.", `Indien van toepassing: minimaal label ${R.minimumLabel} binnen ${R.years} jaar, aan te tonen met een nieuw EPC.`], sources: src("renovatieplicht") });
+  else if (buy && (epc === null || epc === "onbekend")) out.push({ id: "LEG-RENO-EPC-ONBEKEND", level: "verificatie", title: "EPC-label opvragen vóór aankoop", text: "Het EPC-label is niet gekend. Bij een label E of F kan na aankoop een renovatieverplichting gelden. Vraag het EPC op bij de verkoper.", verify: ["Vraag het geldige EPC en het volledige verslag op."], sources: src("renovatieplicht") });
+  if (apt) {
+    out.push({ id: "LEG-EPC-GD", level: "info", title: "EPC van de gemeenschappelijke delen", text: "Een appartementsgebouw moet in principe over een afzonderlijk EPC voor de gemeenschappelijke delen beschikken, behalve wanneer het volledige gebouw nieuwbouw is. Een gebouw of appartement dat een ingrijpende energetische renovatie onderging, geldt daarbij niet als nieuwbouw. Dit EPC staat los van het EPC van het appartement.", verify: ["Vraag de syndicus of het EPC gemeenschappelijke delen beschikbaar is en welke collectieve maatregelen het aanbeveelt."], sources: src("epcGd") });
+    if (!has(a, "Q03", "vanaf2011")) out.push({ id: "LEG-ASBEST-GD", level: has(a, "Q03", "1991-2010", "onbekend") ? "verificatie" : "info", title: "Asbestattest gemene delen", text: `Voor gebouwen van vóór ${ASBESTOS.cutoffYear} moet de VME uiterlijk op ${ASBESTOS.commonPartsDeadline} over een asbestattest voor de gemene delen beschikken. Vanaf ${ASBESTOS.commonPartsTransferFrom} moet bij elke overdracht van een appartement zowel het attest van het appartement als dat van de gemene delen overhandigd worden.${has(a, "Q03", "1991-2010", "onbekend") ? " Verifieer eerst het exacte bouwjaar." : ""}`, verify: ["Vraag de syndicus naar de stand van het asbestattest voor de gemene delen."], sources: src("asbestGd") });
+  }
+  if (buy) {
+    const pv = typeof a.FL01 === "string" ? a.FL01 : null; const gv = typeof a.FL02 === "string" ? a.FL02 : null;
+    const high = ["c", "d"].includes(pv ?? "") || ["c", "d"].includes(gv ?? "");
+    const known = (pv && !["onbekend", SKIP].includes(pv)) || (gv && !["onbekend", SKIP, "nvt"].includes(gv));
+    if (high) out.push({ id: "LEG-OVERSTROMING", level: "verificatie", title: "Overstromingsgevoeligheid nagaan", text: `U vermeldt ${[pv && ["c", "d"].includes(pv) ? `P-score ${pv.toUpperCase()}` : "", gv && ["c", "d"].includes(gv) ? `G-score ${gv.toUpperCase()}` : ""].filter(Boolean).join(" en ")}. Dat is administratieve informatie over de overstromingskans, geen bewijs van vochtproblemen. Raadpleeg het officiële overstromingsrapport en bespreek de betekenis voor uw aankoop.`, verify: ["Raadpleeg het officiële overstromingsrapport (Waterinfo)."], sources: src("overstroming") });
+    else if (!known) out.push({ id: "LEG-OVERSTROMING-ONBEKEND", level: "info", title: "Overstromingsinformatie", text: "De P- en G-score zijn niet gekend. Ze staan in de vastgoedadvertentie of het officiële overstromingsrapport. De Quickscan maakt geen inschatting van overstromingsrisico.", verify: ["Raadpleeg de scores in de advertentie of het overstromingsrapport."], sources: src("overstroming") });
+  }
+  return out;
+}
+
+export type DocStatus232 = "beschikbaar" | "niet-beschikbaar" | "verifieren" | "onbekend" | "overgeslagen" | "niet-gevraagd" | "nvt";
+export const DOC_STATUS_LABEL_232: Record<DocStatus232, string> = { beschikbaar: "Beschikbaar", "niet-beschikbaar": "Niet beschikbaar", verifieren: "Nog te verifiëren", onbekend: "Onbekend", overgeslagen: "Overgeslagen", "niet-gevraagd": "Nog te verifiëren", nvt: "Niet van toepassing" };
+export interface DocItem232 { id: string; label: string; status: DocStatus232; statusLabel: string; note: string | null }
+/** Persoonlijke documentenchecklist. Niet uitgevraagd is nooit "ontbrekend"; een ontbrekend verslag bewijst geen defect. */
+export function documents232(a: Answers): DocItem232[] {
+  const q06 = a.Q06;
+  const fromQ06 = (key: string): DocStatus232 => q06 === undefined ? "niet-gevraagd" : q06 === SKIP ? "overgeslagen" : !Array.isArray(q06) ? "onbekend" : q06.includes(key) ? "beschikbaar" : q06.includes("geen") ? "niet-beschikbaar" : q06.includes("onbekend") ? "onbekend" : "verifieren";
+  const items: Omit<DocItem232, "statusLabel">[] = [];
+  const buy = buyer(a); const apt = isApartment(a);
+  const epcKnown = typeof a.Q34 === "string" && a.Q34 !== SKIP && a.Q34 !== "onbekend";
+  items.push({ id: "DOC-EPC", label: "EPC en volledig EPC-verslag", status: fromQ06("epc") === "beschikbaar" ? "beschikbaar" : epcKnown ? "verifieren" : fromQ06("epc"), note: epcKnown ? "Het label is gekend; het volledige verslag bevat de isolatiegegevens en de officiële aanbevelingen." : null });
+  const keuring: DocStatus232 = has(a, "Q40", "conform", "beperkt", "inbreuken") ? "beschikbaar" : has(a, "Q40", "geen") ? "niet-beschikbaar" : has(a, "Q40", "onbekend") ? "onbekend" : fromQ06("keuring");
+  items.push({ id: "DOC-KEURING", label: "Keuringsverslag elektrische installatie", status: keuring, note: keuring !== "beschikbaar" ? "Een ontbrekend verslag bewijst geen technisch defect." : null });
+  const asb = asbestosContext(a);
+  const asbStatus: DocStatus232 = has(a, "AS01", "attest_geen", "attest_toepassingen") ? "beschikbaar" : has(a, "AS01", "geen_attest") ? "niet-beschikbaar" : has(a, "AS01", "onbekend") ? "onbekend" : a.AS01 === SKIP ? "overgeslagen" : fromQ06("asbest");
+  if (asb.applies !== "nee" || has(a, "AS01", "attest_toepassingen", "gekend")) items.push({ id: "DOC-ASBEST", label: apt ? "Asbestattest van het appartement" : "Asbestattest", status: asbStatus, note: has(a, "AS01", "attest_toepassingen", "gekend") ? "Er zijn asbesthoudende toepassingen vermeld; laat ze passend beoordelen vóór ingrijpende werken." : has(a, "AS01", "attest_geen") ? "Een attest zonder vermelde toepassingen is geen absolute garantie dat het gebouw asbestvrij is." : asb.note });
+  if (buy || plannedCount(a) > 0 || has(a, "ST01", "ja", "onduidelijk")) items.push({ id: "DOC-PLANNEN", label: "Bouwplannen en relevante vergunningen", status: fromQ06("plannen"), note: has(a, "ST01", "ja", "onduidelijk") ? "U vermeldt mogelijke stedenbouwkundige aandachtspunten." : null });
+  if (!apt && (buy || has(a, "RI01", "septisch", "niet", "onbekend"))) items.push({ id: "DOC-RIOLERING", label: "Informatie over riolering en afvalwater", status: has(a, "RI01", "riolering", "riolering_septisch") ? "verifieren" : has(a, "RI01", "onbekend") ? "onbekend" : a.RI01 === undefined ? "niet-gevraagd" : "verifieren", note: "Dit is geen conformiteitsbeoordeling." });
+  if (has(a, "H01", "gas", "mazout", "hout", "andere", "warmtepomp")) items.push({ id: "DOC-ONDERHOUD", label: "Onderhoudsdocumenten verwarming", status: fromQ06("onderhoud"), note: null });
+  if (has(a, "H01", "mazout")) items.push({ id: "DOC-STOOKOLIE", label: "Documentatie stookolietank", status: "niet-gevraagd", note: "Bijvoorbeeld keuringen van de tank, indien van toepassing." });
+  if (buy) items.push({ id: "DOC-OVERSTROMING", label: "Officieel overstromingsrapport (P- en G-score)", status: (["a", "b", "c", "d"].includes(a.FL01 as string) || ["a", "b", "c", "d"].includes(a.FL02 as string)) ? "verifieren" : a.FL01 === SKIP && a.FL02 === SKIP ? "overgeslagen" : "onbekend", note: "Administratieve informatie; geen bewijs van vochtproblemen." });
+  if (apt) {
+    const a05 = a.A05;
+    const vme = (key: string): DocStatus232 => a05 === undefined ? "niet-gevraagd" : !Array.isArray(a05) ? "onbekend" : a05.includes(key) ? "beschikbaar" : a05.includes("geen") ? "niet-beschikbaar" : a05.includes("onbekend") ? "onbekend" : "verifieren";
+    items.push({ id: "DOC-EPC-GD", label: "EPC gemeenschappelijke delen", status: "niet-gevraagd", note: "Niet uitgevraagd; vraag het na bij de syndicus." });
+    if (!has(a, "Q03", "vanaf2011")) items.push({ id: "DOC-ASBEST-GD", label: "Asbestattest gemene delen", status: "niet-gevraagd", note: `Verplicht voor VME's van gebouwen vóór ${ASBESTOS.cutoffYear}, uiterlijk ${ASBESTOS.commonPartsDeadline}.` });
+    items.push({ id: "DOC-VME-AV", label: "Verslagen van de algemene vergadering", status: vme("verslagen"), note: null });
+    items.push({ id: "DOC-VME-FONDS", label: "Reservefonds", status: vme("reservefonds"), note: null });
+    items.push({ id: "DOC-VME-BIJDRAGEN", label: "Bijzondere bijdragen", status: vme("bijdragen"), note: null });
+  }
+  return items.map((d) => ({ ...d, statusLabel: DOC_STATUS_LABEL_232[d.status] }));
+}
+
+export interface Phase { id: "A" | "B" | "C" | "D"; title: string; why: string; items: string[]; decide: string | null }
+/** Voorlopig renovatietraject: alleen toepasselijke fasen; geen traject zonder plannen; volledige renovatie zonder deelwerken = scopebepaling. */
+export function renovationPhases(a: Answers): Phase[] {
+  const p = privateSignals(a);
+  const works = selectedWorks(a);
+  const full = fullIntent(a);
+  if (!works.length && !full) return [];
+  const w = (...xs: string[]) => xs.some((x) => works.includes(x));
+  const cosmetic = works.length > 0 && works.every((x) => ["vloeren", "interieur"].includes(x)) && !full;
+  const moisture = has(p, "Q24", "terugkerend", "vochtplekken") || has(p, "Q28", "soms", "regelmatig", "actief");
+  const roof = has(p, "Q14", "slijtage", "beschadigd", "lek", "los", "onbekend");
+  const asb = asbestosContext(a).applies;
+  const A: string[] = [];
+  if (full) A.push("Bepaal eerst de concrete renovatiescope: welke bouwdelen werkelijk aangepast moeten worden.");
+  if (roof && (w("dak", "isolatie") || full)) A.push("Laat de onzekere of gemelde daktoestand beoordelen.");
+  if (moisture) A.push("Laat de gemelde vochtproblemen onderzoeken.");
+  if (has(a, "Q40", "geen", "onbekend") && (w("elektriciteit", "interieur") || full)) A.push("Vraag de elektrische documenten op.");
+  if ((asb === "ja" || asb === "verifieren" || has(a, "AS01", "gekend", "attest_toepassingen")) && !cosmetic) A.push("Ga de asbestinformatie na vóór ingrijpende werken.");
+  if ((has(a, "Q34", "d", "e", "f", "onbekend") || full) && (w("isolatie", "verwarming", "ramen", "dak", "gevel") || full)) A.push("Raadpleeg het volledige EPC-verslag en de officiële aanbevelingen.");
+  if (has(a, "Q34", "e", "f")) A.push("Verifieer eventuele wettelijke randvoorwaarden, zoals een renovatieverplichting.");
+  const B: string[] = [];
+  if (moisture && works.length) B.push("Pak de oorzaak van gemelde vochtproblemen aan vóór verdere afwerking.");
+  if (!cosmetic && w("dak", "isolatie") && (w("dak") || has(p, "DI01", "niet", "gedeeltelijk", "beperkt", "onbekend"))) B.push("Bereid dak en dakisolatie samen voor; dat veronderstelt geen volledige dakvervanging.");
+  if (!cosmetic && w("gevel", "ramen") && (w("isolatie") || (w("gevel") && w("ramen")))) B.push("Stem gevel, ramen en isolatie op elkaar af.");
+  const C: string[] = [];
+  if (w("verwarming")) C.push(w("isolatie", "dak", "gevel", "ramen") || has(p, "DI01", "niet", "gedeeltelijk", "beperkt") || has(p, "MI01", "niet", "gedeeltelijk") ? "Laat de toekomstige warmtebehoefte bepalen na de geplande isolatiewerken, voor u een definitieve installatie kiest." : "Bereid de verwarmingskeuze voor op basis van de huidige en toekomstige isolatie.");
+  const sys = ["elektriciteit", "sanitair"].filter((x) => works.includes(x));
+  if (sys.length + (w("isolatie") && has(p, "Q39", "beperkt", "defect", "onbekend") ? 1 : 0) >= 2 || (sys.length && w("vloeren", "interieur"))) C.push("Plan elektrische, sanitaire en eventuele ventilatiewerken samen en houd rekening met openbreekwerken.");
+  else if (sys.length) C.push(`Bereid de ${joinNl(sys.map((x) => lower(label("Q46", x))))} voor vóór de afwerking.`);
+  const D: string[] = [];
+  if (w("vloeren")) D.push(sys.length ? "Plaats de nieuwe vloeren na de onderliggende technieken." : "Stem de vloerwerken af op eventuele leidingen en vloerisolatie.");
+  if (w("interieur")) D.push("Voer keuken, badkamer en interieurafwerking uit na de technische voorbereiding.");
+  const out: Phase[] = [];
+  if (A.length) out.push({ id: "A", title: "Onderzoek en voorbereiding", why: "Wat u nu nog niet weet, bepaalt mee welke werken zinvol zijn.", items: A, decide: full && !works.length ? "De omvang van de renovatie hangt af van dit onderzoek." : null });
+  if (B.length) out.push({ id: "B", title: "Vocht, buitenschil en isolatie", why: "De buitenschil beschermt alles wat binnen volgt.", items: B, decide: null });
+  if (C.length) out.push({ id: "C", title: "Technische installaties", why: "Installaties volgen best op de schil en gaan vóór de afwerking.", items: C, decide: w("verwarming") ? "De keuze van de installatie hangt af van de toekomstige warmtebehoefte." : null });
+  if (D.length) out.push({ id: "D", title: "Indeling en binnenafwerking", why: "Afwerking komt het laatst, zodat ze niet opnieuw beschadigd raakt.", items: D, decide: null });
+  return out;
+}
+
+export interface ActionGroups { technical: ActionCard[]; documents: ActionCard[] }
+/** Drie informatietypen concurreren niet om dezelfde kaarten: technische prioriteiten, planning (via fasen) en documenten/verplichtingen. */
+export function actionGroups(a: Answers, fs: Finding[], syndic: string[], hasPrivateSafety: boolean, legal: LegalItem[]): ActionGroups {
+  const technical: ActionCard[] = [];
+  const seen = new Set<string>();
+  const push = (arr: ActionCard[], c: ActionCard) => { if (!seen.has(c.id)) { seen.add(c.id); arr.push(c); } };
+  if (hasPrivateSafety) push(technical, { id: "ACT-VEILIGHEID", icon: "shield", title: "Volg eerst het veiligheidsadvies", text: "U meldt een veiligheidsrelevant signaal. Volg het advies bovenaan dit rapport voor u andere stappen zet.", next: null });
+  for (const f of [...fs].sort((x, y) => Number(y.safety) - Number(x.safety) || y.severity - x.severity)) {
+    if (MOISTURE_POINTS.includes(f.id)) push(technical, { id: "ACT-VOCHT", icon: "drop", title: "Onderzoek de vochtbron", text: `De gemelde ${f.id === "AP-SCHIMMEL" ? "condens- of schimmelvorming" : lower(f.title)} verdient een gerichte beoordeling. Noteer waar en wanneer het optreedt.`, next: f.next });
+    else if (f.id === "FND-RAMEN" || WINDOW_POINTS.includes(f.id)) push(technical, { id: "ACT-RAMEN", icon: "window", title: "Controleer het schrijnwerk", text: "Onderzoek de raamafstelling, de dichtingen en de aansluitingen tussen raamkaders en muren.", next: null });
+    else if (f.id === "FND-VENT" || f.id === "AP-VENT") push(technical, { id: "ACT-VENT", icon: "fan", title: "Controleer de ventilatie", text: has(a, "V01", "mechanisch") ? "Verifieer de werking van het mechanische systeem en vraag de onderhoudsinformatie op." : "Ga na hoe de woning geventileerd wordt en of roosters of afvoeren goed werken.", next: null });
+    else push(technical, { id: `ACT-${f.id}`, icon: f.icon, title: `Laat ${lower(f.title)} beoordelen`, text: f.short, next: f.next });
+  }
+  const documents: ActionCard[] = [];
+  for (const l of legal.filter((x) => x.level !== "info")) push(documents, { id: `ACT-${l.id}`, icon: "doc", title: l.title, text: l.verify[0] ?? l.text, next: null });
+  if (has(a, "Q34", "e", "f", "d") || has(a, "DI01", "onbekend") || has(a, "MI01", "onbekend", "spouw", "massief")) push(documents, { id: "ACT-EPC-VERSLAG", icon: "leaf", title: "Raadpleeg het volledige EPC-verslag", text: `Het verslag bevat de isolatiegegevens en de officiële aanbevelingen${buyer(a) ? "; vraag het op bij de verkoper" : ""}.`, next: null });
+  if (has(a, "Q40", "geen", "onbekend")) push(documents, { id: "ACT-KEURING", icon: "bolt", title: "Vraag het elektrische keuringsverslag op", text: "Een ontbrekend verslag bewijst geen defect, maar geeft duidelijkheid over de installatie.", next: null });
+  if (has(a, "AS01", "gekend", "attest_toepassingen") && plannedCount(a) > 0) push(documents, { id: "ACT-ASBEST", icon: "shield", title: "Laat asbesttoepassingen beoordelen vóór werken", text: "Bij gekende of vermelde asbesthoudende toepassingen is een passende beoordeling nodig vóór ingrijpende werken. De Quickscan stelt geen asbestdiagnose.", next: null });
+  if (syndic.length) push(documents, { id: "ACT-SYNDICUS", icon: "building", title: "Stel uw vragen aan de syndicus", text: syndic[0], next: null });
+  return { technical, documents };
+}
+
 // ---------- Compositie ----------
 export function composeReport(answers: Answers) {
   const base = buildReport(answers);
@@ -492,6 +679,8 @@ export function composeReport(answers: Answers) {
   // Asbestmelding afgestemd op de bouwjaargrens van 2001; gekende toepassingen blijven ongewijzigd.
   const asb = asbestosContext(a);
   const notices = base.notices.map((n) => (n.id === "NOT-ASBEST-ATTEST" ? { ...n, text: `Er is geen asbestattest gekend. Dat betekent niet dat er asbest aanwezig of afwezig is. ${asb.note}` } : n));
+  const legal = legalContext(a);
+  const groups = actionGroups(a, fs, coOwnership(a, base.apartment)?.questions ?? [], b.privateFlags.length > 0, legal);
   const illustration: IllustrationId = (["open", "halfopen", "gesloten", "appartement"].includes(a.Q02 as string) ? a.Q02 : "ander") as IllustrationId;
   return {
     ...base,
@@ -512,7 +701,19 @@ export function composeReport(answers: Answers) {
       documents: documents(a),
       recommendation,
     },
+    // 2.3.2: additieve, geversioneerde extensie. v23 blijft functioneel intact voor oudere weergaven.
+    v232: {
+      version: REPORT_EXTENSION_232,
+      legalVersion: LEGAL_VERSION,
+      legalVerifiedAt: LEGAL_VERIFIED_AT,
+      energy: energyContext(a),
+      legal,
+      documents: documents232(a),
+      phases: renovationPhases(a),
+      actions: groups,
+    },
   };
 }
 export type QuickscanReport23 = ReturnType<typeof composeReport>;
 export type ReportV23 = QuickscanReport23["v23"];
+export type ReportV232 = QuickscanReport23["v232"];

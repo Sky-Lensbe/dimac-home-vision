@@ -27,7 +27,7 @@ const APT: Answers = { Q01: "eigenaar", Q02: "appartement", Q03: "1991-2010", R0
 
 describe("versies en vragenbank 2.2", () => {
   it("vraag-, regel- en rapportversie zijn 2.2.2", () => {
-    expect([QUESTION_VERSION, RULE_VERSION, REPORT_VERSION]).toEqual(["qs-questions-2.2.2", "qs-rules-2.2.2", "qs-report-2.2.2"]);
+    expect([QUESTION_VERSION, RULE_VERSION, REPORT_VERSION]).toEqual(["qs-questions-2.3.2", "qs-rules-2.2.2", "qs-report-2.2.2"]);
   });
   it("unieke vraag-ID's", () => expect(new Set(QUESTIONS.map((q) => q.id)).size).toBe(QUESTIONS.length));
   it("bevat alle nieuwe onderwerpen", () => {
@@ -192,7 +192,7 @@ describe("algemene logica (25–36)", () => {
   });
   it("28. rapport bewaart vraagversie en antwoordlabels", () => {
     const r = buildReport(fill(HOUSE));
-    expect(r.questionVersion).toBe("qs-questions-2.2.2");
+    expect(r.questionVersion).toBe("qs-questions-2.3.2");
     expect(r.answerLabels.Q02.a).toBe("Open bebouwing");
   });
   it("29. type wijzigen verwijdert niet-toepasselijke antwoorden", () => {
@@ -311,7 +311,7 @@ describe("voorwaarde 3: migratie v2.1 → v2.2", () => {
     expect(s!.answers.Q34).toBeUndefined();
     expect(s!.answers.A04).toBe("aanwezig");
     expect(store.has(OLD_SESSION_KEY)).toBe(false);
-    expect(SESSION_KEY).toBe("dimac-quickscan-v2.2.1");
+    expect(SESSION_KEY).toBe("dimac-quickscan-v2.3.2");
   });
 });
 

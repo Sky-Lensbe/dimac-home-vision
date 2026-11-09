@@ -1,6 +1,6 @@
 import { jsPDF } from "jspdf";
 import { CATEGORIES } from "@/lib/quickscan";
-import { withReportRef, type QuickscanReport23, type DomainStatus, type DocStatus, type IconId } from "@/lib/quickscanReport";
+import { withReportRef, type QuickscanReport23, type DomainStatus, type DocStatus, type IconId, type ReportV232 } from "@/lib/quickscanReport";
 import { ICONS, ILLUSTRATIONS, type Shape } from "@/lib/reportArt";
 import { formatEuro, VAT_LABEL } from "@/data/woningscan";
 import { absoluteUrl } from "@/lib/site";
@@ -78,6 +78,9 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
 
   const W = 210, H = 297, M = 18, CW = W - 2 * M, TOP = 36, BOTTOM = 276;
   const v = r.v23;
+  const x = (r as { v232?: ReportV232 }).v232;
+  const actionList = x ? x.actions.technical : v.actions;
+  const docList: { label: string; statusLabel: string; note: string | null }[] = x ? x.documents : v.documents;
   const model = reportPdfModel(r, meta);
   let y = TOP;
 
@@ -288,6 +291,17 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     for (const t of body) { font("sans", false, size, BODY); by += para(t, M, by, CW, size) + 1; }
     y = by + 1;
   };
+  const chapter = (eb: string, title: string, firstH: number) => {
+    y += 6; keepWithNext(22, firstH);
+    eyebrow(eb, M, y + 4); font("serif", false, 18, INK); doc.text(title, M, y + 15); y += 22;
+  };
+  if (x) {
+    const e = x.energy;
+    chapter("Energie en mogelijke verplichtingen", e.title.length > 60 ? "Energie en verplichtingen" : e.title, measure(e.text, CW, "sans", false, 9) + 10);
+    textBlock(e.label ? `EPC-label ${e.label}` : "EPC-label onbekend", [e.text, ...e.points.map((t) => `– ${t}`)]);
+    for (const l of x.legal) textBlock(l.title, [l.text, ...l.verify.map((t) => `– ${t}`), `Bron: ${l.sources.map((s2) => `${s2.label} (${s2.url})`).join("; ")}`]);
+    if (x.legal.length) textBlock("Juridische context", [`Informatieve context, geen individueel juridisch advies. Gecontroleerd op ${new Date(x.legalVerifiedAt).toLocaleDateString("nl-BE")}.`], 8.5);
+  }
   if (v.information?.topics.length || r.unknown.items.length || r.unknown.skipped?.length) textBlock(`Wat weten we nog niet? ${r.unknown.label}.`, [v.information?.sentence ?? r.unknown.sentence, r.unknown.skipped?.length ? `Overgeslagen: ${r.unknown.skipped.map((s) => s.label).join("; ")}.` : ""].filter(Boolean));
   for (const n of r.notices ?? []) textBlock(n.title, [n.text]);
   if (r.apartment) {
@@ -319,8 +333,8 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   }
 
   // ---------- Advies (alleen wanneer er acties zijn; nooit een titel zonder inhoud) ----------
-  if (v.actions.length) {
-    const firstAction = v.actions[0];
+  if (actionList.length) {
+    const firstAction = actionList[0];
     const firstActionH = 20 + measure(firstAction.text, CW - 42, "sans", false, 9) + (firstAction.next ? measure(firstAction.next, CW - 42, "sans", false, 8.5) : 0);
     // Eerst het lettertype zetten, dan pas meten: splitTextToSize gebruikt het actieve font.
     font("serif", false, 22, INK); const tl = lines(v.adviceTitle, 112);
@@ -329,7 +343,7 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     font("serif", false, 22, INK); tl.forEach((l, i) => doc.text(l, M, y + 15 + i * 9));
     font("sans", false, 7.6, MUTED); para("Met deze acties verduidelijkt u de belangrijkste aandachtspunten en onzekerheden.", 140, y + 12, W - M - 140, 7.6);
     y += 17 + tl.length * 9;
-    v.actions.forEach((x, i) => {
+    actionList.forEach((x, i) => {
     const tw = CW - 42;
     const h = 18 + measure(x.text, tw, "sans", false, 9) + (x.next ? measure(`Volgende stap: ${x.next}`, tw, "sans", false, 8.5) + 1 : 0);
     ensure(h + 3);
@@ -343,14 +357,26 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     });
   }
 
-  if (v.documents.length) {
-    const firstDocH = 16 + measure(v.documents[0].label, (CW - 5) / 2 - 22, "sans", true, 9);
+  if (x && x.phases.length) {
+    const ph0 = x.phases[0];
+    chapter("Voorlopig digitaal advies", "Uw voorlopig renovatietraject", 12 + ph0.items.reduce((n, t) => n + measure(t, CW, "sans", false, 9) + 1, 0));
+    for (const ph of x.phases) textBlock(`Fase ${ph.id} — ${ph.title}`, [ph.why, ...ph.items.map((t) => `– ${t}`), ...(ph.decide ? [`Beslissing hangt af van: ${ph.decide}`] : [])]);
+    textBlock("Afbakening traject", ["Dit traject is geen uitvoeringsbestek, technische keuring of kostenraming."], 8.5);
+  }
+  if (x && x.actions.documents.length) {
+    const d0 = x.actions.documents[0];
+    chapter("Documenten en verplichtingen", "Wat u best nagaat", measure(d0.text, CW, "sans", false, 9) + 10);
+    for (const d of x.actions.documents) textBlock(d.title, [d.text]);
+  }
+
+  if (docList.length) {
+    const firstDocH = 16 + measure(docList[0].label, (CW - 5) / 2 - 22, "sans", true, 9);
     y += 5; keepWithNext(22, firstDocH);
     eyebrow("Handige documenten", M, y + 4);
     font("serif", false, 18, INK); doc.text("Documenten om op te vragen.", M, y + 15); y += 22;
     const dw = (CW - 5) / 2;
-    for (let i = 0; i < v.documents.length; i += 2) {
-      const pair = v.documents.slice(i, i + 2);
+    for (let i = 0; i < docList.length; i += 2) {
+      const pair = docList.slice(i, i + 2);
       const heights = pair.map((d) => 16 + measure(d.label, dw - 22, "sans", true, 9) + (d.note ? measure(d.note, dw - 12, "sans", false, 8.5) : 0));
       const h = Math.max(...heights); ensure(h + 3);
       pair.forEach((d, j) => {

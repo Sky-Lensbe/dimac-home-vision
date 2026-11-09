@@ -31,3 +31,9 @@
 - [x] Volwaardige VME-presentatie online en PDF; dynamische leesbare PDF
 - [x] 205 tests geslaagd; echte inschrijving→rapport→PDF→Plus-aanvraag gecontroleerd, testgegevens verwijderd; VME desktop/mobiel, vier PDF-profielen gecontroleerd; serverpatch uitgerold zonder publicatie
 - [x] PDF-paginatie 2.3.1: keep-with-next/keep-together-laag, y-correctie disclaimer, aanbeveling zonder volledige paginareservatie, adviestitel-fontmeting, geen lege adviestitel; vier profielen visueel gecontroleerd
+
+# Quickscan 2.3.2 (testmodus)
+- [x] Vragenresolver, renovatie-intentie, verbanden, EPC/wettelijk, documenten, fasen, acties, rapport/PDF
+- [x] Tests, typecheck, lokale PDF- en browsercontroles
+- [ ] Heruitrol serverfunctie — wacht op afzonderlijke toestemming
+- [ ] Publicatie — wacht op toestemming
