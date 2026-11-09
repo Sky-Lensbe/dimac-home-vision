@@ -335,7 +335,7 @@ export function coOwnership(a: Answers, base: ReturnType<typeof buildReport>["ap
 export type ReasonCode =
   | "PLUS-COMPLEX-TECH" | "PLUS-COMPLEX-SEQUENCE" | "PLUS-BUYER-RENOVATION"
   | "WS-TECH-BUYER" | "WS-TECH-OWNER" | "WS-APT-COMMON" | "WS-UNKNOWN-BUYER"
-  | "BUDGET-COST" | "NONE-NEUTRAL";
+  | "BUDGET-COST" | "NONE-NEUTRAL" | "NONE-VME";
 
 export interface Recommendation {
   productId: ProductId | null;
@@ -413,7 +413,9 @@ export function recommendProduct(a: Answers, ctx: { domainScores: Record<Domain,
   else if (buy && has(a, "Q03", ...PLUS_OLD) && has(a, "R01", "gt30", "nooit") && tech >= 2 && evidence.matchedDomains.length >= 2) code = "PLUS-BUYER-RENOVATION";
   else if (buy && tech >= 1) code = "WS-TECH-BUYER";
   else if (tech >= 1) code = "WS-TECH-OWNER";
-  else if (apt && buy && ctx.apartmentSignals > 0) code = "WS-APT-COMMON";
+  // 2.3.2: uitsluitend VME-signalen rechtvaardigen geen fysieke Woningscan van de privatieve delen;
+  // "WS-APT-COMMON" blijft alleen bestaan voor historische snapshots.
+  else if (apt && ctx.apartmentSignals > 0 && !(buy && ctx.unknownLevel === "beperkt")) code = "NONE-VME";
   else if (cost && planned >= 1 && ctx.unknownLevel !== "beperkt") code = "BUDGET-COST";
   else if (buy && ctx.unknownLevel === "beperkt") code = "WS-UNKNOWN-BUYER";
   else code = "NONE-NEUTRAL";
@@ -433,6 +435,7 @@ export function recommendProduct(a: Answers, ctx: { domainScores: Record<Domain,
     "WS-APT-COMMON": "U meldt vooral aandachtspunten aan de gemeenschappelijke delen. Een Woningscan beoordeelt de privatieve delen van het appartement ter plaatse en helpt u de juiste vragen aan de syndicus te stellen. De gemeenschappelijke delen worden niet volledig geïnspecteerd.",
     "WS-UNKNOWN-BUYER": "Meerdere belangrijke onderdelen zijn voor u nog onbekend. Een plaatsbezoek kan die onderdelen visueel beoordelen voor u een aankoopbeslissing neemt.",
     "BUDGET-COST": "U wilt vooral weten wat uw geplande werken ongeveer kosten, en uw antwoorden bevatten geen duidelijke technische aandachtspunten die eerst ter plaatse beoordeeld moeten worden. Een online budgetindicatie sluit daar het best bij aan.",
+    "NONE-VME": "U meldt vooral aandachtspunten aan de gemeenschappelijke delen, zonder duidelijke technische signalen in het appartement zelf. Een Woningscan beoordeelt de privatieve delen en is daarom nu geen logische volgende stap. Vraag eerst de VME-documenten op en bespreek de gemeenschappelijke punten met de syndicus.",
     "NONE-NEUTRAL": "Op basis van de gekende antwoorden is er onvoldoende aanleiding voor een specifieke betalende vervolgstap. Verduidelijk eerst eventuele ontbrekende informatie en de omvang van uw plannen; de Quickscan kan die niet bepalen.",
   };
   const GAINS: Partial<Record<ReasonCode, string>> = {

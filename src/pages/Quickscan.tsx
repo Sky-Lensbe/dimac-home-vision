@@ -62,7 +62,7 @@ export default function Quickscan() {
     if (stage === "report") { sessionStorage.removeItem(KEY); return; }
     sessionStorage.setItem(KEY, JSON.stringify({ stage, answers: active, index, startedAt }));
   }, [stage, active, index, startedAt]);
-  useEffect(() => { topRef.current?.scrollIntoView({ block: "start" }); }, [stage, index]);
+  useEffect(() => { window.scrollTo({ top: 0 }); }, [stage, index, curId]);
 
   const start = () => { setStage("questions"); setIndex(0); setCurId(null); setStartedAt(Date.now()); track("quickscan_start"); };
   const restart = () => { sessionStorage.removeItem(KEY); setAnswers({}); setIndex(0); setCurId(null); setCatchUp(false); setFinal(null); setStage("intro"); };

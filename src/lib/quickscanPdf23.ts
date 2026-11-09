@@ -420,17 +420,20 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     }
     if (rec.drone) textBlock("Optionele drone-dakscreening", [`+ ${formatEuro(rec.drone.price)} ${VAT_LABEL}. ${rec.drone.text}`, `${rec.drone.condition} De optie staat standaard uit.`]);
     const pdfLink = (title: string, url: string, primary: boolean) => {
-      const h = 14 + measure(url, CW - 12, "sans", false, 8);
+      const h = 11 + measure(url, CW - 12, "sans", false, 8);
       ensure(h + 4); doc.setDrawColor(...(primary ? ORANGE : LINE)); doc.rect(M, y, CW, h, "S");
-      font("sans", true, 10, primary ? ORANGE : INK); doc.text(title, M + 6, y + 8);
-      font("sans", false, 8, BODY); para(url, M + 6, y + 12, CW - 12, 8);
+      font("sans", true, 10, primary ? ORANGE : INK); doc.text(title, M + 6, y + 6.5);
+      font("sans", false, 8, BODY); para(url, M + 6, y + 10, CW - 12, 8);
       doc.link(M, y, CW, h, { url }); y += h + 2;
     };
     if (model.ctaUrl) pdfLink(rec.ctaLabel, model.ctaUrl, true);
     pdfLink(rec.infoLabel, model.infoUrl, false);
-    if (rec.secondary) textBlock("Alternatief", [`${rec.secondary.text} ${rec.secondary.name}: ${formatEuro(rec.secondary.price)} ${VAT_LABEL}.`], 8.5);
-    if (rec.limitation) textBlock("Afbakening", [rec.limitation], 8.5);
-    if (rec.price !== null) { ensure(10); font("sans", false, 8.5, MUTED); y += para(`${rec.priceNote} Rapportdatum: ${new Date(meta.date).toLocaleDateString("nl-BE")}.`, M, y + 3, CW, 8.5) + 4; }
+    // Slotblok: alternatief, afbakening en prijsnota blijven samen, zodat de laatste pagina nooit
+    // alleen een losse slotzin bevat.
+    const altText = rec.secondary ? `${rec.secondary.text} ${rec.secondary.name}: ${formatEuro(rec.secondary.price)} ${VAT_LABEL}.` : null;
+    const closing = [rec.limitation, rec.price !== null ? `${rec.priceNote} Rapportdatum: ${new Date(meta.date).toLocaleDateString("nl-BE")}.` : null].filter(Boolean).join(" ");
+    const tail = [altText, closing].filter(Boolean) as string[];
+    if (tail.length) textBlock(altText ? "Alternatief en afbakening" : "Afbakening", tail, 8);
   }
 
 

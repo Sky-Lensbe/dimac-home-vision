@@ -263,6 +263,14 @@ describe("2.3.2 productaanbeveling", () => {
   it("geen drone bij budgetindicator of zonder dakindicatie", () => {
     expect(rec({ ...RECENT, Q46: ["interieur"], Q48: "ja" }).drone).toBeNull();
   });
+  it("appartement met uitsluitend VME-problemen → geen fysieke Woningscan; mét privatief signaal wel", () => {
+    const vme = { Q01: "koper", Q02: "appartement", Q03: "1970-1990", R01: "11-20", Q04A: ["geen"], Q24: "geen", Q34: "c", G01: "hr", Q46A: ["geen"], Q48: "nee", A01: "duidelijk", CD01: "problemen", A02: "ingrijpend", A03: "substantieel" } as Answers;
+    const r = rec(vme);
+    expect(r.productId).toBeNull();
+    expect(r.reasonCode).toBe("NONE-VME");
+    expect(r.drone).toBeNull();
+    expect(rec({ ...vme, Q24: "vochtplekken" }).productId).toBe("woningscan");
+  });
   it("geen relevante behoefte → geen betaald product", () => {
     expect(rec(RECENT).productId).toBeNull();
   });
