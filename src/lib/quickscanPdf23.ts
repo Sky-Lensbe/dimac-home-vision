@@ -1,6 +1,6 @@
 import { jsPDF } from "jspdf";
 import { CATEGORIES } from "@/lib/quickscan";
-import { withReportRef, type QuickscanReport23, type DomainStatus, type DocStatus, type IconId } from "@/lib/quickscanReport";
+import { withReportRef, type QuickscanReport23, type DomainStatus, type DocStatus, type IconId, type ReportV232 } from "@/lib/quickscanReport";
 import { ICONS, ILLUSTRATIONS, type Shape } from "@/lib/reportArt";
 import { formatEuro, VAT_LABEL } from "@/data/woningscan";
 import { absoluteUrl } from "@/lib/site";
