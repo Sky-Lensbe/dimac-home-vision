@@ -345,17 +345,22 @@ export function coOwnership(a: Answers, base: ReturnType<typeof buildReport>["ap
     { id: "VME-WORKS", title: "Werken en beslissingen", icon: "plan", text: `${value("A02")}${a.A06 && a.A06 !== SKIP && !has(a, "A06", "onbekend") ? ` Betrokken onderdelen: ${label("A06", a.A06)}.` : ""}${a.A07 && a.A07 !== SKIP ? ` Stand van zaken: ${label("A07", a.A07)}.` : ""}`, uncertain: unknown("A02") || has(a, "A02", "besproken") },
     { id: "VME-FUNDS", title: "Reservefonds en bijdragen", icon: "doc", text: `Reservefonds: ${unknown("A04") ? "nog te verifiëren" : lower(label("A04", a.A04))}. Bijzondere bijdragen: ${unknown("A03") ? "nog te verifiëren" : lower(label("A03", a.A03))}. De Quickscan bepaalt geen bedragen of toekomstige kosten en beoordeelt niet of het fonds toereikend is.`, uncertain: unknown("A04") || unknown("A03") || has(a, "A03", "omvang") },
   ];
-  const questions = base.syndic.filter((q) => !/reservefonds|onderhoudsplan|algemene vergaderingen/.test(q));
-  const add = (ok: boolean, text: string) => { if (ok) questions.push(text); };
-  add(unknown("A01") || has(a, "A01", "enkele", "duidelijk"), "Welke aandachtspunten zijn gekend aan lift, balkons en collectieve installaties, en welke controles of herstellingen zijn uitgevoerd?");
-  add(unknown("CD01") || unknown("CL01") || has(a, "CD01", "problemen", "verouderd"), "Wat is gekend over de toestand van dak, gevel en gemeenschappelijke leidingen? Kunt u inspectie- en onderhoudsgegevens bezorgen?");
-  add(unknown("A02") || has(a, "A02", "besproken"), "Welke gemeenschappelijke werken zijn besproken of gepland, welke onderdelen betreffen ze en wat is al door de VME beslist?");
-  add(unknown("A04") || !has(a, "A05", "reservefonds"), "Kunt u de actuele informatie over het reservefonds, de bestemming ervan en de laatst goedgekeurde rekeningen bezorgen?");
-  add(unknown("A03") || !has(a, "A05", "bijdragen"), "Zijn bijzondere bijdragen beslist of besproken, hoe worden ze verdeeld en wanneer zijn ze verschuldigd?");
-  add(!has(a, "A05", "verslagen"), "Kunt u de verslagen van de laatste algemene vergaderingen bezorgen? De beschikbaarheid is nog niet bevestigd.");
-  add(!has(a, "A05", "onderhoudsplan"), "Is er een meerjarig onderhoudsplan beschikbaar? Zo ja, kunt u dit bezorgen?");
-  add(!has(a, "A05", "besluiten"), "Kunt u de relevante VME-beslissingen en goedgekeurde renovatiebesluiten bezorgen?");
-  return { cards, questions: [...new Set(questions)], checklist: ["Basisakte en afbakening privatieve/gemeenschappelijke delen", "Verslagen algemene vergadering en relevante VME-beslissingen", "Reservefonds, rekeningen en bijzondere bijdragen", "Meerjarig onderhoudsplan, indien beschikbaar"] };
+  // 2.3.3: thematisch gebundelde kernvragen voor de syndicus (max. vijf), zonder semantische doublures.
+  // Een specifieke veiligheids- of constructievraag blijft altijd behouden.
+  const questions: string[] = [];
+  const specific = base.syndic.filter((q) => /scheuren|herstellingen aan dak, gevel of kelder/.test(q));
+  questions.push(...specific.slice(0, 1));
+  const techUnknown = unknown("A01") || has(a, "A01", "enkele", "duidelijk") || unknown("CD01") || unknown("CL01") || has(a, "CD01", "problemen", "verouderd");
+  if (techUnknown) questions.push("Wat is gekend over de technische toestand van de gemeenschappelijke delen (dak, gevel, leidingen, lift, balkons)? Kunt u beschikbare inspectie- en onderhoudsgegevens bezorgen?");
+  const worksUnknown = unknown("A02") || has(a, "A02", "besproken", "klein", "middel", "ingrijpend");
+  if (worksUnknown) questions.push("Welke werken aan de gemeenschappelijke delen zijn besproken, gepland of goedgekeurd, welke onderdelen betreffen ze en wat is de stand van zaken?");
+  const fundsUnknown = unknown("A04") || unknown("A03") || has(a, "A03", "beperkt", "substantieel", "omvang") || !has(a, "A05", "reservefonds") || !has(a, "A05", "bijdragen");
+  if (fundsUnknown) questions.push("Kunt u de actuele informatie over het reservefonds en eventuele besliste of besproken bijzondere bijdragen bezorgen, inclusief de verdeling en het tijdstip?");
+  const docsMissing = !has(a, "A05", "verslagen") || !has(a, "A05", "onderhoudsplan") || !has(a, "A05", "besluiten");
+  if (docsMissing) questions.push("Kunt u de verslagen van de laatste algemene vergaderingen, de relevante VME-beslissingen en het meerjarig onderhoudsplan (indien beschikbaar) bezorgen?");
+  const scopeUnclear = has(a, "SC01", "onbekend") || has(a, "Q25A", "onbekend");
+  if (scopeUnclear && questions.length < 5) questions.push("Kunt u op basis van de basisakte bevestigen welke delen privatief en welke gemeenschappelijk zijn, bijvoorbeeld voor de gemelde aandachtspunten?");
+  return { cards, questions: [...new Set(questions)].slice(0, 5), checklist: ["Basisakte en afbakening privatieve/gemeenschappelijke delen", "Verslagen algemene vergadering en relevante VME-beslissingen", "Reservefonds, rekeningen en bijzondere bijdragen", "Meerjarig onderhoudsplan, indien beschikbaar"] };
 }
 
 // ---------- Productaanbeveling (deterministisch, los van de scoring) ----------
