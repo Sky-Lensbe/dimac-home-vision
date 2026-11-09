@@ -38,3 +38,21 @@
 - [x] Heruitrol quickscan-submit + end-to-end-tests (testgegevens verwijderd)
 - [ ] Dashboardtest met beheerdersaccount — wacht op beheerdersaccount
 - [ ] Publicatie — wacht op toestemming
+
+# Quickscan 2.3.3 (testmodus) — goedgekeurd plan + 5 aanvullende voorwaarden
+- [ ] Stap A: vijf praktijkcases als fixtures; 2.3.2-uitkomsten vastleggen
+- [ ] Condens/schimmel/vocht: Q29-optie, semantische regels, followUpBudget
+- [ ] Verbanden: prioriteitsprincipes, exacte antwoordgegevens, geen geforceerde verbanden
+- [ ] Geen niet-gemelde werken als gepland (fasen/acties herleidbaar naar antwoorden)
+- [ ] Documentstatussen: beschikbaarheid/inhoud/geldigheid, relevantie
+- [ ] Informatiedekking: vier niveaus, geen ruwe antwoordcodes
+- [ ] VME compacter: thematisch, max. vijf kernvragen, geen doublures
+- [ ] Asbest 1991–2010: bouwjaarvervolgvraag, consequent in alle lagen
+- [ ] Persoonlijke conclusie
+- [ ] PDF-paginering 2.3.3 met geversioneerd renderpad voor oude versies
+- [ ] Sessiemigratie 2.3.2→2.3.3
+- [ ] Tests: 5 cases + 20 randgevallen + historische regressie; typecheck; build
+- [ ] Lokale rapport-/PDF-generatie en visuele controle per case
+- [ ] Echte browsercontroles
+- [ ] docs/quickscan-2.3.3-oplevering.md met case-vergelijking en bewijsvoering
+- [ ] Server-side end-to-end — wacht op afzonderlijke uitroltoestemming
