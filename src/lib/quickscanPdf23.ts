@@ -420,10 +420,10 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     }
     if (rec.drone) textBlock("Optionele drone-dakscreening", [`+ ${formatEuro(rec.drone.price)} ${VAT_LABEL}. ${rec.drone.text}`, `${rec.drone.condition} De optie staat standaard uit.`]);
     const pdfLink = (title: string, url: string, primary: boolean) => {
-      const h = 14 + measure(url, CW - 12, "sans", false, 8);
+      const h = 11 + measure(url, CW - 12, "sans", false, 8);
       ensure(h + 4); doc.setDrawColor(...(primary ? ORANGE : LINE)); doc.rect(M, y, CW, h, "S");
-      font("sans", true, 10, primary ? ORANGE : INK); doc.text(title, M + 6, y + 8);
-      font("sans", false, 8, BODY); para(url, M + 6, y + 12, CW - 12, 8);
+      font("sans", true, 10, primary ? ORANGE : INK); doc.text(title, M + 6, y + 6.5);
+      font("sans", false, 8, BODY); para(url, M + 6, y + 10, CW - 12, 8);
       doc.link(M, y, CW, h, { url }); y += h + 2;
     };
     if (model.ctaUrl) pdfLink(rec.ctaLabel, model.ctaUrl, true);
