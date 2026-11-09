@@ -4,6 +4,7 @@ import { z } from "npm:zod@3";
 import { isComplete, QUESTION_VERSION, type Answers } from "../_shared/quickscan/engine.ts";
 import { composeReport } from "../_shared/quickscan/report.ts";
 import { MAIL_MODE } from "../_shared/quickscan/mail-policy.ts";
+import { mayReceiveTestMail, sendReportMail } from "../_shared/quickscan/send-report.ts";
 import { findExisting, persistQuickscan, reportNumberFor, type QuickscanStore } from "../_shared/quickscan/persist.ts";
 
 const CONSENT_VERSION = "qs-consent-2026.10-1";
@@ -102,5 +103,12 @@ Deno.serve(async (req) => {
     ],
   });
   if (!result.ok) return json({ error: result.error }, result.status);
-  return json({ ok: true, report: result.snapshot, deliveryStatus, duplicate: result.duplicate });
+  if (result.duplicate || !mayReceiveTestMail(d.email)) return json({ ok: true, report: result.snapshot, deliveryStatus, duplicate: result.duplicate });
+
+  // Testmodus: enkel het testadres ontvangt het rapport met PDF-bijlage.
+  let sent: { status: string; detail?: string };
+  try { sent = await sendReportMail(result.snapshot, meta, d.email, d.firstName); }
+  catch (e) { console.error("Rapportmail mislukt", e); sent = { status: "failed", detail: "PDF of mail mislukt" }; }
+  await db.from("quickscan_reports").update({ delivery_status: sent.status }).eq("report_number", reportNumber);
+  return json({ ok: true, report: result.snapshot, deliveryStatus: sent.status, duplicate: false });
 });
