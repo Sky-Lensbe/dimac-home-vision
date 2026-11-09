@@ -150,12 +150,22 @@ const POINT_ICON_BY_ID: Record<string, IconId> = { "AP-TOCHT": "window", "AP-RAM
 const POINT_TITLE: Record<string, (p: Answers) => string> = {
   "AP-TOCHT": (p) => (has(p, "Q20", "tocht") ? "Tocht en sluitproblemen" : "Tocht"),
   "AP-VENT": () => "Werking van de ventilatie",
+  // 2.3.3: condens is geen schimmel; schimmel wordt alleen benoemd wanneer de gebruiker ze zelf meldde.
+  "AP-SCHIMMEL": (p) => (has(p, "Q29", "geen") ? "Terugkerende condens" : has(p, "Q29", "plaatselijk", "meerdere", "ruimtes") ? "Schimmelvorming (door u gemeld)" : "Condens of schimmel"),
+};
+/** 2.3.3: dynamische korte tekst waar de vaste formulering de melding zou overdrijven. */
+const POINT_SHORT_DYNAMIC: Record<string, (p: Answers) => string> = {
+  "AP-SCHIMMEL": (p) => has(p, "Q29", "geen")
+    ? "U meldt terugkerende condens zonder zichtbare schimmel. De oorzaak is nog niet gekend."
+    : has(p, "Q29", "plaatselijk", "meerdere", "ruimtes")
+      ? "U meldt zelf zichtbare schimmelvorming. De oorzaak is nog niet gekend."
+      : "Mogelijke vochtproblemen of onvoldoende afvoer van vocht. De oorzaak is nog niet gekend.",
 };
 
 function findings(a: Answers): Finding[] {
   const p = privateSignals(a);
   const pts = attentionPoints(a, 20).map((x, order) => ({
-    id: x.id, domain: x.domain, title: POINT_TITLE[x.id]?.(p) ?? x.title, short: POINT_SHORT[x.id] ?? x.text.split(". ")[0] + ".", icon: POINT_ICON_BY_ID[x.id] ?? POINT_ICON[x.domain], severity: x.severity, safety: x.safety, next: x.next, order,
+    id: x.id, domain: x.domain, title: POINT_TITLE[x.id]?.(p) ?? x.title, short: POINT_SHORT_DYNAMIC[x.id]?.(p) ?? POINT_SHORT[x.id] ?? x.text.split(". ")[0] + ".", icon: POINT_ICON_BY_ID[x.id] ?? POINT_ICON[x.domain], severity: x.severity, safety: x.safety, next: x.next, order,
   }));
   const ids = new Set(pts.map((x) => x.id));
   const extra: (Finding & { order: number })[] = [];
