@@ -301,7 +301,13 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
     const e = x.energy;
     chapter("Energie en mogelijke verplichtingen", e.title.length > 60 ? "Energie en verplichtingen" : e.title, measure(e.text, CW, "sans", false, 9) + 10);
     textBlock(e.label ? `EPC-label ${e.label}` : "EPC-label onbekend", [e.text, ...e.points.map((t) => `– ${t}`)]);
-    for (const l of x.legal) textBlock(l.title, [l.text, ...l.verify.map((t) => `– ${t}`), `Bron: ${l.sources.map((s2) => `${s2.label} (${s2.url})`).join("; ")}`]);
+    for (const l of x.legal) {
+      textBlock(l.title, [l.text, ...l.verify.map((t) => `– ${t}`)]);
+      for (const source of l.sources) {
+        ensure(7); font("sans", false, 8, ORANGE);
+        doc.textWithLink(`Bron: ${source.label}`, M, y + 3, { url: source.url }); y += 7;
+      }
+    }
     if (x.legal.length) textBlock("Juridische context", [`Informatieve context, geen individueel juridisch advies. Gecontroleerd op ${new Date(x.legalVerifiedAt).toLocaleDateString("nl-BE")}.`], 8.5);
   }
   if (x3?.coverage || v.information?.topics.length || r.unknown.items.length || r.unknown.skipped?.length) textBlock(`Wat weten we nog niet? ${x3?.coverage?.label ?? r.unknown.label}.`, [v.information?.sentence ?? r.unknown.sentence, r.unknown.skipped?.length ? `Overgeslagen: ${r.unknown.skipped.map((s) => s.label).join("; ")}.` : ""].filter(Boolean));
@@ -409,6 +415,17 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
   {
     const rec = v.recommendation;
     const th = measure(rec.title, CW, "serif", false, 24);
+    // Reserve the complete recommendation when it fits on one fresh page.
+    // Otherwise reserve its meaningful final portion, not merely a link and disclaimer.
+    const blockHeight = (body: string[], size = 9) => 11 + body.reduce((n, t) => n + measure(t, CW, "sans", false, size) + 1, 0);
+    const finalHeight = (rec.price !== null ? 25 : 0) +
+      (rec.drone ? blockHeight([rec.drone.text, rec.drone.condition]) + 15 : 0) +
+      (model.ctaUrl ? 15 + measure(model.ctaUrl, CW - 12, "sans", false, 8) : 0) +
+      15 + measure(model.infoUrl, CW - 12, "sans", false, 8) +
+      blockHeight([rec.limitation, rec.priceNote, rec.secondary?.text ?? ""], 8) + 15;
+    const totalHeight = 25 + th + (rec.safetyFirst ? 35 : 0) + blockHeight([rec.motivation]) +
+      (rec.gains || rec.benefits.length ? blockHeight([rec.gains, ...rec.benefits].filter(Boolean)) : 0) + finalHeight;
+    if (totalHeight <= BOTTOM - TOP) ensure(totalHeight);
     // Keep-with-next: scheidingslijn, eyebrow en titel blijven samen; de deelblokken
     // eronder (motivatie, meerwaarde, prijs, links) breken zelfstandig via ensure().
     y += 5; keepWithNext(13, (rec.safetyFirst ? 22 : 0) + th + 12);
@@ -418,6 +435,7 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
     ensure(th + 8); font("serif", false, 24, INK); y += para(rec.title, M, y + 5, CW, 24) + 3;
     textBlock("Waarom deze dienst?", [rec.motivation]);
     if (rec.gains || rec.benefits.length) textBlock("Concrete meerwaarde", [rec.gains, ...rec.benefits.map((b) => `– ${b}`)].filter(Boolean));
+    ensure(Math.min(finalHeight, BOTTOM - TOP));
     if (rec.price !== null && model.priceLabel) {
       ensure(20); font("serif", false, 22, INK); doc.text(model.priceLabel, M, y + 8);
       const pw = doc.getTextWidth(model.priceLabel); font("sans", false, 9, MUTED); doc.text(VAT_LABEL, M + pw + 4, y + 8); y += 15;
