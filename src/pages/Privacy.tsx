@@ -11,9 +11,14 @@ const Privacy = () => (
         <div>
           <h2 className="font-display text-2xl text-primary mb-3">Welke gegevens</h2>
           <p>
-            De formulieren op deze website slaan zelf geen gegevens op. Ze bereiden een e-mail voor in uw eigen
+            Het contactformulier en het Woningscan-aanvraagformulier slaan zelf geen gegevens op. Ze bereiden een e-mail voor in uw eigen
             e-mailprogramma. Pas wanneer u die e-mail verstuurt, ontvangt {COMPANY.name} de gegevens die u invulde.
           </p>
+        </div>
+        <div>
+          <h2 className="font-display text-2xl text-primary mb-3">DIMAC Quickscan</h2>
+          <p>Bij een succesvolle Quickscan-registratie bewaren wij uw contactgegevens, woningantwoorden en persoonlijke rapport om de gevraagde analyse te leveren en uw aanvraag administratief te verwerken. Toegang tot deze gegevens is beperkt tot bevoegde beheerders. E-maillevering van het PDF-rapport is nog niet actief; u kunt het rapport onmiddellijk online bekijken en downloaden.</p>
+          <p className="mt-3">Toestemming voor commerciële opvolging is afzonderlijk en niet verplicht om het gratis rapport te ontvangen. Vóór publieke lancering worden de informatie over bewaartermijnen en eventuele e-mailverwerkers aangevuld en nagelezen.</p>
         </div>
         <div>
           <h2 className="font-display text-2xl text-primary mb-3">Waarvoor</h2>
