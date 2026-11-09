@@ -153,15 +153,15 @@ export default function Quickscan() {
               })}
             </div>
             {flags.length > 0 && <div className="mt-8"><SafetyAlerts ids={flags} /></div>}
-            <div className="mt-10 flex items-center justify-between gap-3">
-              <Button type="button" variant="ghost" onClick={() => { setCatchUp(false); if (qPos <= 0) setStage("intro"); else go(visible, qPos - 1); }}>
+            <div className="mt-10 flex items-center justify-between gap-2">
+              <Button type="button" variant="ghost" className="px-2 sm:px-4" onClick={() => { setCatchUp(false); if (qPos <= 0) setStage("intro"); else go(visible, qPos - 1); }}>
                 <ArrowLeft /> Vorige
               </Button>
               <div className="flex items-center gap-2">
                 {q.optional && !q.safety && (
-                  <Button type="button" variant="outline" onClick={skip}>Overslaan</Button>
+                  <Button type="button" variant="outline" className="px-3 sm:px-4" onClick={skip}>Overslaan</Button>
                 )}
-                <Button type="button" onClick={next} disabled={active[q.id] === undefined || active[q.id] === SKIP}>
+                <Button type="button" className="px-3 sm:px-4" onClick={next} disabled={active[q.id] === undefined || active[q.id] === SKIP}>
                   Volgende <ArrowRight />
                 </Button>
               </div>
