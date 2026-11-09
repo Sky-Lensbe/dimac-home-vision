@@ -311,7 +311,7 @@ describe("voorwaarde 3: migratie v2.1 → v2.2", () => {
     expect(s!.answers.Q34).toBeUndefined();
     expect(s!.answers.A04).toBe("aanwezig");
     expect(store.has(OLD_SESSION_KEY)).toBe(false);
-    expect(SESSION_KEY).toBe("dimac-quickscan-v2.2.1");
+    expect(SESSION_KEY).toBe("dimac-quickscan-v2.3.2");
   });
 });
 
