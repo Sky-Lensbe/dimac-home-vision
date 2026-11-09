@@ -191,7 +191,7 @@ export function connectionCandidates(a: Answers): Connection[] {
   const moisture = has(p, "Q24", "terugkerend", "vochtplekken");
   const vent = has(p, "Q39", "beperkt", "defect", "onbekend") || has(p, "V01", "geen");
   const windows = has(p, "Q20", "tocht", "verouderd", "beschadigd") || has(p, "Q22", "beperkt", "duidelijk");
-  const V = { icon: "drop" as IconId, label: "Vocht", caption: has(p, "Q24", "terugkerend") ? "Condens en schimmel wijzen op een verhoogde vochtbelasting." : "Vochtplekken met een nog onbekende oorzaak." };
+  const V = { icon: "drop" as IconId, label: "Vocht", caption: has(p, "Q24", "terugkerend") ? (has(p, "Q29", "plaatselijk", "meerdere", "ruimtes") ? "Condens en door u gemelde schimmel wijzen op een verhoogde vochtbelasting." : has(p, "Q29", "geen") ? "Terugkerende condens wijst op een verhoogde vochtbelasting." : "Condens of vocht wijst op een verhoogde vochtbelasting.") : "Vochtplekken met een nog onbekende oorzaak." };
   const VENT = { icon: "fan" as IconId, label: "Ventilatie", caption: "Onvoldoende ventilatie kan vochtproblemen versterken." };
   const RAMEN = { icon: "window" as IconId, label: "Schrijnwerk", caption: "Tocht en sluitproblemen kunnen leiden tot koudebruggen en condens." };
   const out: Connection[] = [];
@@ -238,7 +238,15 @@ export function connectionRelevance(a: Answers, c: Connection): number {
   const severity = Math.max(0, ...ev.map((q) => scoreOf(p, q)));
   const planned = ev.some((q) => q === "Q46" || q === "Q46A") && selectedWorks(a).length > 0 ? 2 : 0;
   const unknown = ev.filter((q) => has(p, q, "onbekend")).length;
-  return severity + (LINK_SPECIFIC[c.id] ?? 0) * 2 + planned + Math.min(ev.length, 4) - unknown;
+  // 2.3.3: actieve of terugkerende concrete problemen en veiligheidsrelevantie wegen zwaarder dan generieke afstemming.
+  const activeWater = has(p, "Q28", "actief", "regelmatig") || has(p, "M01", "actief", "regen") || has(p, "Q16", "actief") || has(p, "Q14", "lek");
+  const recurring = has(p, "Q26", "regelmatig", "voortdurend") || has(p, "Q28", "soms", "regelmatig", "actief");
+  const evSet = new Set(ev);
+  const safetyLink = evSet.has("Q14") && has(p, "Q14", "lek", "los") || evSet.has("Q28") && has(p, "Q28", "actief") || evSet.has("M01") && has(p, "M01", "actief") || evSet.has("Q16") && has(p, "Q16", "actief");
+  const activeBonus = (evSet.has("Q28") || evSet.has("M01") || evSet.has("Q16") || evSet.has("Q14")) && activeWater ? 4 : 0;
+  const recurBonus = evSet.has("Q26") || evSet.has("Q28") ? (recurring ? 2 : 0) : 0;
+  const safetyBonus = safetyLink ? 4 : 0;
+  return severity + (LINK_SPECIFIC[c.id] ?? 0) * 2 + planned + Math.min(ev.length, 4) - unknown + activeBonus + recurBonus + safetyBonus;
 }
 
 /** Maximaal twee werkelijk relevante verbanden, gerangschikt; specifiekere verbanden vervangen overlappende. */
