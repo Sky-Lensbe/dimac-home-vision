@@ -9,7 +9,7 @@
  */
 
 export const RULE_VERSION = "qs-rules-2.2.2";
-export const QUESTION_VERSION = "qs-questions-2.3.2";
+export const QUESTION_VERSION = "qs-questions-2.3.3";
 export const REPORT_VERSION = "qs-report-2.2.2";
 
 export type Domain = "B" | "V" | "E" | "T" | "S";
@@ -131,7 +131,8 @@ export function followUpBudget(g: FollowUpGroup, a: Answers): number {
     case "ramen": return has(a, "Q20", "tocht", "beschadigd") ? 2 : has(a, "Q20", "verouderd") ? 1 : 0;
     case "vocht": {
       if (!moistureReported(a)) return 0;
-      const base = has(a, "Q24", "vochtplekken") ? 4 : 3;
+      // 2.3.3: locatie, frequentie, aard en timing van het vochtprobleem mogen nooit door het budget wegvallen.
+      const base = 4;
       return base + (has(a, "Q26", "regelmatig", "voortdurend") || hasR(a, "Q25", "meerdere") ? 1 : 0);
     }
     case "scheur": return has(a, "Q30", "groot", "verzakking") ? 9 : 0;
@@ -148,6 +149,14 @@ export const QUESTIONS: Question[] = [
     id: "Q03", step: 1, main: true, text: "Wanneer werd de woning gebouwd?",
     textFor: (a) => (isApartment(a) ? "Wanneer werd het appartementsgebouw gebouwd?" : undefined),
     options: [o("voor1945", "Vóór 1945"), o("1945-1969", "1945–1969"), o("1970-1990", "1970–1990"), o("1991-2010", "1991–2010"), o("vanaf2011", "Vanaf 2011"), o("onbekend", "Weet ik niet")],
+  },
+  {
+    // 2.3.3: de periode 1991–2010 overschrijdt de asbestgrens van 2001; deze contextvraag verduidelijkt het bouwjaar. Geen technische score.
+    id: "BJ01", step: 1, showIf: (a) => has(a, "Q03", "1991-2010"),
+    text: "Is de woning gebouwd vóór 2001 of vanaf 2001?",
+    textFor: (a) => (isApartment(a) ? "Is het appartementsgebouw gebouwd vóór 2001 of vanaf 2001?" : undefined),
+    help: "De grens van 2001 bepaalt onder meer de wettelijke asbestinformatie. Dit antwoord heeft geen invloed op de barometer.",
+    options: [o("voor2001", "Vóór 2001"), o("vanaf2001", "Vanaf 2001"), unkCtx],
   },
   { id: "O01", step: 1, optional: true, showIf: house, text: "Wat is ongeveer de bewoonbare oppervlakte van de woning?", help: "Een schatting volstaat; dit is geen officieel vastgestelde oppervlakte. Heeft geen invloed op de barometer.", options: [o("lt100", "Minder dan 100 m²"), o("100-149", "100–149 m²"), o("150-199", "150–199 m²"), o("200-299", "200–299 m²"), o("gte300", "300 m² of meer"), unkCtx] },
   { id: "O02", step: 1, optional: true, showIf: isApartment, text: "Wat is ongeveer de bewoonbare oppervlakte van het appartement?", help: "Een schatting volstaat; dit is geen officieel vastgestelde oppervlakte. Heeft geen invloed op de barometer.", options: [o("lt75", "Minder dan 75 m²"), o("75-99", "75–99 m²"), o("100-149", "100–149 m²"), o("gte150", "150 m² of meer"), unkCtx] },
@@ -224,7 +233,7 @@ export const QUESTIONS: Question[] = [
   { id: "Q25A", step: 2, group: "vocht", multi: true, text: "Waar merkt u dit probleem?", help: "Meerdere antwoorden mogelijk.", showIf: (a) => isApartment(a) && moistureReported(a), options: [o("plafond", "Plafond, onder dak of bovenliggende ruimte"), o("buitenmuur", "Buitenmuur van het appartement"), o("ramen", "Rond ramen"), o("badkamer", "Badkamer"), o("meerdere", "Meerdere ruimtes in het appartement"), o("gemkelder", "Gemeenschappelijke kelder of berging"), o("onbekend", "Weet ik niet of niet duidelijk", undefined, undefined, true)] },
   { id: "Q25", step: 2, group: "vocht", multi: true, text: "Waar merkt u dit probleem?", help: "Meerdere antwoorden mogelijk.", showIf: (a) => house(a) && moistureReported(a), options: [o("zolder", "Dak of zolder"), o("buitenmuur", "Buitenmuur"), o("ramen", "Rond ramen"), o("badkamer", "Badkamer"), o("kelder", "Kelder"), o("meerdere", "Meerdere ruimtes")] },
   { id: "Q26", step: 2, group: "vocht", text: "Is het probleem terugkerend?", showIf: moistureReported, options: [o("eenmalig", "Eenmalig", "V", 2), o("afentoe", "Af en toe", "V", 4), o("regelmatig", "Regelmatig", "V", 7), o("voortdurend", "Vrijwel voortdurend", "V", 8), unkCtx] },
-  { id: "Q29", step: 2, group: "vocht", text: "Hoe uitgebreid is de zichtbare schimmelvorming?", showIf: (a) => has(a, "Q24", "terugkerend"), options: [o("plaatselijk", "Plaatselijk", "V", 3), o("meerdere", "Meerdere plekken", "V", 6), o("ruimtes", "In verschillende ruimtes", "V", 8), unk("V")] },
+  { id: "Q29", step: 2, group: "vocht", text: "Is er zichtbare schimmelvorming, en zo ja, hoe uitgebreid?", help: "Condens is niet automatisch schimmel. Kies de eerste optie wanneer u alleen condens ziet.", showIf: (a) => has(a, "Q24", "terugkerend"), options: [o("geen", "Geen zichtbare schimmel, alleen condens"), o("plaatselijk", "Plaatselijk", "V", 3), o("meerdere", "Meerdere plekken", "V", 6), o("ruimtes", "In verschillende ruimtes", "V", 8), unk("V")] },
   { id: "Q27", step: 2, group: "vocht", optional: true, text: "Wanneer treedt het probleem vooral op?", showIf: moistureReported, options: [o("regen", "Na regen"), o("koude", "In koude periodes"), o("douchen", "Na douchen of koken"), o("geenpatroon", "Geen duidelijk patroon"), unkCtx] },
   { id: "M01", step: 2, safety: true, text: "Komt er daadwerkelijk water naar binnen?", help: "Bijvoorbeeld druppels, natte plekken die groeien bij regen of water dat binnenloopt.", showIf: (a) => !has(a, "Q14", "lek") && !commonMoistureOnly(a) && (has(a, "Q24", "vochtplekken") || has(a, "Q27", "regen") || has(a, "Q25", "buitenmuur", "zolder") || has(a, "Q25A", "buitenmuur", "plafond")), options: [o("nee", "Nee, alleen vochtige plekken", "V", 0), o("vermoeden", "Mogelijk, bij regen", "V", 6), o("regen", "Ja, bij regen", "V", 8), o("actief", "Ja, actieve lekkage", "V", 10), unk("V")] },
   { id: "Q23", step: 2, text: "Zijn er vochtplekken rond ramen of gevel na regen?", showIf: (a) => hasR(a, "Q25", "ramen", "buitenmuur") && !has(a, "M01", "regen", "actief"), options: [o("nee", "Nee", "V", 0), o("soms", "Soms", "V", 5), o("herhaaldelijk", "Herhaaldelijk", "V", 8), unk("V")] },
