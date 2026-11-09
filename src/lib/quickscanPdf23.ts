@@ -1,6 +1,6 @@
 import { jsPDF } from "jspdf";
 import { CATEGORIES } from "@/lib/quickscan";
-import { withReportRef, type QuickscanReport23, type DomainStatus, type DocStatus, type IconId, type ReportV232 } from "@/lib/quickscanReport";
+import { withReportRef, type QuickscanReport23, type DomainStatus, type DocStatus, type IconId, type ReportV232, type ReportV233 } from "@/lib/quickscanReport";
 import { ICONS, ILLUSTRATIONS, type Shape } from "@/lib/reportArt";
 import { formatEuro, VAT_LABEL } from "@/data/woningscan";
 import { absoluteUrl } from "@/lib/site";
@@ -79,8 +79,11 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
   const W = 210, H = 297, M = 18, CW = W - 2 * M, TOP = 36, BOTTOM = 276;
   const v = r.v23;
   const x = (r as { v232?: ReportV232 }).v232;
+  // 2.3.3: additieve extensie; snapshots zonder v233 volgen exact het bestaande 2.3.2-pad (inhoud én paginering).
+  const x3 = (r as { v233?: ReportV233 }).v233;
   const actionList = x ? x.actions.technical : v.actions;
-  const docList: { label: string; statusLabel: string; note: string | null }[] = x ? x.documents : v.documents;
+  const docList: { label: string; statusLabel: string; contentLabel?: string | null; note: string | null }[] = x3 ? x3.documents : x ? x.documents : v.documents;
+  const conclusion = x3?.conclusion ?? v.conclusion;
   const model = reportPdfModel(r, meta);
   let y = TOP;
 
@@ -211,13 +214,13 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     y += ch + 8;
   }
 
-  // Eerste conclusie
+  // Eerste conclusie (2.3.3: persoonlijke conclusie; oudere snapshots tonen hun opgeslagen conclusie)
   {
-    const h = measure(v.conclusion, CW - 8, "serif", false, 11.5, 1.35) + 13;
+    const h = measure(conclusion, CW - 8, "serif", false, 11.5, 1.35) + 13;
     ensure(h);
     doc.setDrawColor(...ORANGE); doc.setLineWidth(0.7); doc.line(M, y, M, y + h);
     eyebrow("Eerste conclusie", M + 5, y + 3, MUTED);
-    font("serif", false, 11.5, INK); para(v.conclusion, M + 5, y + 9, CW - 8, 11.5, 1.35);
+    font("serif", false, 11.5, INK); para(conclusion, M + 5, y + 9, CW - 8, 11.5, 1.35);
     y += h + 4;
   }
 
@@ -377,14 +380,17 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     const dw = (CW - 5) / 2;
     for (let i = 0; i < docList.length; i += 2) {
       const pair = docList.slice(i, i + 2);
-      const heights = pair.map((d) => 16 + measure(d.label, dw - 22, "sans", true, 9) + (d.note ? measure(d.note, dw - 12, "sans", false, 8.5) : 0));
+      // contentLabel bestaat alleen in 2.3.3-snapshots; oudere paden meten en tekenen exact zoals voorheen.
+      const heights = pair.map((d) => 16 + measure(d.label, dw - 22, "sans", true, 9) + (d.contentLabel ? 4 : 0) + (d.note ? measure(d.note, dw - 12, "sans", false, 8.5) : 0));
       const h = Math.max(...heights); ensure(h + 3);
       pair.forEach((d, j) => {
         const dx = M + j * (dw + 5);
         doc.setFillColor(...SURFACE); doc.setDrawColor(...LINE); doc.rect(dx, y, dw, h, "FD"); icon("doc", dx + 4, y + 4, 6, MUTED);
         font("sans", true, 9, INK); const titleH = para(d.label, dx + 13, y + 7, dw - 22, 9);
         font("sans", true, 8.5, MUTED); doc.text(d.statusLabel, dx + 6, y + 9 + titleH);
-        if (d.note) { font("sans", false, 8.5, BODY); para(d.note, dx + 6, y + 15 + titleH, dw - 12, 8.5); }
+        let ny = y + 15 + titleH;
+        if (d.contentLabel) { font("sans", false, 8, MUTED); doc.text(d.contentLabel, dx + 6, ny - 1); ny += 4; }
+        if (d.note) { font("sans", false, 8.5, BODY); para(d.note, dx + 6, ny, dw - 12, 8.5); }
       });
       y += h + 3;
     }
