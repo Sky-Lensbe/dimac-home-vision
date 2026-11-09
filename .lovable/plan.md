@@ -73,6 +73,16 @@ Rapporten 2.3, 2.3.1 en 2.3.2 blijven ongewijzigd openen en als PDF exporteren m
 ### Stap G — Opleveringsdocument
 `docs/quickscan-2.3.3-oplevering.md` met gewijzigde bestanden, oorzaken, oplossingen, versies, testresultaten, verschillen per case, PDF-pagina-aantallen en open beperkingen, met duidelijk onderscheid tussen werkelijk uitgevoerde browser-/PDF-tests en uitsluitend automatische tests.
 
+## Aanvullende voorwaarden (goedgekeurd bij het plan)
+
+1. **Q29 en scoring**: de nieuwe neutrale optie krijgt geen technische score; Q24-scorebijdrage en veiligheidsregels blijven. Bij identieke bestaande antwoorden moeten domeinscores, barometer en veiligheidsmeldingen tussen 2.3.2 en 2.3.3 gelijk blijven (getest).
+2. **Asbestcontext in alle rapportlagen**: naast `asbestosContext()` ook `contextNotices()`, `legalContext()`, documentenchecklists, VME-context en PDF controleren. Bevestigd bouwjaar vanaf 2001 zonder gemelde asbesttoepassingen → geen prominente attestwaarschuwing; expliciet gemelde asbesttoepassingen behouden waarschuwingen ongeacht bouwjaar; bouwjaarverduidelijking consequent voor woningen en appartementen.
+3. **Historische rapporten en PDF-versies**: PDF-weergave van 2.3/2.3.1/2.3.2 beschermen tegen de nieuwe 2.3.3-paginering via een geversioneerd renderpad of gelijkwaardig aantoonbaar veilige oplossing; historische snapshots testen op inhoud én layout; geen herberekening.
+4. **Informatiedekking en commerciële logica**: interne informatieniveaucodes en productroutering behouden; alleen labels, nauwkeurigheid en relevantie verbeteren; de vijf referentiecases behouden hun correcte aanbevelingen, afwijkingen alleen uit aantoonbaar gecorrigeerde informatie of een expliciet beslissingsdefect.
+5. **Sessiecompatibiliteit en testgrenzen**: expliciete migratie van `dimac-quickscan-v2.3.2` naar de 2.3.3-sessie; gemigreerde sessies hervatten in de vragenlijst en stellen nieuw toepasselijke vragen alsnog. Oplevering maakt onderscheid tussen automatische tests, lokale rapport-/PDF-generatie, echte browsercontroles en volledige server-side end-to-end-tests (laatste blijft open tot afzonderlijke uitroltoestemming).
+
+Na oplevering: concrete vergelijking van de vijf praktijkcases met hun 2.3.3-resultaten, inclusief zichtbare bewijsvoering dat de vastgestelde problemen zijn opgelost.
+
 ## Grenzen (ongewijzigd)
 - Geen heruitrol van de serverfunctie, geen databasewijzigingen, geen publicatie zonder afzonderlijke toestemming.
 - `MAIL_MODE = test` blijft; geen productiemails, geen betalingen.
