@@ -13,9 +13,11 @@ import {
   type Answers, type Domain, type SafetyId,
 } from "./engine.ts";
 import { DRONE_OPTION, getProduct, VAT_RATE, type ProductId } from "./catalog.ts";
+import { ASBESTOS, LEGAL_SOURCES, LEGAL_VERIFIED_AT, LEGAL_VERSION, RENOVATION_OBLIGATION, type LegalSourceId } from "./legal.ts";
 
-export const REPORT_VERSION_23 = "qs-report-2.3.1";
-const { has, plans, plannedCount, buyer, label } = answerHelpers;
+export const REPORT_VERSION_23 = "qs-report-2.3.2";
+export const REPORT_EXTENSION_232 = "v232";
+const { has, plans, fullIntent, plannedCount, buyer, label } = answerHelpers;
 
 const scoreOf = (a: Answers, qid: string): number => {
   const v = a[qid];
@@ -170,9 +172,10 @@ function findings(a: Answers): Finding[] {
 
 // ---------- Verbanden ----------
 export interface LinkNode { icon: IconId; label: string; caption: string }
-export interface Connection { id: string; title: string; text: string; nodes: LinkNode[] }
+export interface Connection { id: string; title: string; text: string; nodes: LinkNode[]; evidence?: string[]; relevance?: number }
 
-export function connections(a: Answers): Connection[] {
+/** Alle kandidaatverbanden (ongerangschikt). */
+export function connectionCandidates(a: Answers): Connection[] {
   const p = privateSignals(a);
   const moisture = has(p, "Q24", "terugkerend", "vochtplekken");
   const vent = has(p, "Q39", "beperkt", "defect", "onbekend") || has(p, "V01", "geen");
@@ -191,8 +194,41 @@ export function connections(a: Answers): Connection[] {
   add({ id: "LINK-SANITAIR-VLOER", title: "Leidingen en vloerwerken", nodes: [{ icon: "pipe", label: "Leidingen", caption: has(p, "SL01", "gt25", "origineel") ? "Ouderdom gemeld, geen bewezen gebrek." : "Aanpassing van leidingen nog te verifiëren." }, { icon: "house", label: "Vloeren", caption: "Geplande vloerwerken." }], text: has(p, "Q45", "actief", "terugkerend", "verstopping") ? "U meldt sanitaire of afvoerproblemen en plant vloerwerken. Laat de gemelde problemen beoordelen vóór de definitieve vloerafwerking." : plans(a, "sanitair") ? "Wanneer bij de geplande sanitaire werken ook leidingen worden aangepast, is het verstandig deze werkzaamheden met de nieuwe vloerafwerking af te stemmen. De Quickscan kan niet bepalen of leidingen vervangen moeten worden." : "U vermeldt oudere leidingen en plant vloerwerken. Verifieer vóór de nieuwe vloerafwerking of leidingwerken nodig zijn; ouderdom alleen bewijst geen gebrek of noodzaak tot vervanging." }, (plans(a, "sanitair") || has(p, "SL01", "gt25", "origineel") || has(p, "Q45", "actief", "terugkerend", "verstopping")) && plans(a, "vloeren"));
   const sequence = workSequence(a);
   add({ id: "LINK-WERKVOLGORDE", title: "Afstemming van uw geplande werken", nodes: [{ icon: "plan", label: "Werkvolgorde", caption: "Afstemming, geen veronderstelde omvang." }, { icon: "house", label: "Geplande werken", caption: sequence.labels.join(", ") }], text: sequence.text }, sequence.relevant);
+  const basementOnly = has(p, "Q25", "kelder") && Array.isArray(p.Q25) && p.Q25.length === 1;
+  const basementWater = has(p, "Q28", "soms", "regelmatig", "actief");
+  const active = has(p, "Q28", "actief");
+  add({ id: "LINK-KELDER-REGEN", title: "Keldervocht en mogelijke vochtbron", nodes: [{ icon: "drop", label: active ? "Waterinstroom" : "Keldervocht", caption: active ? "Actieve instroom gemeld." : has(p, "Q28", "soms") ? "Vooral na regen." : "Vocht of water in de kelder." }, { icon: "building", label: "Mogelijke bron", caption: "Grondwater, afvoer, aansluitingen of buitenwanden." }], text: active ? "U meldt actieve waterinstroom in de kelder. Dat is iets anders dan vochtplekken: laat de instroomroute gericht onderzoeken (bijvoorbeeld afvoer, aansluitingen, buitenwanden of grondwater) vóór u afwerkt of isoleert." : "U meldt vocht in de kelder, vooral in samenhang met regen. Een gericht onderzoek naar de mogelijke vochtbron helpt bepalen of het om insijpeling, afvoer of condensatie gaat. Dit staat los van eventuele ventilatie in de woonruimtes." }, basementWater || (has(p, "Q25", "kelder") && has(p, "Q27", "regen")));
+  add({ id: "LINK-RAAM-CONDENS", title: "Condens en schimmel rond ramen", nodes: [{ icon: "window", label: "Rond ramen", caption: "Condens of schimmel aan de binnenzijde." }, VENT, { icon: "leaf", label: "Koude oppervlakken", caption: "Glas, kaders en aansluitingen." }], text: `U meldt condens of schimmel rond ramen. Dat kan samenhangen met ventilatie, koude oppervlakken en de aansluiting van het schrijnwerk. ${has(p, "Q21", "ja") ? "Condens tussen de glasplaten is een afzonderlijk signaal van de beglazing zelf. " : ""}Laat deze factoren samen bekijken voor u kiest wat u aanpakt.` }, (has(p, "Q25", "ramen") || has(p, "Q25A", "ramen")) && has(p, "Q24", "terugkerend", "vochtplekken"));
   add({ id: "LINK-VME-KOSTEN", title: "Appartement en gemeenschappelijke kosten", nodes: [{ icon: "building", label: "Mede-eigendom", caption: "Aangekondigde werken of bijdragen." }, { icon: "doc", label: "VME-documenten", caption: "Verslagen, reservefonds en besluiten." }], text: "Er zijn werken of bijkomende bijdragen in de mede-eigendom aangekondigd. Die staan los van de privatieve barometer, maar kunnen uw kosten beïnvloeden. De VME-documenten geven daar meer duidelijkheid over." }, isApartment(a) && (has(a, "A02", "middel", "ingrijpend", "besproken") || has(a, "A03", "beperkt", "substantieel", "omvang")));
-  return out.slice(0, 2);
+  return out.filter((c) => !(basementOnly && ["LINK-VOCHT-VENT-RAMEN", "LINK-VOCHT-VENT"].includes(c.id)));
+}
+
+/** Bewijsgrond en deterministische relevantie per verband (hoger = relevanter). */
+const LINK_EVIDENCE: Record<string, string[]> = {
+  "LINK-KELDER-REGEN": ["Q28", "Q25", "Q27"], "LINK-RAAM-CONDENS": ["Q24", "Q25", "Q25A", "Q39", "Q21"], "LINK-VOCHT-VENT-RAMEN": ["Q24", "Q20", "Q22", "Q39", "V01"],
+  "LINK-VOCHT-VENT": ["Q24", "Q39", "V01"], "LINK-DAK-ISOL": ["Q14", "Q15", "DI01", "Q46"], "LINK-GEVEL-RAMEN": ["Q18", "Q20", "Q46"],
+  "LINK-VOCHT-AFWERKING": ["Q24", "M01", "Q46", "Q46A"], "LINK-VERW-ISOL": ["Q46", "Q46A", "DI01", "MI01", "Q34"], "LINK-SANITAIR-VLOER": ["Q46", "Q46A", "SL01", "Q45"],
+  "LINK-WERKVOLGORDE": ["Q46", "Q46A", "Q47"], "LINK-VME-KOSTEN": ["A02", "A03"],
+};
+const LINK_SPECIFIC: Record<string, number> = { "LINK-KELDER-REGEN": 3, "LINK-RAAM-CONDENS": 3, "LINK-VOCHT-VENT-RAMEN": 2, "LINK-DAK-ISOL": 2, "LINK-VERW-ISOL": 2, "LINK-SANITAIR-VLOER": 1, "LINK-VOCHT-VENT": 1, "LINK-GEVEL-RAMEN": 1, "LINK-VOCHT-AFWERKING": 1, "LINK-VME-KOSTEN": 1, "LINK-WERKVOLGORDE": 0 };
+const OVERLAP: Record<string, string[]> = { "LINK-RAAM-CONDENS": ["LINK-VOCHT-VENT-RAMEN", "LINK-VOCHT-VENT"], "LINK-VOCHT-VENT-RAMEN": ["LINK-VOCHT-VENT"], "LINK-SANITAIR-VLOER": ["LINK-WERKVOLGORDE"], "LINK-VERW-ISOL": ["LINK-WERKVOLGORDE"] };
+
+export function connectionRelevance(a: Answers, c: Connection): number {
+  const p = privateSignals(a);
+  const ev = (LINK_EVIDENCE[c.id] ?? []).filter((q) => p[q] !== undefined && p[q] !== SKIP);
+  const severity = Math.max(0, ...ev.map((q) => scoreOf(p, q)));
+  const planned = ev.some((q) => q === "Q46" || q === "Q46A") && selectedWorks(a).length > 0 ? 2 : 0;
+  const unknown = ev.filter((q) => has(p, q, "onbekend")).length;
+  return severity + (LINK_SPECIFIC[c.id] ?? 0) * 2 + planned + Math.min(ev.length, 4) - unknown;
+}
+
+/** Maximaal twee werkelijk relevante verbanden, gerangschikt; specifiekere verbanden vervangen overlappende. */
+export function connections(a: Answers): Connection[] {
+  const p = privateSignals(a);
+  const scored = connectionCandidates(a).map((c, i) => ({ ...c, evidence: (LINK_EVIDENCE[c.id] ?? []).filter((q) => p[q] !== undefined && p[q] !== SKIP && a[q] !== undefined), relevance: connectionRelevance(a, c), i }));
+  const ids = new Set(scored.map((c) => c.id));
+  const kept = scored.filter((c) => !Object.entries(OVERLAP).some(([k, v]) => ids.has(k) && v.includes(c.id)));
+  return kept.sort((x, y) => y.relevance - x.relevance || x.i - y.i).slice(0, 2).map(({ i: _i, ...c }) => c);
 }
 
 // ---------- Actiekaarten ----------
