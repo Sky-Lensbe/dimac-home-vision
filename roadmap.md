@@ -45,11 +45,11 @@
 - [x] Verbanden: prioriteitsprincipes, exacte antwoordgegevens, geen geforceerde verbanden
 - [x] Geen niet-gemelde werken als gepland (fasen/acties herleidbaar naar antwoorden)
 - [x] Documentstatussen: beschikbaarheid/inhoud/geldigheid, relevantie
-- [x] Informatiedekking: vier niveaus, geen ruwe antwoordcodes
+- [ ] Informatiedekking: vier gebruikersgerichte niveaus nog afwerken; bestaande interne codes behouden
 - [x] VME compacter: thematisch, max. vijf kernvragen, geen doublures
 - [x] Asbest 1991–2010: bouwjaarvervolgvraag, consequent in alle lagen
 - [x] Persoonlijke conclusie
-- [x] PDF-paginering 2.3.3 met geversioneerd renderpad voor oude versies
+- [ ] PDF-paginering: onafhankelijk bewijs van oorspronkelijke historische layout en expliciete renderer-isolatie nog nodig
 - [x] Sessiemigratie 2.3.2→2.3.3
 - [x] Tests: 5 cases + randgevallen + historische regressie (292/292); typecheck; build OK
 - [x] Lokale rapport-/PDF-generatie en visuele controle per case
@@ -58,7 +58,7 @@
 - [ ] Server-side end-to-end — wacht op afzonderlijke uitroltoestemming
 
 # Quickscan 2.3.3 — Final Quality & Email Delivery
-- [ ] Concreet kwaliteits-, implementatie- en migratievoorstel voorleggen vóór gedeelde wijzigingen
+- [x] Concreet kwaliteits-, implementatie- en migratievoorstel opgesteld vóór gedeelde wijzigingen
 - [ ] Onafhankelijke oorspronkelijke 2.3.2-scorebaseline en historische PDF-layoutreferenties verifiëren
 - [ ] Vier gebruikersgerichte informatiedekkingsniveaus, commerciële codes ongewijzigd
 - [ ] Veilige persoonlijke PDF-bijlage, idempotente verzendopdrachten, statussen en begrensde retries voorbereiden

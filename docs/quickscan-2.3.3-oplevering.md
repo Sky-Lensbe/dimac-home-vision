@@ -2,6 +2,21 @@
 
 Datum: 9 november 2026. Status: geïmplementeerd in preview, testmodus (MAIL_MODE=test), niets gepubliceerd, geen serveruitrol.
 
+## Aanvullende kwaliteitsaudit — Final Quality & Email Delivery
+
+De eerdere testtelling hieronder blijft een historisch resultaat, maar drie acceptatieclaims zijn nog niet afdoende bewezen:
+- De invariantietest gebruikt de huidige engine aan beide kanten; onafhankelijke vergelijking met de oorspronkelijke ongewijzigde 2.3.2-engine ontbreekt.
+- Historische PDF-generatie en inhoudstests bewijzen geen behoud van de oorspronkelijke layout. Een oorspronkelijke renderer en geanonimiseerde referenties voor 2.3, 2.3.1 en 2.3.2 moeten worden geverifieerd, inclusief pagina-aantallen, positionering en hyperlinks.
+- Vier gebruikersgerichte informatiedekkingsniveaus zijn nog niet volledig geïmplementeerd; bestaande interne niveaus en productroutering blijven behouden.
+
+Deze audit heeft geen nieuwe tests uitgevoerd en wijzigt geen bestaande snapshots. De bijbehorende taken zijn opnieuw geopend.
+
+### Transactionele rapportlevering — onderzoeksstatus
+
+Er is geen e-maildomein voor Lovable Emails ingesteld, geen beschikbare Resend-verbinding en geen geconfigureerde Resend-secret aangetroffen. SPF, DKIM, DMARC, providerlimieten en aflevering zijn niet geverifieerd. Lovable Emails ondersteunt geen PDF-bijlagen; de aangevraagde bijlage wordt daarom niet stilzwijgend door een link vervangen. Het voorstel kiest de door DIMAC genoemde Resend-oplossing, onder voorbehoud van koppeling en verificatie.
+
+De huidige PDF wordt lokaal uit de snapshot opgebouwd. Server-side hergebruik vereist een runtime-onafhankelijke renderer en aantoonbare font-, logo-, inhouds- en layoutpariteit. Het voorstel omvat een duurzame verzendopdracht, beveiligde verwerking, begrensde retries, ondertekende aflevermeldingen en waarheidsgetrouwe status. Er zijn nog geen wijzigingen aan de gedeelde database, opslag, secrets, DNS of serverfuncties uitgevoerd; geen mails verstuurd en niets gepubliceerd. MAIL_MODE blijft test.
+
 ## Versies
 
 - Vragen: `qs-questions-2.3.3` (nieuwe contextvraag BJ01, nieuwe neutrale Q29-optie)
