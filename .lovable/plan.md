@@ -58,5 +58,15 @@ Scores, gewichten, barometerdrempels, veiligheidsregels, prijzen, logo, historis
 - `Quickscan.tsx`: na antwoord springen naar eerste nieuw geactiveerde open vraag. `quickscanSession.ts`: nieuwe sleutel + migratie.
 - `Report23.tsx` / `quickscanPdf23.ts`: optionele 2.3.2-secties renderen; `quickscan-submit`: volledigheidscontrole.
 
+## Aanvullende voorwaarden (goedgekeurd met plan)
+- Resolver: scheiding bron-, gevalideerde, actieve antwoorden en zichtbare vragen; vervallen antwoorden activeren niets meer; niet-convergentie faalt expliciet (geen rapport). Geen sprongen midden in de stroom: eerst huidige stroom afmaken, daarna nieuw geactiveerde vragen, dan terug naar de logische vervolgstap. Specifieke tests Q46/Q46A × RI01, V01, SL01, Q39.
+- Alle aanroepen van `plans()` nagekeken, ook productadvies, drone, verbanden, vraagvoorwaarden en fasen.
+- Statussen expliciet onderscheiden: onbekend, bewust overgeslagen, niet gevraagd, niet beschikbaar, niet van toepassing. P/G-score raken geen domeinen of veiligheidsregels.
+- Juridisch: bestaande eigenaar E/F → geen conclusie "geen verplichting" (er kan een lopende verplichting zijn); kandidaat-koper → ook waarschuwing over bestaande verplichting en resterende termijn bij doorverkoop; nooit een individuele deadline berekenen. EPC Gemeenschappelijke Delen en asbestattest gemene delen apart met toepassingsvoorwaarden en nieuwbouwuitzonderingen; teksten getoetst aan officiële bronnen met verificatiedatum.
+- Compatibiliteit: `v23`-structuur blijft intact; 2.3.2 als additieve, geversioneerde extensie. Regressietest met echte historische 2.3- en 2.3.1-snapshotvormen, online en PDF.
+- Browser: vier dossiers, minstens één op mobiel; onderbreken/hervatten, terug en wijzigen, nieuwe vragen vóór rapport, geen lussen, online/PDF-consistentie, leesbaarheid nieuwe secties, pakketlinks met rapportreferentie en drone uit.
+- Deployment: dezelfde backend bedient preview en de (nog niet gepubliceerde) live-omgeving. Vóór heruitrol van de serverfunctie vraag ik daarom afzonderlijk toestemming; zonder akkoord blijft het bij lokale tests en wordt de browsertest met de server als beperking gerapporteerd.
+- Oplevering: per onderdeel onderscheid tussen automatische tests, echte browsercontroles, visueel gecontroleerde PDF's en open beperkingen.
+
 ## Open punt
 - Twijfelgevallen ouderdomsscores blijven wachten op goedkeuring DIMAC (ongewijzigd).
