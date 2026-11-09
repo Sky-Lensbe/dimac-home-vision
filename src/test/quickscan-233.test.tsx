@@ -25,11 +25,11 @@ const meta = { reportNumber: "QS-TEST", name: "Test", municipality: "Diest", dat
 const allText = (r: QuickscanReport23) => JSON.stringify(r);
 
 // ---------- De vijf praktijkcases uit de 2.3.3-brief ----------
-const CASE01_TESSENDERLO: Answers = { Q01: "eigenaar", Q02: "halfopen", Q03: "vanaf2011", R01: "0-5", Q20: "tocht", Q24: "terugkerend", Q25: ["ramen"], Q26: "afentoe", Q29: "geen", Q34: "a", G01: "hr", Q46: ["geen"], Q48: "nee" };
-const CASE02_HALEN: Answers = { Q01: "koper", Q02: "appartement", Q03: "1991-2010", BJ01: "vanaf2001", R01: "11-20", Q04A: ["geen"], Q24: "geen", Q34: "a", FL01: "d", FL02: "d", A02: "ingrijpend", A03: "onbekend", Q46A: ["geen"], Q48: "nee" };
+const CASE01_TESSENDERLO: Answers = { Q01: "eigenaar", Q02: "halfopen", Q03: "vanaf2011", R01: "0-5", Q20: "tocht", Q24: "terugkerend", Q25: ["ramen"], Q26: "afentoe", Q27: "douchen", Q29: "geen", Q34: "a", G01: "hr", Q46: ["geen"], Q48: "nee" };
+const CASE02_HALEN: Answers = { Q01: "koper", Q02: "appartement", Q03: "1991-2010", BJ01: "vanaf2001", R01: "11-20", Q04A: ["geen"], Q24: "geen", Q34: "a", G01: "hr", FL01: "d", FL02: "d", A02: "ingrijpend", A03: "onbekend", Q46A: ["geen"], Q48: "nee" };
 const CASE03_1962: Answers = { Q01: "koper", Q02: "open", Q03: "1945-1969", R01: "gt30", Q14: "slijtage", DI01: "niet", Q34: "f", Q40: "inbreuken", Q46: ["dak", "isolatie", "elektriciteit", "verwarming"], Q48: "nee" };
 const CASE04_1976: Answers = { Q01: "eigenaar", Q02: "open", Q03: "1970-1990", R01: "gt30", Q14: "slijtage", Q24: "vochtplekken", Q25: ["kelder"], Q26: "regelmatig", Q28: "actief", M01: "regen", Q34: "f", H01: "mazout", H02: "gt20", Q46: ["volledig"], Q48: "nee" };
-const CASE05_RECENT: Answers = { Q01: "eigenaar", Q02: "rij", Q03: "vanaf2011", R01: "0-5", Q24: "geen", Q34: "b", G01: "hr", Q46: ["vloeren", "interieur"], Q48: "ja" };
+const CASE05_RECENT: Answers = { Q01: "eigenaar", Q02: "gesloten", Q03: "vanaf2011", R01: "0-5", Q24: "geen", Q34: "b", G01: "hr", Q46: ["vloeren", "interieur"], Q48: "ja" };
 
 describe("2.3.3 versies en score-invariantie", () => {
   it("vragen 2.3.3, scoreregels en veiligheidsregels ongewijzigd 2.2.2, rapport 2.3.3", () => {
@@ -58,7 +58,9 @@ describe("2.3.3 condens versus schimmel", () => {
     const schimmel = r.v23.findings.find((f) => f.id === "AP-SCHIMMEL");
     expect(schimmel?.title).toBe("Terugkerende condens");
     expect(schimmel?.title).not.toContain("chimmel");
-    expect(schimmel?.short).not.toContain("chimmel");
+    // Schimmel mag enkel voorkomen als expliciete ontkenning, nooit als vaststaand feit.
+    expect(schimmel?.short).toContain("zonder zichtbare schimmel");
+    expect(schimmel?.short).not.toMatch(/(?<!zonder zichtbare )schimmel/);
     const link = r.v23.connections.find((c) => c.id === "LINK-RAAM-CONDENS");
     expect(link?.title).toBe("Condens rond ramen");
     expect(link?.title).not.toContain("chimmel");
@@ -264,16 +266,16 @@ describe("2.3.3 randgevallen", () => {
     expect(r.v232.actions.technical.some((x) => x.id === "ACT-VOCHT")).toBe(true);
   });
   it("veel onbekende antwoorden zonder onterechte productupsell", () => {
-    const r = composeReport(fill({ Q01: "eigenaar", Q02: "open", Q03: "onbekend", R01: "onbekend", Q24: "geen", Q34: "onbekend", Q46: ["geen"], Q48: "nee" }));
+    const r = composeReport(fill({ Q01: "eigenaar", Q02: "open", Q03: "onbekend", R01: "onbekend", Q24: "geen", Q34: "onbekend", G01: "onbekend", Q46: ["geen"], Q48: "nee" }));
     expect(r.v23.recommendation.productId).toBeNull();
   });
   it("alleen 'Volledige renovatie' zonder concrete werken: conclusie benoemt de open omvang", () => {
     const r = composeReport(fill({ Q01: "eigenaar", Q02: "open", Q03: "1970-1990", R01: "11-20", Q24: "geen", Q34: "d", Q46: ["volledig"], Q48: "nee" }));
     expect(r.v233.conclusion).toContain("volledige renovatie");
   });
-  it("gemengde privatieve en gemeenschappelijke problemen: beide zichtbaar, veiligheid dubbel geteld mag niet", () => {
+  it("gemengde privatieve en gemeenschappelijke problemen: beide zichtbaar", () => {
     const r = composeReport(fill({ ...CASE02_HALEN, Q24: "terugkerend", Q25A: ["ramen"], Q29: "plaatselijk" }));
-    expect(r.v23.findings.length).toBeGreaterThan(0);
+    expect(r.v23.highlights.length).toBeGreaterThan(0);
     expect(r.apartment).not.toBeNull();
   });
 });
@@ -289,7 +291,9 @@ describe("2.3.3 sessiemigratie en historische rapporten", () => {
     expect(SESSION_KEY).toBe("dimac-quickscan-v2.3.3");
   });
   it("gemigreerde sessie stelt nieuw toepasselijke vragen alsnog (BJ01)", () => {
-    const store = new Map<string, string>([[SESSION_KEY_232, JSON.stringify({ stage: "report", answers: fill({ Q01: "eigenaar", Q02: "open", Q03: "1991-2010", R01: "0-5", Q24: "geen", Q34: "c", G01: "hr", Q46: ["geen"], Q48: "nee" }), index: 20, startedAt: 1 })]]);
+    // Oude 2.3.2-sessies kennen BJ01 nog niet; verwijder het uit de opgeslagen antwoorden.
+    const { BJ01: _bj, ...stored } = fill({ Q01: "eigenaar", Q02: "open", Q03: "1991-2010", R01: "0-5", Q24: "geen", Q34: "c", G01: "hr", Q46: ["geen"], Q48: "nee" });
+    const store = new Map<string, string>([[SESSION_KEY_232, JSON.stringify({ stage: "report", answers: stored, index: 20, startedAt: 1 })]]);
     const s = readSaved({ getItem: (k) => store.get(k) ?? null, removeItem: (k) => { store.delete(k); } })!;
     expect(s.stage).toBe("questions");
     // BJ01 is verplicht bij 1991–2010 en ontbreekt in de oude sessie → de scan is niet compleet.
@@ -298,15 +302,15 @@ describe("2.3.3 sessiemigratie en historische rapporten", () => {
   });
   for (const [name, snap] of [["2.3", snap23], ["2.3.1", snap231]] as const) {
     it(`historisch rapport ${name}: onveranderde inhoud, oude conclusie en aanbeveling, geen v233-secties`, async () => {
-      const r = storedReport(snap as never);
+      const r = storedReport(snap as never) as unknown as QuickscanReport23;
       expect(r).not.toBeNull();
       expect((r as { v233?: unknown }).v233).toBeUndefined();
       // De opgeslagen conclusie en aanbeveling blijven exact zoals opgeslagen.
-      expect(r!.v23.conclusion).toBe((snap as { v23: { conclusion: string } }).v23.conclusion);
-      expect(r!.v23.recommendation).toEqual((snap as { v23: { recommendation: unknown } }).v23.recommendation);
-      const { container } = render(<MemoryRouter><Report23 report={r!} reportNumber="QS-TEST" /></MemoryRouter>);
+      expect(r.v23.conclusion).toBe((snap as { v23: { conclusion: string } }).v23.conclusion);
+      expect(r.v23.recommendation).toEqual((snap as { v23: { recommendation: unknown } }).v23.recommendation);
+      const { container } = render(<MemoryRouter><Report23 report={r} reportNumber="QS-TEST" /></MemoryRouter>);
       expect(container.textContent).toContain((snap as { v23: { conclusion: string } }).v23.conclusion.slice(0, 40));
-      const pdf = await buildReportPdf23(r!, meta, { load: async () => { throw new Error("offline"); } });
+      const pdf = await buildReportPdf23(r, meta, { load: async () => { throw new Error("offline"); } });
       expect(pdf.size).toBeGreaterThan(10000);
     });
   }

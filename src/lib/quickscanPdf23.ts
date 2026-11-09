@@ -432,13 +432,17 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
       font("sans", false, 8, BODY); para(url, M + 6, y + 10, CW - 12, 8);
       doc.link(M, y, CW, h, { url }); y += h + 2;
     };
-    if (model.ctaUrl) pdfLink(rec.ctaLabel, model.ctaUrl, true);
-    pdfLink(rec.infoLabel, model.infoUrl, false);
     // Slotblok: alternatief, afbakening en prijsnota blijven samen, zodat de laatste pagina nooit
     // alleen een losse slotzin bevat.
     const altText = rec.secondary ? `${rec.secondary.text} ${rec.secondary.name}: ${formatEuro(rec.secondary.price)} ${VAT_LABEL}.` : null;
     const closing = [rec.limitation, rec.price !== null ? `${rec.priceNote} Rapportdatum: ${new Date(meta.date).toLocaleDateString("nl-BE")}.` : null].filter(Boolean).join(" ");
     const tail = [altText, closing].filter(Boolean) as string[];
+    // 2.3.3: de laatste link en het slotblok blijven samen, zodat het slotblok nooit alleen op een pagina staat.
+    const tailH = tail.length ? 9 + tail.reduce((n, t) => n + measure(t, CW, "sans", false, 8) + 1, 0) : 0;
+    const linkH = (url: string) => 11 + measure(url, CW - 12, "sans", false, 8) + 4;
+    if (model.ctaUrl) { ensure(linkH(model.ctaUrl) + linkH(rec.infoPath ? absoluteUrl(rec.infoPath) : "") + tailH); pdfLink(rec.ctaLabel, model.ctaUrl, true); }
+    if (tailH) ensure(linkH(absoluteUrl(rec.infoPath)) + tailH);
+    pdfLink(rec.infoLabel, model.infoUrl, false);
     if (tail.length) textBlock(altText ? "Alternatief en afbakening" : "Afbakening", tail, 8);
   }
 

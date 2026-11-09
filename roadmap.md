@@ -40,7 +40,7 @@
 - [ ] Publicatie — wacht op toestemming
 
 # Quickscan 2.3.3 (testmodus) — goedgekeurd plan + 5 aanvullende voorwaarden
-- [ ] Stap A: vijf praktijkcases als fixtures; 2.3.2-uitkomsten vastleggen
+- [x] Stap A: vijf praktijkcases als fixtures; 2.3.2-uitkomsten vastleggen
 - [x] Condens/schimmel/vocht: Q29-optie, semantische regels, followUpBudget
 - [x] Verbanden: prioriteitsprincipes, exacte antwoordgegevens, geen geforceerde verbanden
 - [x] Geen niet-gemelde werken als gepland (fasen/acties herleidbaar naar antwoorden)
@@ -51,8 +51,8 @@
 - [x] Persoonlijke conclusie
 - [x] PDF-paginering 2.3.3 met geversioneerd renderpad voor oude versies
 - [x] Sessiemigratie 2.3.2→2.3.3
-- [ ] Tests: 5 cases + 20 randgevallen + historische regressie; typecheck; build
-- [ ] Lokale rapport-/PDF-generatie en visuele controle per case
-- [ ] Echte browsercontroles
-- [ ] docs/quickscan-2.3.3-oplevering.md met case-vergelijking en bewijsvoering
+- [x] Tests: 5 cases + randgevallen + historische regressie (292/292); typecheck; build OK
+- [x] Lokale rapport-/PDF-generatie en visuele controle per case
+- [x] Browsercontroles (BJ01-vraag, mobiele weergave)
+- [x] docs/quickscan-2.3.3-oplevering.md met case-vergelijking en bewijsvoering
 - [ ] Server-side end-to-end — wacht op afzonderlijke uitroltoestemming
