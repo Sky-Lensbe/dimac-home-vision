@@ -1,90 +1,99 @@
-# Implementatieplan — DIMAC Quickscan 2.3.3 (kwaliteitscorrectie)
+# DIMAC Quickscan 2.3.3 — Final Quality & PDF-maillevering
 
-## Doel en versies
-Gerichte correctie van de tien vastgestelde kwaliteitsproblemen uit de vijf praktijkcases. Geen nieuwe producten, budgetberekeningen, AI of herschrijving van de vragenlijst.
+## Doel en toestemming
+Werk de laatste kwaliteitscorrecties af en bereid automatische levering van het volledige persoonlijke PDF-rapport voor. Geen herbouw.
 
-- Rapport: `qs-report-2.3.2` → `qs-report-2.3.3`
-- Vragen: `qs-questions-2.3.2` → `qs-questions-2.3.3` (antwoordopties en vraagvoorwaarden veranderen: Q29-optie, asbest-vervolgvraag)
-- Scoreregels: `qs-rules-2.2.2` ongewijzigd — geen scorewaarden, domeingewichten, barometerdrempels, veiligheidsregels, prijzen of catalogus aangepast
-- Nieuwe rapportinhoud wordt uitsluitend in de gedeelde rapportmodule opgebouwd (browser en PDF lezen dezelfde gegevens)
+Dit plan geeft na goedkeuring uitsluitend ruimte voor lokale codevoorbereiding en tests. **Geen gedeelde database- of opslagwijzigingen, secrets, DNS-wijzigingen, serveruitrol, echte verzending, publicatie, betalingen of live-modus.** Voor configuratie en gecontroleerde testuitrol volgt een afzonderlijk akkoord met exacte wijzigingslijst en rollback.
 
-## Werkvolgorde (conform brief, stap A–G)
+Versies blijven `qs-report-2.3.3`, `qs-questions-2.3.3` en `qs-rules-2.2.2`. Domeingewichten, scores, veiligheidsregels, barometer, prijzen, catalogus en origineel logo blijven behouden.
 
-### Stap A — Reproductie
-De vijf praktijkcases (Tessenderlo, Halen, woning 1962, woning 1976, recente rijwoning) als vaste testfixtures vastleggen en de actuele 2.3.2-uitkomsten vastleggen, zodat elke correctie aantoonbaar is.
+## Vastgestelde uitgangssituatie
+- De eerdere invariantietest vergelijkt de nieuwe engine met zichzelf; onafhankelijke score-invariantie is nog niet bewezen.
+- Historische PDF-generatie is getest, maar niet tegenover oorspronkelijke layouts. Vier gebruikersgerichte informatiedekkingsniveaus zijn nog niet volledig gerealiseerd.
+- Geen geconfigureerd Lovable-emaildomein, beschikbare Resend-verbinding of Resend-secret aangetroffen. Domeinverificatie, SPF/DKIM/DMARC, limieten en aflevering zijn nog niet gecontroleerd.
+- Lovable Emails ondersteunt geen bijlagen. Daarom is **Resend**, zoals gevraagd in de brief, de voorgestelde provider. Geen vervanging van de PDF door een link.
+- Er bestaat nog geen duurzame verzendopdracht of server-side PDF-generator; de huidige rapporten worden zonder maillevering opgeslagen.
 
-### Stap B — Correcties per onderdeel
+## Werkstroom A — Kwaliteitsbewijs en rapportcorrecties
+### 1. Echte historische referenties
+Verkrijg eerst een aantoonbaar oorspronkelijke 2.3.2-engine uit een beschikbare historische bron of via een uitsluitend-lezen export van de nog uitgerolde versie, indien die werkelijk 2.3.2 is. Bewaar bron, versie en hash. Geen teruggebouwde huidige engine als vervanging.
 
-**1. Condens / schimmel / vocht (engine + rapport)**
-- Q29 krijgt neutrale optie "Geen zichtbare schimmel, alleen condens" (geen score-effect).
-- Semantische regels: condens ≠ schimmel; schimmel ≠ automatisch ventilatieprobleem; condens tussen glas ≠ condens binnenzijde; vochtplekken ≠ actieve instroom; keldervocht ≠ ventilatieprobleem woonruimtes; de vochtbron wordt nooit als bewezen oorzaak voorgesteld.
-- Bij uitsluitend condens verschijnt nergens "vastgestelde schimmelvorming"; bij schimmel staat dat de gebruiker dit zelf meldde; bij waterinstroom expliciet onderscheid vochtsporen vs. binnenkomend water.
-- `followUpBudget()`: vragen over vochtlocatie, -frequentie, -timing en -aard mogen niet wegvallen door budgetuitputting; geen standaard volledige vochtvragenreeks voor iedereen.
+Vergelijk uitsluitend destijds geldige antwoorden voor minstens negen profielen: condens, schimmel, keldervocht, actieve waterinstroom, dakschade, elektriciteit, constructie, VME-only en gemengd appartement. Vergelijk vijf domeinscores, gewogen totaal, barometer/categorie, veiligheid en private/gemeenschappelijke signalen. Nieuwe BJ01/Q29-antwoorden komen niet in deze historische sets. Test nieuwe neutrale Q29 apart tegen behoud van Q24 en veiligheid.
 
-**2. Persoonlijke verbanden (report.ts)**
-- Rangschikking op: veiligheid, concrete gemelde problemen, exacte locatie/aard, terugkerende/actieve problemen, relevantie voor geplande werken, renovatievolgorde, bewijssterkte, overlap.
-- Specifiek verband over gemelde waterinstroom krijgt doorgaans voorrang op generieke werkafstemming. Maximaal twee verbandkaarten blijft, maar belangrijke informatie die niet past blijft zichtbaar in technische prioriteiten of actieplan.
-- Exacte antwoordgegevens gebruiken: "Volgens uw antwoorden is het dak niet geïsoleerd." in plaats van onzekerheidsformulering wanneer het antwoord bekend is.
-- Geen geforceerde causale verbanden zonder antwoordonderbouwing.
+Ontbreekt een originele bron, blijft deze acceptatievoorwaarde expliciet open; claim geen onafhankelijk bewijs.
 
-**3. Geen niet-gemelde werkzaamheden als gepland (report.ts)**
-- Strikte scheiding: A. expliciet geplande werken, B. gemelde technische problemen, C. mogelijke bijkomende controles, D. onbekende scope bij alleen "Volledige renovatie".
-- Toegestaan: "Controleer vóór de nieuwe vloerafwerking of de bestaande onderliggende technieken aanpassingen vereisen." Niet toegestaan: sanitaire/keuken-/badkamerwerken als fase zonder melding.
-- Elke fase en elk onderdeel moet herleidbaar zijn naar concrete antwoorden (getest).
+### 2. Historische PDF's isoleren
+Maak een expliciete dispatcher op de opgeslagen rapportversie, met vastgezette historische renderers voor 2.3, 2.3.1 en 2.3.2. Alleen 2.3.3 krijgt nieuwe paginering. Geen herberekening of toevoeging van nieuwe juridische teksten aan oude snapshots.
 
-**4. Documentstatussen (report.ts)**
-- Drie dimensies waar mogelijk: beschikbaarheid (beschikbaar / niet beschikbaar / nog te verifiëren / niet gevraagd / onbekend / n.v.t.), inhoud (gekend / niet gecontroleerd / bevat aandachtspunt), geldigheid (bevestigd / te verifiëren / n.v.t.).
-- Voorbeeld: Q06 beschikbaar + Q40 inhoud onbekend → "Keuringsverslag beschikbaar volgens uw antwoorden. De inhoud en eventuele opmerkingen zijn nog te controleren."
-- Prominente documenten afhankelijk van koper/eigenaar, bouwperiode, woning/appartement, gemelde problemen, geplande werken, wettelijke context; geen uitgebreide checklist zonder meerwaarde.
+Gebruik oorspronkelijke geanonimiseerde snapshots en layoutreferenties. Vergelijk inhoud, pagina-aantal, tekstposities, gerasterde pagina's en linkdoelen. Een huidige renderer vastzetten beschermt toekomstige wijzigingen, maar bewijst niet vanzelf behoud tegenover de oorspronkelijke renderer. Ontbrekende referenties worden als blocker vermeld.
 
-**5. Informatiedekking (report.ts)**
-- Vier niveaus: voldoende voor eerste indicatie / enkele gegevens ontbreken / meerdere kerngegevens ontbreken / onvoldoende voor betrouwbare beoordeling.
-- Geen woorden die volledigheid of technische zekerheid suggereren; interne antwoordcodes (`b`, `aplus`, `onbekend`) nooit als ruwe waarde in het rapport — centraal via vraag- en antwoordlabels.
+### 3. Vier informatiedekkingsniveaus
+Voeg uitsluitend een presentatieclassificatie aan nieuwe 2.3.3-snapshots toe; bestaande interne codes en commerciële logica blijven ongewijzigd.
 
-**6. VME compacter (report.ts)**
-- Thematische groepering: technische toestand, geplande werken, reservefonds/bijdragen, verslagen/documenten, verantwoordelijkheden privatief/gemeenschappelijk.
-- Bij voorkeur maximaal vijf kernvragen voor de syndicus; belangrijke specifieke vraag mag niet verdwijnen — logisch samenbundelen; semantische doublures verwijderen.
-- Bij uitsluitend gemeenschappelijke problemen: geen fysieke Woningscan, eerst VME-documenten, dan syndicus (bestaande correctie behouden).
+Voorgestelde toetsbare criteria: bepaal per toepasselijk technisch domein of minimaal één relevant kerngegeven ontbreekt of onbekend is. Niet-toepasselijke en uitsluitend gemeenschappelijke onderwerpen tellen niet als private onbekendheid. Houd afzonderlijk bij welke relevante document-/bouwjaargegevens ontbreken.
+- **Voldoende informatie voor een eerste indicatie:** geen ontbrekende kerngegevens.
+- **Enkele belangrijke gegevens ontbreken:** één onvolledig domein of uitsluitend ontbrekende relevante contextgegevens.
+- **Meerdere kerngegevens ontbreken:** twee of drie onvolledige domeinen.
+- **Onvoldoende informatie voor een betrouwbare eerste beoordeling:** vier of vijf onvolledige domeinen, of de bestaande interne beoordeling is al onvoldoende.
 
-**7. Asbest bij bouwperiode 1991–2010 (engine + legal + rapport)**
-- Nieuwe compacte contextvraag "Is de woning gebouwd vóór 2001 of vanaf 2001?" (vóór 2001 / vanaf 2001 / weet ik niet), alleen bij bouwperiode 1991–2010, alleen als relevant en nog niet uit andere antwoorden bekend. Geen technische score.
-- Verduidelijking doorwerken in asbestcontext en documentenchecklist; geen uitgebreide asbestwaarschuwing bij bevestigd bouwjaar vanaf 2001 zonder andere signalen; wettelijke bronnen blijven.
+Leg de exacte kernvragen per domein vast en test grensgevallen, overslaan, onbekend en VME-scheiding. Productadvies moet voor dezelfde antwoorden identiek blijven.
 
-**8. Persoonlijke conclusie (report.ts)**
-- Opgebouwd uit hoofdbevinding, belangrijkste doel, voornaamste onzekerheid, logische volgende handeling; geen generieke samenvatting, geen niet-gemelde feiten, geen bewezen oorzaken, kort bij weinig signalen, geen herhaling verderop.
+### 4. Vijf praktijkcases en presentatie
+Behoud alle correcties voor Tessenderlo (€299, geen drone), Halen (vier syndicusvragen, geen betaald product/asbestmelding bij 2007), woning 1962 (Plus €449, drone optioneel), woning 1976 (waterbron eerst, Plus €449) en recente rijwoning (€39,99 binnenkort, niet bestelbaar).
 
-**9. PDF-paginering (quickscanPdf23.ts)**
-- Keep-with-next voor titels, keep-together voor kleine kaarten; commerciële afsluiting (productnaam, motivatie, meerwaarde, prijs incl. btw, status, CTA) als eenheid; neutrale afsluiting niet op bijna lege pagina; compacte klikbare bronnamen met correcte volledige URL; paginaverdeling optimaliseren vóór nieuwe pagina; geen tekstverkleining.
-- Visuele identiteit behouden (logo, Playfair Display/Inter, illustraties, oranjetinten, domeinkaarten).
+Vergelijk antwoorden, scores, veiligheid, verbanden, fasen, documenten, aanbeveling en PDF per case. Controleer condens versus glasspouwcondens, EPC/juridische context zonder persoonlijke deadline, asbest in alle lagen, sessiemigratie en nieuw toepasselijke vragen. Controleer desktop/mobiel en iedere PDF-pagina op overlap, verweesde titels/slotpagina's en samenhang van advies/prijs/CTA. Behoud logo, fonts en leesbare tekstgrootte.
 
-### Stap C — Automatische tests
-- Nieuwe `src/test/quickscan-233.test.ts` met de vijf praktijkcases als regressieset plus de twintig randgevallen uit de brief (condens zonder schimmel, schimmel zonder oorzaak, vochtlocaties, kelderinstroom, dakisolatie-varianten, alleen volledige renovatie, alleen cosmetisch, documentstatussen, 1999 vs 2007, VME-only en gemengd, EPC F eigenaar, EPC A met problemen, geen signalen, veel onbekenden zonder upsell, historische snapshots 2.3/2.3.1/2.3.2, mobiel/PDF).
-- Alle bestaande tests blijven slagen; typecheck en build groen.
+## Werkstroom B — Volledige PDF per e-mail
+### 1. Eerst server-side PDF-pariteit bewijzen
+Haal de versiegebonden PDF-layout uit de browserafhankelijkheden naar een runtime-onafhankelijke renderlaag, met gecontroleerde logo- en fontdata. Browserdownload en serverbijlage lezen dezelfde opgeslagen snapshot, zonder engine-import of herberekening.
 
-### Stap D — Rapportcontrole
-Voor alle vijf cases een volledig nieuw rapport genereren en vragen, antwoorden, scores, veiligheid, verbanden, acties, documentstatussen, traject en aanbeveling vergelijken.
+Voer een lokale Deno/jsPDF-proef uit voor alle vijf cases en historische versies: fonts, logo, inhoud, paginering en links. Geen bezoeker-PDF vertrouwen. Als dit niet haalbaar blijkt binnen deze gerichte wijziging, stop de mailimplementatie en leg de opties, kosten en beperkingen voor; geen stilzwijgende linkoplossing of nieuwe renderdienst.
 
-### Stap E — Visuele PDF-controle
-Elke pagina van alle vijf PDF's naar afbeelding renderen en paginering, leesbaarheid, samenhang en CTA controleren; korte rapportage per case met pagina-aantallen.
+### 2. Verzendidentiteit en inhoud
+- Afzender: `Sky-Lens voor DIMAC <info@sky-lens.be>`; Reply-To: `info@sky-lens.be`.
+- Onderwerp: `Uw persoonlijk DIMAC-woningrapport | [rapportnummer]`.
+- DIMAC-logo en huisstijl; persoonlijke aanhef, rapportreferentie, uitleg en afbakening volgens de brief. HTML plus tekstversie, geen overbodige persoonsgegevens of marketing.
+- Centrale configuratie buiten de engine. `MAIL_MODE = test`; slechts expliciet toegestane synthetische dossiers naar `info@sky-lens.be`. Niet automatisch echte dossiers naar een testadres doorsturen. `live` vereist bewuste codewijziging en akkoord; geen interne leadmails activeren.
 
-### Stap F — Historische regressie
-Rapporten 2.3, 2.3.1 en 2.3.2 blijven ongewijzigd openen en als PDF exporteren met hun oorspronkelijke gegevens; geen stilzwijgende herberekening. Lopende sessies migreren correct naar de nieuwe vraagversie zonder tegenstrijdige antwoorden of onzichtbare verplichte vragen.
+### 3. Betrouwbare levering en status
+Registreer een unieke verzendopdracht met de definitief opgeslagen snapshot. Een beveiligde worker claimt die opdracht atomair, bouwt de PDF en biedt één mail met bijlage aan Resend aan. Providerfouten veranderen of verwijderen het rapport niet.
 
-### Stap G — Opleveringsdocument
-`docs/quickscan-2.3.3-oplevering.md` met gewijzigde bestanden, oorzaken, oplossingen, versies, testresultaten, verschillen per case, PDF-pagina-aantallen en open beperkingen, met duidelijk onderscheid tussen werkelijk uitgevoerde browser-/PDF-tests en uitsluitend automatische tests.
+Statussen: `pending`, `sending`, `accepted`, `delivered`, `failed`, `retry_scheduled`; aanvullend bounce/klacht waar bevestigd. Bewaar rapport-ID, ontvangerkoppeling, provider-ID, pogingen/tijden, volgende poging en geschoonde foutcode. API-aanvaarding is geen mailboxbewijs.
 
-## Aanvullende voorwaarden (goedgekeurd bij het plan)
+Voorstel retries: maximaal vijf pogingen, exponentiële wachttijd en respect voor Retry-After. Werkers gebruiken leases en dezelfde idempotentiesleutel. Bij onduidelijk providerresultaat geen blinde herverzending buiten de provider-deduplicatieperiode; markeer voor gecontroleerde beoordeling. Een bewuste nieuwe verzending krijgt een aparte gecontroleerde generatie.
 
-1. **Q29 en scoring**: de nieuwe neutrale optie krijgt geen technische score; Q24-scorebijdrage en veiligheidsregels blijven. Bij identieke bestaande antwoorden moeten domeinscores, barometer en veiligheidsmeldingen tussen 2.3.2 en 2.3.3 gelijk blijven (getest).
-2. **Asbestcontext in alle rapportlagen**: naast `asbestosContext()` ook `contextNotices()`, `legalContext()`, documentenchecklists, VME-context en PDF controleren. Bevestigd bouwjaar vanaf 2001 zonder gemelde asbesttoepassingen → geen prominente attestwaarschuwing; expliciet gemelde asbesttoepassingen behouden waarschuwingen ongeacht bouwjaar; bouwjaarverduidelijking consequent voor woningen en appartementen.
-3. **Historische rapporten en PDF-versies**: PDF-weergave van 2.3/2.3.1/2.3.2 beschermen tegen de nieuwe 2.3.3-paginering via een geversioneerd renderpad of gelijkwaardig aantoonbaar veilige oplossing; historische snapshots testen op inhoud én layout; geen herberekening.
-4. **Informatiedekking en commerciële logica**: interne informatieniveaucodes en productroutering behouden; alleen labels, nauwkeurigheid en relevantie verbeteren; de vijf referentiecases behouden hun correcte aanbevelingen, afwijkingen alleen uit aantoonbaar gecorrigeerde informatie of een expliciet beslissingsdefect.
-5. **Sessiecompatibiliteit en testgrenzen**: expliciete migratie van `dimac-quickscan-v2.3.2` naar de 2.3.3-sessie; gemigreerde sessies hervatten in de vragenlijst en stellen nieuw toepasselijke vragen alsnog. Oplevering maakt onderscheid tussen automatische tests, lokale rapport-/PDF-generatie, echte browsercontroles en volledige server-side end-to-end-tests (laatste blijft open tot afzonderlijke uitroltoestemming).
+### 4. Beveiliging en bezoekerscommunicatie
+Geen publieke PDF-opslag, persoonsgegevens in URL's, rapportnummer als sleutel of endpoint met vrij gekozen ontvanger. Worker alleen voor bevoegde serveraanroepen; beheeracties alleen voor beheerders. Webhooks verifiëren handtekening en dubbele events. Bounce/klacht stopt verdere pogingen. Controleer bestaande rate limiting ook op concurrentie.
 
-Na oplevering: concrete vergelijking van de vijf praktijkcases met hun 2.3.3-resultaten, inclusief zichtbare bewijsvoering dat de vastgestelde problemen zijn opgelost.
+Na registratie: online rapport en 'Download mijn PDF' blijven beschikbaar. Toon alleen de werkelijke status; geen 'verzonden' vóór provideracceptatie. Leveringsproblemen kunnen gecontroleerd worden gemeld zonder vrije ontvanger of onbeperkte resend. Geen marketingtoestemming eisen; privacytekst aanpassen aan de werkelijk voorbereide verwerking vóór lancering.
 
-## Grenzen (ongewijzigd)
-- Geen heruitrol van de serverfunctie, geen databasewijzigingen, geen publicatie zonder afzonderlijke toestemming.
-- `MAIL_MODE = test` blijft; geen productiemails, geen betalingen.
-- Privacyverklaring en commerciële aanvraagregistratie blijven onaangeroerd (Launch Readiness 1.0).
-- Historische snapshots zijn onveranderlijk.
+## Technisch implementatie- en migratievoorstel
+**Lokaal voorbereiden, niet toepassen:**
+- Additieve tabel `quickscan_email_outbox`: rapportverwijzing, unieke opdracht/generatie, gekoppelde ontvanger, status, lease, pogingen, volgende poging, provider-ID en foutcode.
+- Pogingen/events met unieke provider-event-ID voor audit en webhook-replaybescherming; indexes voor claimbare opdrachten.
+- Beveiligde RPC's voor atomair claimen, statusovergangen en gecontroleerde herverzending. RLS en expliciete grants: geen anonieme toegang; alleen beheerders lezen, servermutaties afgeschermd.
+- Registratieprocedure zorgvuldig uitbreiden voor één initiële opdracht bij nieuwe registratie. Geen historische rapporten bijwerken of automatisch mailen. Opgeslagen rapport blijft onafhankelijk van providerbeschikbaarheid; controleer herstel van ontbrekende opdracht zonder dubbele lead.
+- Volledige inzendingsfingerprint naast de korte rapportreferentie controleren: een botsing mag nooit een ander rapport teruggeven. Bestaande referenties blijven geldig.
+- `quickscan-submit` voorbereiden op veilige opdrachtkoppeling/status; aparte beveiligde mailworker, providerwebhook en beheeractie. Geen van deze functies nu uitrollen.
+- Dashboard: status, pogingen en gecontroleerde retry; geen directe browsertoegang tot provider of vrije statuswijzigingen. Beschermde statusopvraag voor de indiener zonder rapportnummer als toegangsbewijs.
+
+**Waarschijnlijke bestanden:** gedeelde Quickscan-rapport/PDF/mailmodules, `quickscan-submit`, nieuwe worker/webhook/administratieve functies, lokale migratievoorstellen, online rapport/Quickscan/dashboard/privacy, tests, `AGENTS.md` en opleverdocument. Automatisch gegenereerde client/types/config niet handmatig wijzigen.
+
+Providerkoppeling en exacte SPF/DKIM/DMARC-records worden pas bij afzonderlijk goedgekeurde configuratie gecontroleerd; geen DNS-waarden raden. De Resend-koppeling bepaalt of gateway of directe API gebruikt wordt. Geen keys opvragen of koppelen tijdens deze voorbereidingsfase.
+
+## Validatie en oplevering
+Rapporteer strikt afzonderlijk:
+1. Automatische regressietests en lokale type-/previewbuildcontrole.
+2. Lokale rapport-/PDF-generatie en historische visuele vergelijking.
+3. Echte desktop-/mobiele browsercontroles, sessiemigratie en pakketdoorverwijzing.
+4. Server-side volledige inzending/opslag/mailtests: **open tot afzonderlijke uitroltoestemming**.
+5. Werkelijk ontvangen testmail, juiste bijlage en mailboxbewijs: **open tot configuratie, testuitrol en toegang tot goedgekeurde mailbox**. Geen 200-response als ontvangstbewijs.
+
+Nieuwe tests dekken scorebaseline, vier niveaus zonder productwijziging, historische inhoud/layout/links, ontvangerbeleid, dubbele/concurrente inzending, rapportnummerbotsing, ongeldige adressen, statusovergangen, leaseherstel, begrensde retries, tijdelijke/permanente fouten, webhookreplay en onbevoegde toegang.
+
+Werk `docs/quickscan-2.3.3-oplevering.md` bij met vijf-casevergelijking, bewijsbestanden, werkelijk uitgevoerde tests, gewijzigde bestanden, provider/configuratie, migratievoorstel en blockers. Geen nieuwe succesclaims zonder bewijs.
+
+## Afzonderlijke volgende goedkeuring en rollback
+Leg vóór uitvoering exact voor: betrokken functies en migraties, domein/secrets/scheduler, testontvanger, synthetische dossiers en cleanup. Bewaar vooraf de werkelijk uitgerolde functieversies en relevante configuratie, niet alleen een lokale oudere kopie.
+
+Rollback: stop worker/scheduling en nieuwe opdrachten, herstel vorige functies en testconfiguratie, bewaar rapporten en auditdata. Geen destructieve rollback van bestaande leads/snapshots. Verwijder na goedgekeurde tests uitsluitend geïdentificeerde synthetische gegevens en vergelijk begin-/eindaantallen. Publicatie en live-verzending blijven afzonderlijk uitgesloten.
