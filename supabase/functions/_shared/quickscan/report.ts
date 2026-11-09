@@ -843,3 +843,4 @@ export function composeReport(answers: Answers) {
 export type QuickscanReport23 = ReturnType<typeof composeReport>;
 export type ReportV23 = QuickscanReport23["v23"];
 export type ReportV232 = QuickscanReport23["v232"];
+export type ReportV233 = QuickscanReport23["v233"];
