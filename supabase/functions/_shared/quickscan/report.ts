@@ -15,8 +15,9 @@ import {
 import { DRONE_OPTION, getProduct, VAT_RATE, type ProductId } from "./catalog.ts";
 import { ASBESTOS, LEGAL_SOURCES, LEGAL_VERIFIED_AT, LEGAL_VERSION, RENOVATION_OBLIGATION, type LegalSourceId } from "./legal.ts";
 
-export const REPORT_VERSION_23 = "qs-report-2.3.2";
+export const REPORT_VERSION_23 = "qs-report-2.3.3";
 export const REPORT_EXTENSION_232 = "v232";
+export const REPORT_EXTENSION_233 = "v233";
 const { has, plans, fullIntent, plannedCount, buyer, label } = answerHelpers;
 
 const scoreOf = (a: Answers, qid: string): number => {
@@ -149,12 +150,22 @@ const POINT_ICON_BY_ID: Record<string, IconId> = { "AP-TOCHT": "window", "AP-RAM
 const POINT_TITLE: Record<string, (p: Answers) => string> = {
   "AP-TOCHT": (p) => (has(p, "Q20", "tocht") ? "Tocht en sluitproblemen" : "Tocht"),
   "AP-VENT": () => "Werking van de ventilatie",
+  // 2.3.3: condens is geen schimmel; schimmel wordt alleen benoemd wanneer de gebruiker ze zelf meldde.
+  "AP-SCHIMMEL": (p) => (has(p, "Q29", "geen") ? "Terugkerende condens" : has(p, "Q29", "plaatselijk", "meerdere", "ruimtes") ? "Schimmelvorming (door u gemeld)" : "Condens of schimmel"),
+};
+/** 2.3.3: dynamische korte tekst waar de vaste formulering de melding zou overdrijven. */
+const POINT_SHORT_DYNAMIC: Record<string, (p: Answers) => string> = {
+  "AP-SCHIMMEL": (p) => has(p, "Q29", "geen")
+    ? "U meldt terugkerende condens zonder zichtbare schimmel. De oorzaak is nog niet gekend."
+    : has(p, "Q29", "plaatselijk", "meerdere", "ruimtes")
+      ? "U meldt zelf zichtbare schimmelvorming. De oorzaak is nog niet gekend."
+      : "Mogelijke vochtproblemen of onvoldoende afvoer van vocht. De oorzaak is nog niet gekend.",
 };
 
 function findings(a: Answers): Finding[] {
   const p = privateSignals(a);
   const pts = attentionPoints(a, 20).map((x, order) => ({
-    id: x.id, domain: x.domain, title: POINT_TITLE[x.id]?.(p) ?? x.title, short: POINT_SHORT[x.id] ?? x.text.split(". ")[0] + ".", icon: POINT_ICON_BY_ID[x.id] ?? POINT_ICON[x.domain], severity: x.severity, safety: x.safety, next: x.next, order,
+    id: x.id, domain: x.domain, title: POINT_TITLE[x.id]?.(p) ?? x.title, short: POINT_SHORT_DYNAMIC[x.id]?.(p) ?? POINT_SHORT[x.id] ?? x.text.split(". ")[0] + ".", icon: POINT_ICON_BY_ID[x.id] ?? POINT_ICON[x.domain], severity: x.severity, safety: x.safety, next: x.next, order,
   }));
   const ids = new Set(pts.map((x) => x.id));
   const extra: (Finding & { order: number })[] = [];
@@ -180,14 +191,16 @@ export function connectionCandidates(a: Answers): Connection[] {
   const moisture = has(p, "Q24", "terugkerend", "vochtplekken");
   const vent = has(p, "Q39", "beperkt", "defect", "onbekend") || has(p, "V01", "geen");
   const windows = has(p, "Q20", "tocht", "verouderd", "beschadigd") || has(p, "Q22", "beperkt", "duidelijk");
-  const V = { icon: "drop" as IconId, label: "Vocht", caption: has(p, "Q24", "terugkerend") ? "Condens en schimmel wijzen op een verhoogde vochtbelasting." : "Vochtplekken met een nog onbekende oorzaak." };
+  const V = { icon: "drop" as IconId, label: "Vocht", caption: has(p, "Q24", "terugkerend") ? (has(p, "Q29", "plaatselijk", "meerdere", "ruimtes") ? "Condens en door u gemelde schimmel wijzen op een verhoogde vochtbelasting." : has(p, "Q29", "geen") ? "Terugkerende condens wijst op een verhoogde vochtbelasting." : "Condens of vocht wijst op een verhoogde vochtbelasting.") : "Vochtplekken met een nog onbekende oorzaak." };
   const VENT = { icon: "fan" as IconId, label: "Ventilatie", caption: "Onvoldoende ventilatie kan vochtproblemen versterken." };
   const RAMEN = { icon: "window" as IconId, label: "Schrijnwerk", caption: "Tocht en sluitproblemen kunnen leiden tot koudebruggen en condens." };
   const out: Connection[] = [];
   const add = (c: Connection, ok: boolean) => { if (ok) out.push(c); };
   add({ id: "LINK-VOCHT-VENT-RAMEN", title: "Vocht, ventilatie en schrijnwerk", nodes: [V, RAMEN, VENT], text: `Uw antwoorden vermelden ${has(p, "Q24", "terugkerend") ? "terugkerende condens of schimmel" : "vochtplekken"}, tocht${has(p, "Q39", "onbekend") ? " en een ventilatiewerking die u niet kent" : has(p, "V01", "geen") ? " en geen duidelijk ventilatiesysteem" : " en een mogelijk beperkte ventilatiewerking"}. Deze signalen kunnen verband houden. Een plaatsbeoordeling kan helpen om mogelijke oorzaken beter van elkaar te onderscheiden.` }, moisture && vent && windows);
   add({ id: "LINK-VOCHT-VENT", title: "Vocht en ventilatie", nodes: [V, VENT], text: "U meldt vochtproblemen en een ventilatie die beperkt of onduidelijk werkt. Beide kunnen samenhangen; laat ze samen bekijken voor u ingrijpt." }, moisture && vent && !windows);
-  add({ id: "LINK-DAK-ISOL", title: "Dak en dakisolatie", nodes: [{ icon: "roof", label: "Dak", caption: "Gemelde aandachtspunten of geplande dakwerken." }, { icon: "leaf", label: "Dakisolatie", caption: "Isolatie is beperkt, gedeeltelijk of onbekend." }], text: "Wanneer het dak aandacht vraagt of werken gepland zijn, loont het om de dakisolatie in dezelfde beoordeling mee te nemen. Zo hoeft het dak maar één keer geopend te worden." }, (has(p, "Q14", "slijtage", "beschadigd", "lek", "los") || plans(a, "dak")) && has(p, "DI01", "niet", "gedeeltelijk", "beperkt", "onbekend"));
+  // 2.3.3: exacte antwoordgegevens; een onzekerheidsformulering alleen wanneer de toestand werkelijk onbekend is.
+  const di01Caption = has(p, "DI01", "niet") ? "Volgens uw antwoorden is het dak niet geïsoleerd." : has(p, "DI01", "gedeeltelijk") ? "Volgens uw antwoorden is het dak gedeeltelijk geïsoleerd." : has(p, "DI01", "beperkt") ? "Volgens uw antwoorden is de dakisolatie beperkt of ouder." : "De dakisolatie is onbekend.";
+  add({ id: "LINK-DAK-ISOL", title: "Dak en dakisolatie", nodes: [{ icon: "roof", label: "Dak", caption: "Gemelde aandachtspunten of geplande dakwerken." }, { icon: "leaf", label: "Dakisolatie", caption: di01Caption }], text: "Wanneer het dak aandacht vraagt of werken gepland zijn, loont het om de dakisolatie in dezelfde beoordeling mee te nemen. Zo hoeft het dak maar één keer geopend te worden." }, (has(p, "Q14", "slijtage", "beschadigd", "lek", "los") || plans(a, "dak")) && has(p, "DI01", "niet", "gedeeltelijk", "beperkt", "onbekend"));
   add({ id: "LINK-GEVEL-RAMEN", title: "Gevel en schrijnwerk", nodes: [{ icon: "building", label: "Gevel", caption: "Verwering, voegen of infiltratie." }, RAMEN], text: "Gevelproblemen en schrijnwerk raken elkaar aan de raamaansluitingen. Bekijk ze samen, zeker wanneer u werken plant." }, (has(p, "Q18", "verwering", "voegen", "infiltratie") && windows) || (plans(a, "gevel") && plans(a, "ramen")));
   add({ id: "LINK-VOCHT-AFWERKING", title: "Vocht en binnenafwerking", nodes: [V, { icon: "house", label: "Binnenafwerking", caption: "Geplande vloer- of interieurwerken." }], text: "U plant binnenwerken terwijl er vochtsignalen gemeld zijn. Onderzoek eerst de mogelijke oorzaak, zodat nieuwe afwerkingen niet opnieuw beschadigd raken." }, (moisture || (scoreOf(p, "M01") >= 6)) && (plans(a, "interieur") || plans(a, "vloeren")));
   add({ id: "LINK-VERW-ISOL", title: "Verwarming en isolatie", nodes: [{ icon: "flame", label: "Verwarming", caption: "Geplande vervanging of aanpassing." }, { icon: "leaf", label: "Isolatie", caption: "Bepaalt de toekomstige warmtebehoefte." }], text: "U overweegt werken aan de verwarming. De isolatie bepaalt mee hoeveel warmte de woning later nodig heeft; beoordeel beide samen voor u een installatie kiest." }, plans(a, "verwarming") && (plans(a, "isolatie") || has(p, "DI01", "niet", "gedeeltelijk", "beperkt") || has(p, "MI01", "niet", "gedeeltelijk") || has(p, "Q34", "d", "e", "f")));
@@ -198,7 +211,13 @@ export function connectionCandidates(a: Answers): Connection[] {
   const basementWater = has(p, "Q28", "soms", "regelmatig", "actief");
   const active = has(p, "Q28", "actief");
   add({ id: "LINK-KELDER-REGEN", title: "Keldervocht en mogelijke vochtbron", nodes: [{ icon: "drop", label: active ? "Waterinstroom" : "Keldervocht", caption: active ? "Actieve instroom gemeld." : has(p, "Q28", "soms") ? "Vooral na regen." : "Vocht of water in de kelder." }, { icon: "building", label: "Mogelijke bron", caption: "Grondwater, afvoer, aansluitingen of buitenwanden." }], text: active ? "U meldt actieve waterinstroom in de kelder. Dat is iets anders dan vochtplekken: laat de instroomroute gericht onderzoeken (bijvoorbeeld afvoer, aansluitingen, buitenwanden of grondwater) vóór u afwerkt of isoleert." : "U meldt vocht in de kelder, vooral in samenhang met regen. Een gericht onderzoek naar de mogelijke vochtbron helpt bepalen of het om insijpeling, afvoer of condensatie gaat. Dit staat los van eventuele ventilatie in de woonruimtes." }, basementWater || (has(p, "Q25", "kelder") && has(p, "Q27", "regen")));
-  add({ id: "LINK-RAAM-CONDENS", title: "Condens en schimmel rond ramen", nodes: [{ icon: "window", label: "Rond ramen", caption: "Condens of schimmel aan de binnenzijde." }, VENT, { icon: "leaf", label: "Koude oppervlakken", caption: "Glas, kaders en aansluitingen." }], text: `U meldt condens of schimmel rond ramen. Dat kan samenhangen met ventilatie, koude oppervlakken en de aansluiting van het schrijnwerk. ${has(p, "Q21", "ja") ? "Condens tussen de glasplaten is een afzonderlijk signaal van de beglazing zelf. " : ""}Laat deze factoren samen bekijken voor u kiest wat u aanpakt.` }, (has(p, "Q25", "ramen") || has(p, "Q25A", "ramen")) && has(p, "Q24", "terugkerend", "vochtplekken"));
+  // 2.3.3: alleen condens gemeld → nooit over schimmel spreken; schimmel alleen wanneer de gebruiker ze zelf meldde.
+  const moldReported = has(p, "Q29", "plaatselijk", "meerdere", "ruimtes");
+  const condensOnly = has(p, "Q29", "geen");
+  const raamTitle = moldReported ? "Condens en schimmel rond ramen" : "Condens rond ramen";
+  const raamCaption = moldReported ? "Condens of schimmel aan de binnenzijde." : "Condens aan de binnenzijde van ramen.";
+  const raamWhat = moldReported ? "condens of schimmel rond ramen" : condensOnly ? "condens rond ramen, zonder zichtbare schimmel" : "condens of vocht rond ramen";
+  add({ id: "LINK-RAAM-CONDENS", title: raamTitle, nodes: [{ icon: "window", label: "Rond ramen", caption: raamCaption }, VENT, { icon: "leaf", label: "Koude oppervlakken", caption: "Glas, kaders en aansluitingen." }], text: `U meldt ${raamWhat}. Dat kan samenhangen met ventilatie, koude oppervlakken en de aansluiting van het schrijnwerk; de Quickscan stelt geen oorzaak vast. ${has(p, "Q21", "ja") ? "Condens tussen de glasplaten is een afzonderlijk signaal van de beglazing zelf. " : ""}Laat deze factoren samen bekijken voor u kiest wat u aanpakt.` }, (has(p, "Q25", "ramen") || has(p, "Q25A", "ramen")) && has(p, "Q24", "terugkerend", "vochtplekken"));
   add({ id: "LINK-VME-KOSTEN", title: "Appartement en gemeenschappelijke kosten", nodes: [{ icon: "building", label: "Mede-eigendom", caption: "Aangekondigde werken of bijdragen." }, { icon: "doc", label: "VME-documenten", caption: "Verslagen, reservefonds en besluiten." }], text: "Er zijn werken of bijkomende bijdragen in de mede-eigendom aangekondigd. Die staan los van de privatieve barometer, maar kunnen uw kosten beïnvloeden. De VME-documenten geven daar meer duidelijkheid over." }, isApartment(a) && (has(a, "A02", "middel", "ingrijpend", "besproken") || has(a, "A03", "beperkt", "substantieel", "omvang")));
   return out.filter((c) => !(basementOnly && ["LINK-VOCHT-VENT-RAMEN", "LINK-VOCHT-VENT"].includes(c.id)));
 }
@@ -219,7 +238,15 @@ export function connectionRelevance(a: Answers, c: Connection): number {
   const severity = Math.max(0, ...ev.map((q) => scoreOf(p, q)));
   const planned = ev.some((q) => q === "Q46" || q === "Q46A") && selectedWorks(a).length > 0 ? 2 : 0;
   const unknown = ev.filter((q) => has(p, q, "onbekend")).length;
-  return severity + (LINK_SPECIFIC[c.id] ?? 0) * 2 + planned + Math.min(ev.length, 4) - unknown;
+  // 2.3.3: actieve of terugkerende concrete problemen en veiligheidsrelevantie wegen zwaarder dan generieke afstemming.
+  const activeWater = has(p, "Q28", "actief", "regelmatig") || has(p, "M01", "actief", "regen") || has(p, "Q16", "actief") || has(p, "Q14", "lek");
+  const recurring = has(p, "Q26", "regelmatig", "voortdurend") || has(p, "Q28", "soms", "regelmatig", "actief");
+  const evSet = new Set(ev);
+  const safetyLink = evSet.has("Q14") && has(p, "Q14", "lek", "los") || evSet.has("Q28") && has(p, "Q28", "actief") || evSet.has("M01") && has(p, "M01", "actief") || evSet.has("Q16") && has(p, "Q16", "actief");
+  const activeBonus = (evSet.has("Q28") || evSet.has("M01") || evSet.has("Q16") || evSet.has("Q14")) && activeWater ? 4 : 0;
+  const recurBonus = evSet.has("Q26") || evSet.has("Q28") ? (recurring ? 2 : 0) : 0;
+  const safetyBonus = safetyLink ? 4 : 0;
+  return severity + (LINK_SPECIFIC[c.id] ?? 0) * 2 + planned + Math.min(ev.length, 4) - unknown + activeBonus + recurBonus + safetyBonus;
 }
 
 /** Maximaal twee werkelijk relevante verbanden, gerangschikt; specifiekere verbanden vervangen overlappende. */
@@ -266,12 +293,12 @@ export const DOC_STATUS_LABEL: Record<DocStatus, string> = { beschikbaar: "Besch
 export interface DocItem { id: string; label: string; status: DocStatus; statusLabel: string; note: string | null }
 const PRE_2001 = ["voor1945", "1945-1969", "1970-1990"];
 
-/** Asbestcontext volgens OVAM: attest verplicht bij verkoop van een gebouw(deel) gebouwd vóór 2001. */
+/** Asbestcontext volgens OVAM: attest verplicht bij verkoop van een gebouw(deel) gebouwd vóór 2001. 2.3.3: BJ01 verduidelijkt de periode 1991–2010. */
 export function asbestosContext(a: Answers): { applies: "ja" | "verifieren" | "nee" | "onbekend"; note: string } {
   const apt = isApartment(a);
-  if (has(a, "Q03", ...PRE_2001)) return { applies: "ja", note: `Voor een ${apt ? "appartement in een gebouw" : "gebouw"} van vóór 2001 is bij verkoop een geldig asbestattest verplicht (OVAM).${apt ? " Voor de gemene delen moet de VME uiterlijk eind 2026 over een eigen attest beschikken." : ""} Het attest zegt welke materialen asbest bevatten, niet de Quickscan.` };
+  if (has(a, "Q03", ...PRE_2001) || has(a, "BJ01", "voor2001")) return { applies: "ja", note: `Voor een ${apt ? "appartement in een gebouw" : "gebouw"} van vóór 2001 is bij verkoop een geldig asbestattest verplicht (OVAM).${apt ? " Voor de gemene delen moet de VME uiterlijk eind 2026 over een eigen attest beschikken." : ""} Het attest zegt welke materialen asbest bevatten, niet de Quickscan.` };
+  if (has(a, "Q03", "vanaf2011") || has(a, "BJ01", "vanaf2001")) return { applies: "nee", note: "Voor gebouwen vanaf 2001 geldt de verplichting van een asbestattest bij verkoop niet. Dat is geen bevestiging dat er geen asbesthoudende materialen aanwezig zijn." };
   if (has(a, "Q03", "1991-2010")) return { applies: "verifieren", note: "De bouwperiode 1991–2010 overschrijdt de grens van 2001. Verifieer eerst het exacte bouwjaar (kadaster): alleen voor gebouwen van vóór 2001 is een asbestattest bij verkoop verplicht." };
-  if (has(a, "Q03", "vanaf2011")) return { applies: "nee", note: "Voor gebouwen vanaf 2001 geldt de verplichting van een asbestattest bij verkoop niet. Dat is geen bevestiging dat er geen asbesthoudende materialen aanwezig zijn." };
   return { applies: "onbekend", note: "Het bouwjaar is niet gekend. Verifieer het in het kadaster: voor gebouwen van vóór 2001 is een asbestattest bij verkoop verplicht." };
 }
 
@@ -318,17 +345,22 @@ export function coOwnership(a: Answers, base: ReturnType<typeof buildReport>["ap
     { id: "VME-WORKS", title: "Werken en beslissingen", icon: "plan", text: `${value("A02")}${a.A06 && a.A06 !== SKIP && !has(a, "A06", "onbekend") ? ` Betrokken onderdelen: ${label("A06", a.A06)}.` : ""}${a.A07 && a.A07 !== SKIP ? ` Stand van zaken: ${label("A07", a.A07)}.` : ""}`, uncertain: unknown("A02") || has(a, "A02", "besproken") },
     { id: "VME-FUNDS", title: "Reservefonds en bijdragen", icon: "doc", text: `Reservefonds: ${unknown("A04") ? "nog te verifiëren" : lower(label("A04", a.A04))}. Bijzondere bijdragen: ${unknown("A03") ? "nog te verifiëren" : lower(label("A03", a.A03))}. De Quickscan bepaalt geen bedragen of toekomstige kosten en beoordeelt niet of het fonds toereikend is.`, uncertain: unknown("A04") || unknown("A03") || has(a, "A03", "omvang") },
   ];
-  const questions = base.syndic.filter((q) => !/reservefonds|onderhoudsplan|algemene vergaderingen/.test(q));
-  const add = (ok: boolean, text: string) => { if (ok) questions.push(text); };
-  add(unknown("A01") || has(a, "A01", "enkele", "duidelijk"), "Welke aandachtspunten zijn gekend aan lift, balkons en collectieve installaties, en welke controles of herstellingen zijn uitgevoerd?");
-  add(unknown("CD01") || unknown("CL01") || has(a, "CD01", "problemen", "verouderd"), "Wat is gekend over de toestand van dak, gevel en gemeenschappelijke leidingen? Kunt u inspectie- en onderhoudsgegevens bezorgen?");
-  add(unknown("A02") || has(a, "A02", "besproken"), "Welke gemeenschappelijke werken zijn besproken of gepland, welke onderdelen betreffen ze en wat is al door de VME beslist?");
-  add(unknown("A04") || !has(a, "A05", "reservefonds"), "Kunt u de actuele informatie over het reservefonds, de bestemming ervan en de laatst goedgekeurde rekeningen bezorgen?");
-  add(unknown("A03") || !has(a, "A05", "bijdragen"), "Zijn bijzondere bijdragen beslist of besproken, hoe worden ze verdeeld en wanneer zijn ze verschuldigd?");
-  add(!has(a, "A05", "verslagen"), "Kunt u de verslagen van de laatste algemene vergaderingen bezorgen? De beschikbaarheid is nog niet bevestigd.");
-  add(!has(a, "A05", "onderhoudsplan"), "Is er een meerjarig onderhoudsplan beschikbaar? Zo ja, kunt u dit bezorgen?");
-  add(!has(a, "A05", "besluiten"), "Kunt u de relevante VME-beslissingen en goedgekeurde renovatiebesluiten bezorgen?");
-  return { cards, questions: [...new Set(questions)], checklist: ["Basisakte en afbakening privatieve/gemeenschappelijke delen", "Verslagen algemene vergadering en relevante VME-beslissingen", "Reservefonds, rekeningen en bijzondere bijdragen", "Meerjarig onderhoudsplan, indien beschikbaar"] };
+  // 2.3.3: thematisch gebundelde kernvragen voor de syndicus (max. vijf), zonder semantische doublures.
+  // Een specifieke veiligheids- of constructievraag blijft altijd behouden.
+  const questions: string[] = [];
+  const specific = base.syndic.filter((q) => /scheuren|herstellingen aan dak, gevel of kelder/.test(q));
+  questions.push(...specific.slice(0, 1));
+  const techUnknown = unknown("A01") || has(a, "A01", "enkele", "duidelijk") || unknown("CD01") || unknown("CL01") || has(a, "CD01", "problemen", "verouderd");
+  if (techUnknown) questions.push("Wat is gekend over de technische toestand van de gemeenschappelijke delen (dak, gevel, leidingen, lift, balkons)? Kunt u beschikbare inspectie- en onderhoudsgegevens bezorgen?");
+  const worksUnknown = unknown("A02") || has(a, "A02", "besproken", "klein", "middel", "ingrijpend");
+  if (worksUnknown) questions.push("Welke werken aan de gemeenschappelijke delen zijn besproken, gepland of goedgekeurd, welke onderdelen betreffen ze en wat is de stand van zaken?");
+  const fundsUnknown = unknown("A04") || unknown("A03") || has(a, "A03", "beperkt", "substantieel", "omvang") || !has(a, "A05", "reservefonds") || !has(a, "A05", "bijdragen");
+  if (fundsUnknown) questions.push("Kunt u de actuele informatie over het reservefonds en eventuele besliste of besproken bijzondere bijdragen bezorgen, inclusief de verdeling en het tijdstip?");
+  const docsMissing = !has(a, "A05", "verslagen") || !has(a, "A05", "onderhoudsplan") || !has(a, "A05", "besluiten");
+  if (docsMissing) questions.push("Kunt u de verslagen van de laatste algemene vergaderingen, de relevante VME-beslissingen en het meerjarig onderhoudsplan (indien beschikbaar) bezorgen?");
+  const scopeUnclear = has(a, "SC01", "onbekend") || has(a, "Q25A", "onbekend");
+  if (scopeUnclear && questions.length < 5) questions.push("Kunt u op basis van de basisakte bevestigen welke delen privatief en welke gemeenschappelijk zijn, bijvoorbeeld voor de gemelde aandachtspunten?");
+  return { cards, questions: [...new Set(questions)].slice(0, 5), checklist: ["Basisakte en afbakening privatieve/gemeenschappelijke delen", "Verslagen algemene vergadering en relevante VME-beslissingen", "Reservefonds, rekeningen en bijzondere bijdragen", "Meerjarig onderhoudsplan, indien beschikbaar"] };
 }
 
 // ---------- Productaanbeveling (deterministisch, los van de scoring) ----------
@@ -519,6 +551,36 @@ function conclusion(a: Answers, categoryId: string, links: Connection[], unknown
   return parts.filter(Boolean).join(" ");
 }
 
+/** 2.3.3: persoonlijke conclusie uit hoofdbevinding, doel, onzekerheid en logische volgende handeling. */
+function conclusion233(a: Answers, categoryId: string, fs: Finding[], information: ReturnType<typeof informationOverview>, rec: Recommendation): string {
+  const parts: string[] = [];
+  const main = fs[0];
+  if (main) parts.push(`Uw belangrijkste aandachtspunt is ${lower(main.title)}.`);
+  else parts.push(categoryId === "onvoldoende" ? "Er ontbreekt te veel informatie voor een algemene indicatie." : "U meldt geen duidelijke bouwtechnische problemen.");
+  const works = selectedWorks(a);
+  const q46 = isApartment(a) ? "Q46A" : "Q46";
+  if (buyer(a)) parts.push("U bereidt een mogelijke aankoop voor.");
+  else if (fullIntent(a) && !works.length) parts.push("U overweegt een volledige renovatie waarvan de concrete omvang nog niet vastligt.");
+  else if (works.length) parts.push(`U overweegt ${joinNl(works.map((w) => lower(label(q46, w))))}.`);
+  if (has(a, "Q48", "ja")) parts.push("U wilt inzicht krijgen in de mogelijke kosten.");
+  if (information.topics.length === 1) parts.push(`Over ${information.topics[0].name} ontbreken nog gegevens.`);
+  else if (information.topics.length > 1) parts.push(`Over ${joinNl(information.topics.slice(0, 2).map((t) => t.name))} ontbreken nog gegevens.`);
+  const NEXT: Record<string, string> = {
+    "PLUS-COMPLEX-TECH": "Een grondige voorbereiding met een uitgebreide beoordeling ter plaatse is hier de logische volgende stap; zie het advies verder in dit rapport.",
+    "PLUS-COMPLEX-SEQUENCE": "Een grondige voorbereiding met een uitgebreide beoordeling ter plaatse is hier de logische volgende stap; zie het advies verder in dit rapport.",
+    "PLUS-BUYER-RENOVATION": "Een grondige voorbereiding met een uitgebreide beoordeling ter plaatse is hier de logische volgende stap; zie het advies verder in dit rapport.",
+    "WS-TECH-BUYER": "Een gerichte beoordeling van de gemelde punten ter plaatse is de logische volgende stap; zie het advies verder in dit rapport.",
+    "WS-TECH-OWNER": "Een gerichte beoordeling van de gemelde punten ter plaatse is de logische volgende stap; zie het advies verder in dit rapport.",
+    "WS-APT-COMMON": "Een gerichte beoordeling van de gemelde punten ter plaatse is de logische volgende stap; zie het advies verder in dit rapport.",
+    "WS-UNKNOWN-BUYER": "Een gerichte beoordeling van de gemelde punten ter plaatse is de logische volgende stap; zie het advies verder in dit rapport.",
+    "BUDGET-COST": "Een indicatieve budgetraming van uw geplande werken is de logische volgende stap; zie het advies verder in dit rapport.",
+    "NONE-VME": "Vraag eerst de relevante VME-documenten op en bespreek de gemeenschappelijke punten met de syndicus.",
+    "NONE-NEUTRAL": "Verduidelijk eerst de ontbrekende informatie; een betalende vervolgstap is nu niet aan de orde.",
+  };
+  parts.push(NEXT[rec.reasonCode]);
+  return parts.filter(Boolean).join(" ");
+}
+
 // ---------- 2.3.2: energie, wettelijke context, documenten, fasen, actiegroepen ----------
 const answeredQ = (a: Answers, q: string) => a[q] !== undefined && a[q] !== SKIP;
 const EPC_TEXT: Record<string, string> = { aplus: "A+ of A", b: "B", c: "C", d: "D", e: "E", f: "F" };
@@ -560,7 +622,8 @@ export function legalContext(a: Answers): LegalItem[] {
   else if (buy && (epc === null || epc === "onbekend")) out.push({ id: "LEG-RENO-EPC-ONBEKEND", level: "verificatie", title: "EPC-label opvragen vóór aankoop", text: "Het EPC-label is niet gekend. Bij een label E of F kan na aankoop een renovatieverplichting gelden. Vraag het EPC op bij de verkoper.", verify: ["Vraag het geldige EPC en het volledige verslag op."], sources: src("renovatieplicht") });
   if (apt) {
     out.push({ id: "LEG-EPC-GD", level: "info", title: "EPC van de gemeenschappelijke delen", text: "Een appartementsgebouw moet in principe over een afzonderlijk EPC voor de gemeenschappelijke delen beschikken, behalve wanneer het volledige gebouw nieuwbouw is. Een gebouw of appartement dat een ingrijpende energetische renovatie onderging, geldt daarbij niet als nieuwbouw. Dit EPC staat los van het EPC van het appartement.", verify: ["Vraag de syndicus of het EPC gemeenschappelijke delen beschikbaar is en welke collectieve maatregelen het aanbeveelt."], sources: src("epcGd") });
-    if (!has(a, "Q03", "vanaf2011")) out.push({ id: "LEG-ASBEST-GD", level: has(a, "Q03", "1991-2010", "onbekend") ? "verificatie" : "info", title: "Asbestattest gemene delen", text: `Voor gebouwen van vóór ${ASBESTOS.cutoffYear} moet de VME uiterlijk op ${ASBESTOS.commonPartsDeadline} over een asbestattest voor de gemene delen beschikken. Vanaf ${ASBESTOS.commonPartsTransferFrom} moet bij elke overdracht van een appartement zowel het attest van het appartement als dat van de gemene delen overhandigd worden.${has(a, "Q03", "1991-2010", "onbekend") ? " Verifieer eerst het exacte bouwjaar." : ""}`, verify: ["Vraag de syndicus naar de stand van het asbestattest voor de gemene delen."], sources: src("asbestGd") });
+    // 2.3.3: geen attestmelding voor de gemene delen bij een bevestigd bouwjaar vanaf 2001 (BJ01), tenzij asbesttoepassingen gemeld zijn.
+    if (asbestosContext(a).applies !== "nee" || has(a, "AS01", "attest_toepassingen", "gekend")) out.push({ id: "LEG-ASBEST-GD", level: has(a, "Q03", "1991-2010", "onbekend") && !has(a, "BJ01", "voor2001") ? "verificatie" : "info", title: "Asbestattest gemene delen", text: `Voor gebouwen van vóór ${ASBESTOS.cutoffYear} moet de VME uiterlijk op ${ASBESTOS.commonPartsDeadline} over een asbestattest voor de gemene delen beschikken. Vanaf ${ASBESTOS.commonPartsTransferFrom} moet bij elke overdracht van een appartement zowel het attest van het appartement als dat van de gemene delen overhandigd worden.${has(a, "Q03", "1991-2010", "onbekend") && !has(a, "BJ01", "voor2001") ? " Verifieer eerst het exacte bouwjaar." : ""}`, verify: ["Vraag de syndicus naar de stand van het asbestattest voor de gemene delen."], sources: src("asbestGd") });
   }
   if (buy) {
     const pv = typeof a.FL01 === "string" ? a.FL01 : null; const gv = typeof a.FL02 === "string" ? a.FL02 : null;
@@ -605,6 +668,52 @@ export function documents232(a: Answers): DocItem232[] {
   return items.map((d) => ({ ...d, statusLabel: DOC_STATUS_LABEL_232[d.status] }));
 }
 
+// ---------- 2.3.3: documenten met beschikbaarheid, inhoud en relevantie ----------
+export type DocContent = "gekend" | "niet-gecontroleerd" | "aandachtspunt" | null;
+export const DOC_CONTENT_LABEL: Record<Exclude<DocContent, null>, string> = { gekend: "Inhoud gekend", "niet-gecontroleerd": "Inhoud nog te controleren", aandachtspunt: "Bevat volgens u een aandachtspunt" };
+export interface DocItem233 { id: string; label: string; status: DocStatus232; statusLabel: string; content: DocContent; contentLabel: string | null; note: string | null }
+/**
+ * Persoonlijke documentenchecklist 2.3.3. Drie dimensies: beschikbaarheid, inhoud en (impliciet) geldigheid.
+ * De Quickscan verifieert nooit zelf documenten. Niet uitgevraagd is nooit "ontbrekend".
+ * De lijst blijft beperkt tot wat relevant is voor situatie, bouwperiode, problemen en geplande werken.
+ */
+export function documents233(a: Answers, ds: Record<Domain, number | null>): DocItem233[] {
+  const q06 = a.Q06;
+  const fromQ06 = (key: string): DocStatus232 => q06 === undefined ? "niet-gevraagd" : q06 === SKIP ? "overgeslagen" : !Array.isArray(q06) ? "onbekend" : q06.includes(key) ? "beschikbaar" : q06.includes("geen") ? "niet-beschikbaar" : q06.includes("onbekend") ? "onbekend" : "verifieren";
+  const items: Omit<DocItem233, "statusLabel" | "contentLabel">[] = [];
+  const buy = buyer(a); const apt = isApartment(a);
+  const works = selectedWorks(a);
+  const cosmeticOnly = works.length > 0 && works.every((x) => ["vloeren", "interieur"].includes(x)) && !fullIntent(a);
+  const technicalSignals = technicalDomains(ds).length > 0;
+  const epcKnown = typeof a.Q34 === "string" && a.Q34 !== SKIP && a.Q34 !== "onbekend";
+  items.push({ id: "DOC-EPC", label: "EPC en volledig EPC-verslag", status: fromQ06("epc") === "beschikbaar" ? "beschikbaar" : epcKnown ? "verifieren" : fromQ06("epc"), content: epcKnown ? "gekend" : null, note: epcKnown ? `Het label (${label("Q34", a.Q34)}) is gekend; het volledige verslag bevat de isolatiegegevens en de officiële aanbevelingen.` : null });
+  // Beschikbaarheid en inhoud gescheiden: een beschikbaar verslag met onbekende conclusies is niet "onbekend".
+  const keuringBeschikbaar = has(a, "Q40", "conform", "beperkt", "inbreuken") || (Array.isArray(q06) && q06.includes("keuring"));
+  const keuring: DocStatus232 = keuringBeschikbaar ? "beschikbaar" : has(a, "Q40", "geen") ? "niet-beschikbaar" : has(a, "Q40", "onbekend") ? "onbekend" : fromQ06("keuring");
+  const keuringContent: DocContent = has(a, "Q40", "conform") ? "gekend" : has(a, "Q40", "beperkt", "inbreuken") ? "aandachtspunt" : keuringBeschikbaar ? "niet-gecontroleerd" : null;
+  items.push({ id: "DOC-KEURING", label: "Keuringsverslag elektrische installatie", status: keuring, content: keuringContent, note: keuring === "beschikbaar" && keuringContent === "niet-gecontroleerd" ? "Keuringsverslag beschikbaar volgens uw antwoorden. De inhoud en eventuele opmerkingen zijn nog te controleren." : keuring !== "beschikbaar" ? "Een ontbrekend verslag bewijst geen technisch defect." : null });
+  const asb = asbestosContext(a);
+  const asbKnownMaterial = has(a, "AS01", "attest_toepassingen", "gekend");
+  const asbStatus: DocStatus232 = has(a, "AS01", "attest_geen", "attest_toepassingen") ? "beschikbaar" : has(a, "AS01", "geen_attest") ? "niet-beschikbaar" : has(a, "AS01", "onbekend") ? "onbekend" : a.AS01 === SKIP ? "overgeslagen" : fromQ06("asbest");
+  // 2.3.3: bij een bevestigd bouwjaar vanaf 2001 zonder gemelde toepassingen geen attestitem.
+  if (asb.applies !== "nee" || asbKnownMaterial) items.push({ id: "DOC-ASBEST", label: apt ? "Asbestattest van het appartement" : "Asbestattest", status: asbStatus, content: asbKnownMaterial ? "aandachtspunt" : has(a, "AS01", "attest_geen") ? "gekend" : null, note: asbKnownMaterial ? "Er zijn asbesthoudende toepassingen vermeld; laat ze passend beoordelen vóór ingrijpende werken." : has(a, "AS01", "attest_geen") ? "Een attest zonder vermelde toepassingen is geen absolute garantie dat het gebouw asbestvrij is." : asb.note });
+  if (buy || has(a, "ST01", "ja", "onduidelijk") || (works.length > 0 && !cosmeticOnly)) items.push({ id: "DOC-PLANNEN", label: "Bouwplannen en relevante vergunningen", status: fromQ06("plannen"), content: null, note: has(a, "ST01", "ja", "onduidelijk") ? "U vermeldt mogelijke stedenbouwkundige aandachtspunten." : null });
+  if (!apt && (buy || has(a, "RI01", "septisch", "niet", "onbekend"))) items.push({ id: "DOC-RIOLERING", label: "Informatie over riolering en afvalwater", status: has(a, "RI01", "riolering", "riolering_septisch") ? "verifieren" : has(a, "RI01", "onbekend") ? "onbekend" : a.RI01 === undefined ? "niet-gevraagd" : "verifieren", content: null, note: "Dit is geen conformiteitsbeoordeling." });
+  if (has(a, "H01", "gas", "mazout", "hout", "andere", "warmtepomp") && (buy || technicalSignals || has(a, "Q44", "gt3j", "onbekend"))) items.push({ id: "DOC-ONDERHOUD", label: "Onderhoudsdocumenten verwarming", status: fromQ06("onderhoud"), content: null, note: null });
+  if (has(a, "H01", "mazout")) items.push({ id: "DOC-STOOKOLIE", label: "Documentatie stookolietank", status: "niet-gevraagd", content: null, note: "Bijvoorbeeld keuringen van de tank, indien van toepassing." });
+  if (buy) items.push({ id: "DOC-OVERSTROMING", label: "Officieel overstromingsrapport (P- en G-score)", status: (["a", "b", "c", "d"].includes(a.FL01 as string) || ["a", "b", "c", "d"].includes(a.FL02 as string)) ? "verifieren" : a.FL01 === SKIP && a.FL02 === SKIP ? "overgeslagen" : "onbekend", content: null, note: "Administratieve informatie; geen bewijs van vochtproblemen." });
+  if (apt) {
+    const a05 = a.A05;
+    const vme = (key: string): DocStatus232 => a05 === undefined ? "niet-gevraagd" : !Array.isArray(a05) ? "onbekend" : a05.includes(key) ? "beschikbaar" : a05.includes("geen") ? "niet-beschikbaar" : a05.includes("onbekend") ? "onbekend" : "verifieren";
+    items.push({ id: "DOC-EPC-GD", label: "EPC gemeenschappelijke delen", status: "niet-gevraagd", content: null, note: "Niet uitgevraagd; vraag het na bij de syndicus." });
+    if (asb.applies !== "nee" || asbKnownMaterial) items.push({ id: "DOC-ASBEST-GD", label: "Asbestattest gemene delen", status: "niet-gevraagd", content: null, note: `Verplicht voor VME's van gebouwen vóór ${ASBESTOS.cutoffYear}, uiterlijk ${ASBESTOS.commonPartsDeadline}.` });
+    items.push({ id: "DOC-VME-AV", label: "Verslagen van de algemene vergadering", status: vme("verslagen"), content: null, note: null });
+    items.push({ id: "DOC-VME-FONDS", label: "Reservefonds", status: vme("reservefonds"), content: null, note: null });
+    items.push({ id: "DOC-VME-BIJDRAGEN", label: "Bijzondere bijdragen", status: vme("bijdragen"), content: null, note: null });
+  }
+  return items.map((d) => ({ ...d, statusLabel: DOC_STATUS_LABEL_232[d.status], contentLabel: d.content ? DOC_CONTENT_LABEL[d.content] : null }));
+}
+
 export interface Phase { id: "A" | "B" | "C" | "D"; title: string; why: string; items: string[]; decide: string | null }
 /** Voorlopig renovatietraject: alleen toepasselijke fasen; geen traject zonder plannen; volledige renovatie zonder deelwerken = scopebepaling. */
 export function renovationPhases(a: Answers): Phase[] {
@@ -631,12 +740,15 @@ export function renovationPhases(a: Answers): Phase[] {
   if (!cosmetic && w("gevel", "ramen") && (w("isolatie") || (w("gevel") && w("ramen")))) B.push("Stem gevel, ramen en isolatie op elkaar af.");
   const C: string[] = [];
   if (w("verwarming")) C.push(w("isolatie", "dak", "gevel", "ramen") || has(p, "DI01", "niet", "gedeeltelijk", "beperkt") || has(p, "MI01", "niet", "gedeeltelijk") ? "Laat de toekomstige warmtebehoefte bepalen na de geplande isolatiewerken, voor u een definitieve installatie kiest." : "Bereid de verwarmingskeuze voor op basis van de huidige en toekomstige isolatie.");
+  // 2.3.3: noem uitsluitend daadwerkelijk geselecteerde werken; nooit niet-gemelde werken als gepland.
   const sys = ["elektriciteit", "sanitair"].filter((x) => works.includes(x));
-  if (sys.length + (w("isolatie") && has(p, "Q39", "beperkt", "defect", "onbekend") ? 1 : 0) >= 2 || (sys.length && w("vloeren", "interieur"))) C.push("Plan elektrische, sanitaire en eventuele ventilatiewerken samen en houd rekening met openbreekwerken.");
-  else if (sys.length) C.push(`Bereid de ${joinNl(sys.map((x) => lower(label("Q46", x))))} voor vóór de afwerking.`);
+  const vent = w("isolatie") && has(p, "Q39", "beperkt", "defect", "onbekend");
+  const sysLabels = [...sys.map((x) => lower(label(isApartment(a) ? "Q46A" : "Q46", x))), ...(vent ? ["ventilatie"] : [])];
+  if (sys.length + (vent ? 1 : 0) >= 2 || (sys.length && w("vloeren", "interieur"))) C.push(`Plan de ${joinNl(sysLabels)} samen en houd rekening met openbreekwerken.`);
+  else if (sys.length) C.push(`Bereid de ${joinNl(sysLabels)} voor vóór de afwerking.`);
   const D: string[] = [];
-  if (w("vloeren")) D.push(sys.length ? "Plaats de nieuwe vloeren na de onderliggende technieken." : "Stem de vloerwerken af op eventuele leidingen en vloerisolatie.");
-  if (w("interieur")) D.push("Voer keuken, badkamer en interieurafwerking uit na de technische voorbereiding.");
+  if (w("vloeren")) D.push(sys.length ? "Plaats de nieuwe vloeren na de onderliggende technieken." : "Controleer vóór de nieuwe vloerafwerking of de bestaande onderliggende technieken en vloeropbouw aanpassingen vereisen.");
+  if (w("interieur")) D.push("Voer de interieurafwerking uit na de technische voorbereiding.");
   const out: Phase[] = [];
   if (A.length) out.push({ id: "A", title: "Onderzoek en voorbereiding", why: "Wat u nu nog niet weet, bepaalt mee welke werken zinvol zijn.", items: A, decide: full && !works.length ? "De omvang van de renovatie hangt af van dit onderzoek." : null });
   if (B.length) out.push({ id: "B", title: "Vocht, buitenschil en isolatie", why: "De buitenschil beschermt alles wat binnen volgt.", items: B, decide: null });
@@ -680,8 +792,12 @@ export function composeReport(answers: Answers) {
   const apartmentSignals = base.apartment?.signals.length ?? 0;
   const recommendation = recommendProduct(a, { domainScores: base.domainScores, flags: [...b.privateFlags, ...b.collectiveFlags], unknownLevel: base.unknown.level, findings: fs, apartmentSignals });
   // Asbestmelding afgestemd op de bouwjaargrens van 2001; gekende toepassingen blijven ongewijzigd.
+  // 2.3.3: bij een bevestigd bouwjaar vanaf 2001 zonder gemelde toepassingen geen prominente attestmelding.
   const asb = asbestosContext(a);
-  const notices = base.notices.map((n) => (n.id === "NOT-ASBEST-ATTEST" ? { ...n, text: `Er is geen asbestattest gekend. Dat betekent niet dat er asbest aanwezig of afwezig is. ${asb.note}` } : n));
+  const asbKnown = has(a, "AS01", "attest_toepassingen", "gekend");
+  const notices = base.notices
+    .filter((n) => !(n.id === "NOT-ASBEST-ATTEST" && asb.applies === "nee" && !asbKnown))
+    .map((n) => (n.id === "NOT-ASBEST-ATTEST" ? { ...n, text: `Er is geen asbestattest gekend. Dat betekent niet dat er asbest aanwezig of afwezig is. ${asb.note}` } : n));
   const legal = legalContext(a);
   const groups = actionGroups(a, fs, coOwnership(a, base.apartment)?.questions ?? [], b.privateFlags.length > 0, legal);
   const illustration: IllustrationId = (["open", "halfopen", "gesloten", "appartement"].includes(a.Q02 as string) ? a.Q02 : "ander") as IllustrationId;
@@ -715,8 +831,16 @@ export function composeReport(answers: Answers) {
       phases: renovationPhases(a),
       actions: groups,
     },
+    // 2.3.3: additieve extensie met persoonlijke conclusie en driedimensionale documentstatussen.
+    // Oude snapshots zonder v233 blijven via het bestaande 2.3.2-renderpad werken.
+    v233: {
+      version: REPORT_EXTENSION_233,
+      conclusion: conclusion233(a, base.category.id, fs, information, recommendation),
+      documents: documents233(a, base.domainScores),
+    },
   };
 }
 export type QuickscanReport23 = ReturnType<typeof composeReport>;
 export type ReportV23 = QuickscanReport23["v23"];
 export type ReportV232 = QuickscanReport23["v232"];
+export type ReportV233 = QuickscanReport23["v233"];

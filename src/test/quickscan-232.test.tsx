@@ -86,7 +86,7 @@ describe("2.3.2 vraagroutering", () => {
     expect(s?.stage).toBe("questions");
     expect(s?.index).toBe(0);
     expect(store.has(SESSION_KEY_221)).toBe(false);
-    expect(SESSION_KEY).toBe("dimac-quickscan-v2.3.2");
+    expect(SESSION_KEY).toBe("dimac-quickscan-v2.3.3");
   });
   it("9. geen navigatielussen: herhaald invullen convergeert en stabiliseert", () => {
     for (const seed of [RECENT, { ...RECENT, Q46: ["volledig"] }, { ...RECENT, Q02: "appartement", Q46A: ["sanitair", "interieur"] }]) {
@@ -109,7 +109,7 @@ describe("2.3.2 vraagroutering", () => {
     expect(ids({ ...apt, Q46A: ["sanitair"] })).not.toContain("RI01");
   });
   it("versies: vragen 2.3.2, scoreregels ongewijzigd 2.2.2, rapport 2.3.2", () => {
-    expect([QUESTION_VERSION, RULE_VERSION, REPORT_VERSION_23]).toEqual(["qs-questions-2.3.2", "qs-rules-2.2.2", "qs-report-2.3.2"]);
+    expect([QUESTION_VERSION, RULE_VERSION, REPORT_VERSION_23]).toEqual(["qs-questions-2.3.3", "qs-rules-2.2.2", "qs-report-2.3.3"]);
   });
 });
 
@@ -200,8 +200,9 @@ describe("2.3.2 EPC en wettelijke context", () => {
     expect(r.v232.energy.text).toContain("niets over vocht");
     expect(r.v232.actions.technical.some((x) => x.id === "ACT-VOCHT")).toBe(true);
   });
-  it("7. bouwperiode 1991–2010: geen zekerheid over asbestattestplicht", () => {
-    const d = documents232(fill({ ...RECENT, Q01: "koper", Q03: "1991-2010", AS01: "onbekend" })).find((x) => x.id === "DOC-ASBEST");
+  it("7. bouwperiode 1991–2010 zonder verduidelijking: geen zekerheid over asbestattestplicht", () => {
+    // 2.3.3: BJ01 verduidelijkt het bouwjaar; zonder antwoord (of 'onbekend') blijft de verificatieplicht staan.
+    const d = documents232(fill({ ...RECENT, Q01: "koper", Q03: "1991-2010", BJ01: "onbekend", AS01: "onbekend" })).find((x) => x.id === "DOC-ASBEST");
     expect(d?.note).toContain("Verifieer eerst het exacte bouwjaar");
   });
   it("8. oudere woning met renovatie: asbest nagaan vóór werken", () => {

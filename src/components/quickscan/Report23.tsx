@@ -4,7 +4,7 @@ import { ArrowRight, Check, Minus, HelpCircle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Barometer, SafetyAlerts } from "@/components/quickscan/ReportView";
 import { ICONS, ILLUSTRATIONS, svgPath, type Shape } from "@/lib/reportArt";
-import { withReportRef, type QuickscanReport23, type DomainStatus, type IconId, type ReportV232 } from "@/lib/quickscanReport";
+import { withReportRef, type QuickscanReport23, type DomainStatus, type IconId, type ReportV232, type ReportV233 } from "@/lib/quickscanReport";
 import type { SafetyId } from "@/lib/quickscan";
 import { formatEuro, VAT_LABEL } from "@/data/woningscan";
 import { track } from "@/lib/analytics";
@@ -67,8 +67,12 @@ export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; 
   const v = report.v23;
   // 2.3.2-extensie is optioneel: oudere snapshots (2.3, 2.3.1) tonen exact hun opgeslagen v23-inhoud.
   const x = (report as { v232?: ReportV232 }).v232;
+  // 2.3.3-extensie is optioneel en additief: snapshots zonder v233 volgen exact het 2.3.2-pad.
+  const x3 = (report as { v233?: ReportV233 }).v233;
   const actionList = x ? x.actions.technical : v.actions;
-  const docList: { id: string; label: string; status: string; statusLabel: string; note: string | null }[] = x ? x.documents : v.documents;
+  const docList: { id: string; label: string; status: string; statusLabel: string; contentLabel?: string | null; note: string | null }[] = x3 ? x3.documents : x ? x.documents : v.documents;
+  // 2.3.3: persoonlijke conclusie; oudere rapporten tonen hun opgeslagen conclusie ongewijzigd.
+  const conclusion = x3?.conclusion ?? v.conclusion;
   const rec = v.recommendation;
   const recRef = useRef<HTMLDivElement>(null);
   const payload = { item_id: rec.productId ?? "none", reason_code: rec.reasonCode };
@@ -143,7 +147,7 @@ export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; 
 
         <div className="mt-10 border-l-2 border-accent pl-5">
           <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">Eerste conclusie</p>
-          <p className="mt-2 font-display text-xl md:text-2xl leading-snug text-primary">{v.conclusion}</p>
+          <p className="mt-2 font-display text-xl md:text-2xl leading-snug text-primary">{conclusion}</p>
         </div>
       </Page>
 
@@ -316,6 +320,7 @@ export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; 
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <span className="text-sm text-primary">{d.label}</span>
                         <span className={cn("inline-flex items-center gap-1 text-[11px] border px-2 py-0.5", d.status === "beschikbaar" ? "border-primary/30 text-primary" : "border-border text-muted-foreground")}><I className="h-3 w-3" aria-hidden="true" />{d.statusLabel}</span>
+                        {d.contentLabel && <span className="text-[11px] text-muted-foreground">{d.contentLabel}</span>}
                       </div>
                       {d.note && <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{d.note}</p>}
                     </div>

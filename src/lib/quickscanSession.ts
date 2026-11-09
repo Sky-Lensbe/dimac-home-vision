@@ -1,7 +1,8 @@
 import { migrateAnswers, type Answers } from "@/lib/quickscan";
 
 export type Stage = "intro" | "questions" | "preview" | "form" | "report";
-export const SESSION_KEY = "dimac-quickscan-v2.3.2";
+export const SESSION_KEY = "dimac-quickscan-v2.3.3";
+export const SESSION_KEY_232 = "dimac-quickscan-v2.3.2";
 export const SESSION_KEY_221 = "dimac-quickscan-v2.2.1";
 export const SESSION_KEY_22 = "dimac-quickscan-v2.2";
 export const OLD_SESSION_KEY = "dimac-quickscan-v2.1";
@@ -9,8 +10,9 @@ export const OLD_SESSION_KEY = "dimac-quickscan-v2.1";
 export interface Saved { stage: Stage; answers: Answers; index: number; startedAt: number }
 
 /**
- * Leest opgeslagen voortgang: v2.3.2 rechtstreeks; v2.2.1 hervat in de vragenlijst (zelfde vraag-ID's,
- * nieuw geactiveerde vragen worden door de resolver alsnog gesteld); v2.2 en v2.1, v2.2 en v2.1 alleen via de veilige migratie.
+ * Leest opgeslagen voortgang: v2.3.3 rechtstreeks; v2.3.2 en v2.2.1 hervatten in de vragenlijst
+ * (de antwoorden blijven geldig; nieuw toepasselijke vragen — bv. de bouwjaarverduidelijking en de
+ * aangepaste schimmelvraag — worden door de resolver alsnog gesteld); v2.2 en v2.1 alleen via de veilige migratie.
  * Een gemigreerde sessie hervat altijd in de vragenlijst, zodat een oud resultaat nooit als nieuw rapport verschijnt.
  */
 export function readSaved(store: Pick<Storage, "getItem" | "removeItem">): Saved | null {
@@ -18,10 +20,11 @@ export function readSaved(store: Pick<Storage, "getItem" | "removeItem">): Saved
     store.removeItem("dimac-quickscan-v1");
     const raw = store.getItem(SESSION_KEY);
     if (raw) return JSON.parse(raw) as Saved;
-    const r221 = store.getItem(SESSION_KEY_221);
-    if (r221) {
-      store.removeItem(SESSION_KEY_221);
-      const s = JSON.parse(r221) as Saved;
+    for (const key of [SESSION_KEY_232, SESSION_KEY_221]) {
+      const prev = store.getItem(key);
+      if (!prev) continue;
+      store.removeItem(key);
+      const s = JSON.parse(prev) as Saved;
       return { ...s, stage: s.stage === "intro" ? "intro" : "questions", index: 0, answers: s.answers ?? {} };
     }
     for (const [key, from] of [[SESSION_KEY_22, "2.2"], [OLD_SESSION_KEY, "2.1"]] as const) {
