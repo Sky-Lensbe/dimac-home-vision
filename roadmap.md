@@ -56,3 +56,13 @@
 - [x] Browsercontroles (BJ01-vraag, mobiele weergave)
 - [x] docs/quickscan-2.3.3-oplevering.md met case-vergelijking en bewijsvoering
 - [ ] Server-side end-to-end — wacht op afzonderlijke uitroltoestemming
+
+# Quickscan 2.3.3 — Final Quality & Email Delivery
+- [ ] Concreet kwaliteits-, implementatie- en migratievoorstel voorleggen vóór gedeelde wijzigingen
+- [ ] Onafhankelijke oorspronkelijke 2.3.2-scorebaseline en historische PDF-layoutreferenties verifiëren
+- [ ] Vier gebruikersgerichte informatiedekkingsniveaus, commerciële codes ongewijzigd
+- [ ] Veilige persoonlijke PDF-bijlage, idempotente verzendopdrachten, statussen en begrensde retries voorbereiden
+- [ ] Vijf praktijkcases, historische snapshots, lokale PDF/browser- en automatische tests met afzonderlijk bewijs
+- [ ] Provider/domein/secrets configureren — wacht op afzonderlijke toestemming en verificatie
+- [ ] Gedeelde migratie/uitrol en echte testmail met PDF — wacht op afzonderlijke toestemming
+- [ ] Publieke activering blijft uitgesloten zonder afzonderlijk akkoord
