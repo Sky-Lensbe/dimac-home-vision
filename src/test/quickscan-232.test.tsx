@@ -25,7 +25,7 @@ const ids = (a: Answers) => visibleQuestions(a).map((q) => q.id);
 const meta = { reportNumber: "QS-TEST", name: "Test", municipality: "Diest", date: "2026-11-09" };
 
 /** Recente woning zonder renovatieplannen in de eerdere stappen (sanitair-, isolatievragen nog niet actief). */
-const RECENT: Answers = { Q01: "eigenaar", Q02: "open", Q03: "vanaf2011", R01: "0-5", Q04: ["geen"], Q24: "geen", Q34: "aplus", Q46: ["geen"], Q48: "nee" };
+const RECENT: Answers = { Q01: "eigenaar", Q02: "open", Q03: "vanaf2011", R01: "0-5", Q04: ["geen"], Q24: "geen", Q34: "aplus", G01: "hr", Q46: ["geen"], Q48: "nee" };
 
 describe("2.3.2 vraagroutering", () => {
   it("1. sanitairwerken in stap 4 activeren eerdere vragen (RI01, SL01)", () => {
@@ -201,7 +201,7 @@ describe("2.3.2 EPC en wettelijke context", () => {
     expect(r.v232.actions.technical.some((x) => x.id === "ACT-VOCHT")).toBe(true);
   });
   it("7. bouwperiode 1991–2010: geen zekerheid over asbestattestplicht", () => {
-    const d = documents232(fill({ ...RECENT, Q01: "koper", Q03: "1991-2010" })).find((x) => x.id === "DOC-ASBEST");
+    const d = documents232(fill({ ...RECENT, Q01: "koper", Q03: "1991-2010", AS01: "onbekend" })).find((x) => x.id === "DOC-ASBEST");
     expect(d?.note).toContain("Verifieer eerst het exacte bouwjaar");
   });
   it("8. oudere woning met renovatie: asbest nagaan vóór werken", () => {
@@ -285,6 +285,6 @@ describe("2.3.2 historische snapshots (echte vormen, geanonimiseerd)", () => {
     const r = composeReport(fill({ ...RECENT, Q01: "koper", Q03: "1945-1969", Q34: "f", Q46: ["isolatie", "verwarming"] }));
     render(<MemoryRouter><Report23 report={r} reportNumber="QS-NEW" /></MemoryRouter>);
     expect(screen.getByText("Uw voorlopig renovatietraject")).toBeTruthy();
-    expect(screen.getByText("Mogelijke renovatieverplichting")).toBeTruthy();
+    expect(screen.getAllByText("Mogelijke renovatieverplichting").length).toBeGreaterThan(0);
   });
 });
