@@ -813,6 +813,8 @@ export function composeReport(answers: Answers) {
       facts: heroFacts(a),
       conclusion: conclusion(a, base.category.id, links, unknownCount),
       highlights: fs.slice(0, 3),
+      // 2.3.3: volledige bevindingenlijst (additief; oudere snapshots bewaren hun opgeslagen v23 zonder dit veld).
+      findings: fs,
       domains: cards,
       connections: links,
       adviceTitle: adviceTitle(a),
