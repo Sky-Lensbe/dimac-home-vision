@@ -300,7 +300,7 @@ export const QUESTIONS: Question[] = [
     textFor: (a) => (has(a, "Q01", "eigenaar") ? "Wanneer wilt u met de renovatiewerken starten?" : buyer(a) ? "Wanneer verwacht u een beslissing te nemen over de woning?" : undefined),
     options: [o("2w", "Binnen twee weken"), o("3m", "Binnen drie maanden"), o("1j", "Binnen het jaar"), o("later", "Later dan een jaar"), o("onbekend", "Weet ik nog niet")],
   },
-  { id: "Q50", step: 4, text: "Wilt u moeilijk zichtbare delen van het dak beter laten beoordelen?", showIf: (a) => house(a) && (has(a, "Q14", "oud", "slijtage", "beschadigd", "los", "onbekend") || has(a, "Q17", "gedeeltelijk", "nauwelijks") || plansOrFull(a, "dak")), options: [o("ja", "Ja"), o("nee", "Nee"), o("twijfel", "Ik twijfel"), o("nvt", "Niet van toepassing")] },
+  { id: "Q50", step: 4, text: "Wilt u moeilijk zichtbare delen van het dak beter laten beoordelen?", showIf: (a) => house(a) && (has(a, "Q14", "oud", "slijtage", "beschadigd", "los", "onbekend") || has(a, "Q17", "gedeeltelijk", "nauwelijks") || plans(a, "dak")), options: [o("ja", "Ja"), o("nee", "Nee"), o("twijfel", "Ik twijfel"), o("nvt", "Niet van toepassing")] },
 ];
 
 
