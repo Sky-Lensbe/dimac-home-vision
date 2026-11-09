@@ -428,9 +428,14 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     };
     if (model.ctaUrl) pdfLink(rec.ctaLabel, model.ctaUrl, true);
     pdfLink(rec.infoLabel, model.infoUrl, false);
-    if (rec.secondary) textBlock("Alternatief", [`${rec.secondary.text} ${rec.secondary.name}: ${formatEuro(rec.secondary.price)} ${VAT_LABEL}.`], 8.5);
-    if (rec.limitation) textBlock("Afbakening", [rec.limitation], 8.5);
-    if (rec.price !== null) { ensure(10); font("sans", false, 8.5, MUTED); y += para(`${rec.priceNote} Rapportdatum: ${new Date(meta.date).toLocaleDateString("nl-BE")}.`, M, y + 3, CW, 8.5) + 4; }
+    // Slotblok: alternatief, afbakening en prijsnota blijven samen, zodat de laatste pagina nooit
+    // alleen een losse slotzin bevat.
+    const altText = rec.secondary ? `${rec.secondary.text} ${rec.secondary.name}: ${formatEuro(rec.secondary.price)} ${VAT_LABEL}.` : null;
+    const closing = [rec.limitation, rec.price !== null ? `${rec.priceNote} Rapportdatum: ${new Date(meta.date).toLocaleDateString("nl-BE")}.` : null].filter(Boolean).join(" ");
+    const tailH = (altText ? measure(altText, CW, "sans", false, 8.5) + 12 : 0) + (closing ? measure(closing, CW, "sans", false, 8) + 12 : 0);
+    if (tailH && y + tailH > BOTTOM && tailH < BOTTOM - TOP) newPage();
+    if (altText) textBlock("Alternatief", [altText], 8.5);
+    if (closing) textBlock("Afbakening", [closing], 8);
   }
 
 
