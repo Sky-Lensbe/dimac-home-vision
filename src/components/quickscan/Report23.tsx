@@ -214,10 +214,10 @@ export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; 
           </div>
         )}
 
-        {(v.information?.topics.length || report.unknown.items.length > 0 || report.unknown.skipped?.length > 0) && (
+        {(x3?.coverage || v.information?.topics.length || report.unknown.items.length > 0 || report.unknown.skipped?.length > 0) && (
           <div className="mt-10">
             <h3 className="font-display text-2xl text-primary">Wat weten we nog niet?</h3>
-            <p className="mt-2 text-sm text-primary/80"><span className="font-medium">{report.unknown.label}.</span> {v.information?.sentence ?? report.unknown.sentence}</p>
+            <p className="mt-2 text-sm text-primary/80"><span className="font-medium">{x3?.coverage?.label ?? report.unknown.label}.</span> {v.information?.sentence ?? report.unknown.sentence}</p>
             {report.unknown.skipped?.length > 0 && <p className="mt-2 text-xs text-muted-foreground">Overgeslagen: {report.unknown.skipped.map((s) => s.label).join("; ")}.</p>}
           </div>
         )}

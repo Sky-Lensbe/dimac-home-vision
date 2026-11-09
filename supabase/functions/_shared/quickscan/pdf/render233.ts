@@ -304,7 +304,7 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
     for (const l of x.legal) textBlock(l.title, [l.text, ...l.verify.map((t) => `– ${t}`), `Bron: ${l.sources.map((s2) => `${s2.label} (${s2.url})`).join("; ")}`]);
     if (x.legal.length) textBlock("Juridische context", [`Informatieve context, geen individueel juridisch advies. Gecontroleerd op ${new Date(x.legalVerifiedAt).toLocaleDateString("nl-BE")}.`], 8.5);
   }
-  if (v.information?.topics.length || r.unknown.items.length || r.unknown.skipped?.length) textBlock(`Wat weten we nog niet? ${r.unknown.label}.`, [v.information?.sentence ?? r.unknown.sentence, r.unknown.skipped?.length ? `Overgeslagen: ${r.unknown.skipped.map((s) => s.label).join("; ")}.` : ""].filter(Boolean));
+  if (x3?.coverage || v.information?.topics.length || r.unknown.items.length || r.unknown.skipped?.length) textBlock(`Wat weten we nog niet? ${x3?.coverage?.label ?? r.unknown.label}.`, [v.information?.sentence ?? r.unknown.sentence, r.unknown.skipped?.length ? `Overgeslagen: ${r.unknown.skipped.map((s) => s.label).join("; ")}.` : ""].filter(Boolean));
   for (const n of r.notices ?? []) textBlock(n.title, [n.text]);
   if (r.apartment) {
     const firstCard = v.coOwnership?.cards[0];

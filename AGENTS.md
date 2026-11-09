@@ -15,3 +15,5 @@
 - The Quickscan report number may travel in URLs (`?rapport=`) only as a reference in a request; it never grants access to report content or personal data.
 - Quickscan question visibility is resolved by the bounded fixpoint resolver in `engine.ts` (throws `ResolverError` on non-convergence; `isComplete()` fails closed), and the questionnaire tracks the current question by ID so newly activated earlier questions are asked afterwards, never by jumping.
 - Legal/EPC/asbestos facts live only in `_shared/quickscan/legal.ts` with a source URL and verification date; reports cite them and never compute personal deadlines.
+- PDF snapshot layout lives in runtime-neutral `_shared/quickscan/pdf` with injected assets and formatting; browser adapters dispatch by stored report version, keeping historical rendering frozen and strict server asset validation so mail never silently substitutes fonts or omits the logo. Frozen local history is not proof of original release provenance.
+- User-facing information coverage is a report-only additive extension; never use it as a scoring or product-routing input, so more truthful display levels cannot change recommendations.
