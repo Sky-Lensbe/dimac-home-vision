@@ -302,15 +302,15 @@ describe("2.3.3 sessiemigratie en historische rapporten", () => {
   });
   for (const [name, snap] of [["2.3", snap23], ["2.3.1", snap231]] as const) {
     it(`historisch rapport ${name}: onveranderde inhoud, oude conclusie en aanbeveling, geen v233-secties`, async () => {
-      const r = storedReport(snap as never);
+      const r = storedReport(snap as never) as unknown as QuickscanReport23;
       expect(r).not.toBeNull();
       expect((r as { v233?: unknown }).v233).toBeUndefined();
       // De opgeslagen conclusie en aanbeveling blijven exact zoals opgeslagen.
-      expect(r!.v23.conclusion).toBe((snap as { v23: { conclusion: string } }).v23.conclusion);
-      expect(r!.v23.recommendation).toEqual((snap as { v23: { recommendation: unknown } }).v23.recommendation);
-      const { container } = render(<MemoryRouter><Report23 report={r!} reportNumber="QS-TEST" /></MemoryRouter>);
+      expect(r.v23.conclusion).toBe((snap as { v23: { conclusion: string } }).v23.conclusion);
+      expect(r.v23.recommendation).toEqual((snap as { v23: { recommendation: unknown } }).v23.recommendation);
+      const { container } = render(<MemoryRouter><Report23 report={r} reportNumber="QS-TEST" /></MemoryRouter>);
       expect(container.textContent).toContain((snap as { v23: { conclusion: string } }).v23.conclusion.slice(0, 40));
-      const pdf = await buildReportPdf23(r!, meta, { load: async () => { throw new Error("offline"); } });
+      const pdf = await buildReportPdf23(r, meta, { load: async () => { throw new Error("offline"); } });
       expect(pdf.size).toBeGreaterThan(10000);
     });
   }
