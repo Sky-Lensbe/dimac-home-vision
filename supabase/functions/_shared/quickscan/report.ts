@@ -647,14 +647,14 @@ export interface DocItem233 { id: string; label: string; status: DocStatus232; s
  * De Quickscan verifieert nooit zelf documenten. Niet uitgevraagd is nooit "ontbrekend".
  * De lijst blijft beperkt tot wat relevant is voor situatie, bouwperiode, problemen en geplande werken.
  */
-export function documents233(a: Answers): DocItem233[] {
+export function documents233(a: Answers, ds: Record<Domain, number | null>): DocItem233[] {
   const q06 = a.Q06;
   const fromQ06 = (key: string): DocStatus232 => q06 === undefined ? "niet-gevraagd" : q06 === SKIP ? "overgeslagen" : !Array.isArray(q06) ? "onbekend" : q06.includes(key) ? "beschikbaar" : q06.includes("geen") ? "niet-beschikbaar" : q06.includes("onbekend") ? "onbekend" : "verifieren";
   const items: Omit<DocItem233, "statusLabel" | "contentLabel">[] = [];
   const buy = buyer(a); const apt = isApartment(a);
   const works = selectedWorks(a);
   const cosmeticOnly = works.length > 0 && works.every((x) => ["vloeren", "interieur"].includes(x)) && !fullIntent(a);
-  const technicalSignals = technicalDomains(buildDomainScores(a)).length > 0;
+  const technicalSignals = technicalDomains(ds).length > 0;
   const epcKnown = typeof a.Q34 === "string" && a.Q34 !== SKIP && a.Q34 !== "onbekend";
   items.push({ id: "DOC-EPC", label: "EPC en volledig EPC-verslag", status: fromQ06("epc") === "beschikbaar" ? "beschikbaar" : epcKnown ? "verifieren" : fromQ06("epc"), content: epcKnown ? "gekend" : null, note: epcKnown ? `Het label (${label("Q34", a.Q34)}) is gekend; het volledige verslag bevat de isolatiegegevens en de officiële aanbevelingen.` : null });
   // Beschikbaarheid en inhoud gescheiden: een beschikbaar verslag met onbekende conclusies is niet "onbekend".
@@ -682,11 +682,6 @@ export function documents233(a: Answers): DocItem233[] {
     items.push({ id: "DOC-VME-BIJDRAGEN", label: "Bijzondere bijdragen", status: vme("bijdragen"), content: null, note: null });
   }
   return items.map((d) => ({ ...d, statusLabel: DOC_STATUS_LABEL_232[d.status], contentLabel: d.content ? DOC_CONTENT_LABEL[d.content] : null }));
-}
-
-/** Domeinscores opnieuw afleiden zonder circulaire import: via buildReport is duur, dus lokaal via engine-export. */
-function buildDomainScores(a: Answers): Record<Domain, number | null> {
-  return buildReport(a).domainScores;
 }
 
 export interface Phase { id: "A" | "B" | "C" | "D"; title: string; why: string; items: string[]; decide: string | null }
