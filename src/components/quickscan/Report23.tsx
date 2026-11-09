@@ -4,7 +4,7 @@ import { ArrowRight, Check, Minus, HelpCircle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Barometer, SafetyAlerts } from "@/components/quickscan/ReportView";
 import { ICONS, ILLUSTRATIONS, svgPath, type Shape } from "@/lib/reportArt";
-import { withReportRef, type QuickscanReport23, type DomainStatus, type DocStatus, type IconId } from "@/lib/quickscanReport";
+import { withReportRef, type QuickscanReport23, type DomainStatus, type IconId, type ReportV232 } from "@/lib/quickscanReport";
 import type { SafetyId } from "@/lib/quickscan";
 import { formatEuro, VAT_LABEL } from "@/data/woningscan";
 import { track } from "@/lib/analytics";
@@ -40,7 +40,7 @@ const StatusMark = ({ status, label }: { status: DomainStatus; label: string }) 
     {label}
   </span>
 );
-const DOC_ICON: Record<DocStatus, typeof Check> = { beschikbaar: Check, verifieren: Clock, onbekend: HelpCircle, nvt: Minus };
+const DOC_ICON: Record<string, typeof Check> = { beschikbaar: Check, verifieren: Clock, "niet-gevraagd": Clock, onbekend: HelpCircle, overgeslagen: HelpCircle, "niet-beschikbaar": Minus, nvt: Minus };
 
 const Eyebrow = ({ children }: { children: React.ReactNode }) => <p className="text-[11px] uppercase tracking-[0.24em] text-accent font-medium">{children}</p>;
 const Page = ({ n, total, reportNumber, children }: { n: number; total: number; reportNumber: string; children: React.ReactNode }) => (
@@ -65,6 +65,10 @@ const Page = ({ n, total, reportNumber, children }: { n: number; total: number; 
 
 export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; reportNumber: string }) => {
   const v = report.v23;
+  // 2.3.2-extensie is optioneel: oudere snapshots (2.3, 2.3.1) tonen exact hun opgeslagen v23-inhoud.
+  const x = (report as { v232?: ReportV232 }).v232;
+  const actionList = x ? x.actions.technical : v.actions;
+  const docList: { id: string; label: string; status: string; statusLabel: string; note: string | null }[] = x ? x.documents : v.documents;
   const rec = v.recommendation;
   const recRef = useRef<HTMLDivElement>(null);
   const payload = { item_id: rec.productId ?? "none", reason_code: rec.reasonCode };
@@ -186,6 +190,26 @@ export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; 
           </div>
         )}
 
+        {x && (
+          <div className="mt-10 border border-border p-6 md:p-8">
+            <Eyebrow>Energie en mogelijke verplichtingen</Eyebrow>
+            <h3 className="mt-3 font-display text-3xl text-primary">{x.energy.title}</h3>
+            <p className="mt-3 text-sm text-primary/85 leading-relaxed">{x.energy.text}</p>
+            {x.energy.points.length > 0 && <ul className="mt-4 space-y-2">{x.energy.points.map((t) => <li key={t} className="flex gap-2 text-sm text-primary/80"><Icon id="leaf" className="h-5 w-5 shrink-0 text-accent" />{t}</li>)}</ul>}
+            {x.legal.length > 0 && <div className="mt-8 space-y-5">
+              {x.legal.map((l) => (
+                <div key={l.id} className={cn("border-l-2 pl-4", l.level === "melding" ? "border-accent" : "border-border")}>
+                  <p className="font-medium text-primary">{l.title}</p>
+                  <p className="mt-1 text-sm text-primary/80 leading-relaxed">{l.text}</p>
+                  {l.verify.length > 0 && <ul className="mt-2 list-disc pl-5 space-y-1 text-sm text-primary/75">{l.verify.map((t) => <li key={t}>{t}</li>)}</ul>}
+                  <p className="mt-2 text-xs text-muted-foreground">Bron: {l.sources.map((src, i) => <span key={src.url}>{i > 0 && " · "}<a href={src.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">{src.label}</a></span>)}</p>
+                </div>
+              ))}
+              <p className="text-xs text-muted-foreground">Informatieve context, geen individueel juridisch advies. Gecontroleerd op {new Date(x.legalVerifiedAt).toLocaleDateString("nl-BE")}.</p>
+            </div>}
+          </div>
+        )}
+
         {(v.information?.topics.length || report.unknown.items.length > 0 || report.unknown.skipped?.length > 0) && (
           <div className="mt-10">
             <h3 className="font-display text-2xl text-primary">Wat weten we nog niet?</h3>
@@ -234,9 +258,9 @@ export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; 
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed">Met deze acties verduidelijkt u de belangrijkste aandachtspunten en onzekerheden.</p>
         </div>
-        {v.actions.length > 0 ? (
+        {actionList.length > 0 ? (
           <ol className="mt-8 space-y-3">
-            {v.actions.map((x, i) => (
+            {actionList.map((x, i) => (
               <li key={x.id} className={cn("border p-5 grid grid-cols-[3rem_2.5rem_1fr] gap-4 items-start", x.id === "ACT-VEILIGHEID" ? "border-destructive/50" : "border-border")}>
                 <span className="font-display text-3xl text-accent tabular-nums leading-none">{String(i + 1).padStart(2, "0")}</span>
                 <Icon id={x.icon} className="h-9 w-9 text-primary/70" />
@@ -250,13 +274,41 @@ export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; 
           </ol>
         ) : <p className="mt-8 text-primary/80">Op basis van uw antwoorden zijn er geen specifieke acties nodig.</p>}
 
-        {v.documents.length > 0 && (
+
+        {x && x.phases.length > 0 && (
+          <div className="mt-10 border border-border p-6 md:p-8">
+            <Eyebrow>Voorlopig digitaal advies</Eyebrow>
+            <h3 className="mt-2 font-display text-3xl text-primary">Uw voorlopig renovatietraject</h3>
+            <ol className="mt-6 space-y-6">
+              {x.phases.map((ph) => (
+                <li key={ph.id} className="grid grid-cols-[2.5rem_1fr] gap-4">
+                  <span className="font-display text-3xl text-accent leading-none">{ph.id}</span>
+                  <div>
+                    <p className="font-medium text-primary">{ph.title}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{ph.why}</p>
+                    <ul className="mt-2 list-disc pl-5 space-y-1 text-sm text-primary/80">{ph.items.map((t) => <li key={t}>{t}</li>)}</ul>
+                    {ph.decide && <p className="mt-2 text-xs text-primary/70">Beslissing hangt af van: {ph.decide}</p>}
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <p className="mt-5 text-xs text-muted-foreground">Dit traject is geen uitvoeringsbestek, technische keuring of kostenraming.</p>
+          </div>
+        )}
+
+        {x && x.actions.documents.length > 0 && (
+          <div className="mt-10">
+            <h3 className="font-display text-2xl text-primary">Documenten en verplichtingen nagaan</h3>
+            <ul className="mt-4 space-y-3">{x.actions.documents.map((d) => <li key={d.id} className="border border-border p-4 grid grid-cols-[2rem_1fr] gap-3"><Icon id={d.icon} className="h-7 w-7 text-primary/70" /><div><p className="font-medium text-primary text-sm">{d.title}</p><p className="mt-1 text-sm text-primary/80 leading-relaxed">{d.text}</p></div></li>)}</ul>
+          </div>
+        )}
+        {docList.length > 0 && (
           <div className="mt-10 bg-surface border border-border p-6 md:p-8">
             <Eyebrow>Handige documenten</Eyebrow>
             <h3 className="mt-2 font-display text-3xl text-primary">Documenten om op te vragen.</h3>
             <ul className="mt-6 grid sm:grid-cols-2 gap-x-8 gap-y-4">
-              {v.documents.map((d) => {
-                const I = DOC_ICON[d.status];
+              {docList.map((d) => {
+                const I = DOC_ICON[d.status] ?? HelpCircle;
                 return (
                   <li key={d.id} className="grid grid-cols-[1.5rem_1fr] gap-3">
                     <Icon id="doc" className="h-5 w-5 text-primary/60 mt-0.5" />
