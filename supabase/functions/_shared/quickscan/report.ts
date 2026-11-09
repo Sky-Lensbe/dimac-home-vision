@@ -551,6 +551,36 @@ function conclusion(a: Answers, categoryId: string, links: Connection[], unknown
   return parts.filter(Boolean).join(" ");
 }
 
+/** 2.3.3: persoonlijke conclusie uit hoofdbevinding, doel, onzekerheid en logische volgende handeling. */
+function conclusion233(a: Answers, categoryId: string, fs: Finding[], information: ReturnType<typeof informationOverview>, rec: Recommendation): string {
+  const parts: string[] = [];
+  const main = fs[0];
+  if (main) parts.push(`Uw belangrijkste aandachtspunt is ${lower(main.title)}.`);
+  else parts.push(categoryId === "onvoldoende" ? "Er ontbreekt te veel informatie voor een algemene indicatie." : "U meldt geen duidelijke bouwtechnische problemen.");
+  const works = selectedWorks(a);
+  const q46 = isApartment(a) ? "Q46A" : "Q46";
+  if (buyer(a)) parts.push("U bereidt een mogelijke aankoop voor.");
+  else if (fullIntent(a) && !works.length) parts.push("U overweegt een volledige renovatie waarvan de concrete omvang nog niet vastligt.");
+  else if (works.length) parts.push(`U overweegt ${joinNl(works.map((w) => lower(label(q46, w))))}.`);
+  if (has(a, "Q48", "ja")) parts.push("U wilt inzicht krijgen in de mogelijke kosten.");
+  if (information.topics.length === 1) parts.push(`Over ${information.topics[0].name} ontbreken nog gegevens.`);
+  else if (information.topics.length > 1) parts.push(`Over ${joinNl(information.topics.slice(0, 2).map((t) => t.name))} ontbreken nog gegevens.`);
+  const NEXT: Record<string, string> = {
+    "PLUS-COMPLEX-TECH": "Een grondige voorbereiding met een uitgebreide beoordeling ter plaatse is hier de logische volgende stap; zie het advies verder in dit rapport.",
+    "PLUS-COMPLEX-SEQUENCE": "Een grondige voorbereiding met een uitgebreide beoordeling ter plaatse is hier de logische volgende stap; zie het advies verder in dit rapport.",
+    "PLUS-BUYER-RENOVATION": "Een grondige voorbereiding met een uitgebreide beoordeling ter plaatse is hier de logische volgende stap; zie het advies verder in dit rapport.",
+    "WS-TECH-BUYER": "Een gerichte beoordeling van de gemelde punten ter plaatse is de logische volgende stap; zie het advies verder in dit rapport.",
+    "WS-TECH-OWNER": "Een gerichte beoordeling van de gemelde punten ter plaatse is de logische volgende stap; zie het advies verder in dit rapport.",
+    "WS-APT-COMMON": "Een gerichte beoordeling van de gemelde punten ter plaatse is de logische volgende stap; zie het advies verder in dit rapport.",
+    "WS-UNKNOWN-BUYER": "Een gerichte beoordeling van de gemelde punten ter plaatse is de logische volgende stap; zie het advies verder in dit rapport.",
+    "BUDGET-COST": "Een indicatieve budgetraming van uw geplande werken is de logische volgende stap; zie het advies verder in dit rapport.",
+    "NONE-VME": "Vraag eerst de relevante VME-documenten op en bespreek de gemeenschappelijke punten met de syndicus.",
+    "NONE-NEUTRAL": "Verduidelijk eerst de ontbrekende informatie; een betalende vervolgstap is nu niet aan de orde.",
+  };
+  parts.push(NEXT[rec.reasonCode]);
+  return parts.filter(Boolean).join(" ");
+}
+
 // ---------- 2.3.2: energie, wettelijke context, documenten, fasen, actiegroepen ----------
 const answeredQ = (a: Answers, q: string) => a[q] !== undefined && a[q] !== SKIP;
 const EPC_TEXT: Record<string, string> = { aplus: "A+ of A", b: "B", c: "C", d: "D", e: "E", f: "F" };
@@ -762,8 +792,12 @@ export function composeReport(answers: Answers) {
   const apartmentSignals = base.apartment?.signals.length ?? 0;
   const recommendation = recommendProduct(a, { domainScores: base.domainScores, flags: [...b.privateFlags, ...b.collectiveFlags], unknownLevel: base.unknown.level, findings: fs, apartmentSignals });
   // Asbestmelding afgestemd op de bouwjaargrens van 2001; gekende toepassingen blijven ongewijzigd.
+  // 2.3.3: bij een bevestigd bouwjaar vanaf 2001 zonder gemelde toepassingen geen prominente attestmelding.
   const asb = asbestosContext(a);
-  const notices = base.notices.map((n) => (n.id === "NOT-ASBEST-ATTEST" ? { ...n, text: `Er is geen asbestattest gekend. Dat betekent niet dat er asbest aanwezig of afwezig is. ${asb.note}` } : n));
+  const asbKnown = has(a, "AS01", "attest_toepassingen", "gekend");
+  const notices = base.notices
+    .filter((n) => !(n.id === "NOT-ASBEST-ATTEST" && asb.applies === "nee" && !asbKnown))
+    .map((n) => (n.id === "NOT-ASBEST-ATTEST" ? { ...n, text: `Er is geen asbestattest gekend. Dat betekent niet dat er asbest aanwezig of afwezig is. ${asb.note}` } : n));
   const legal = legalContext(a);
   const groups = actionGroups(a, fs, coOwnership(a, base.apartment)?.questions ?? [], b.privateFlags.length > 0, legal);
   const illustration: IllustrationId = (["open", "halfopen", "gesloten", "appartement"].includes(a.Q02 as string) ? a.Q02 : "ander") as IllustrationId;
@@ -796,6 +830,13 @@ export function composeReport(answers: Answers) {
       documents: documents232(a),
       phases: renovationPhases(a),
       actions: groups,
+    },
+    // 2.3.3: additieve extensie met persoonlijke conclusie en driedimensionale documentstatussen.
+    // Oude snapshots zonder v233 blijven via het bestaande 2.3.2-renderpad werken.
+    v233: {
+      version: REPORT_EXTENSION_233,
+      conclusion: conclusion233(a, base.category.id, fs, information, recommendation),
+      documents: documents233(a, base.domainScores),
     },
   };
 }
