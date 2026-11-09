@@ -58,7 +58,9 @@ describe("2.3.3 condens versus schimmel", () => {
     const schimmel = r.v23.findings.find((f) => f.id === "AP-SCHIMMEL");
     expect(schimmel?.title).toBe("Terugkerende condens");
     expect(schimmel?.title).not.toContain("chimmel");
-    expect(schimmel?.short).not.toContain("chimmel");
+    // Schimmel mag enkel voorkomen als expliciete ontkenning, nooit als vaststaand feit.
+    expect(schimmel?.short).toContain("zonder zichtbare schimmel");
+    expect(schimmel?.short).not.toMatch(/(?<!zonder zichtbare )schimmel/);
     const link = r.v23.connections.find((c) => c.id === "LINK-RAAM-CONDENS");
     expect(link?.title).toBe("Condens rond ramen");
     expect(link?.title).not.toContain("chimmel");
