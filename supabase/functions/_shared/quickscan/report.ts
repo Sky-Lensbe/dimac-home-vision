@@ -658,12 +658,15 @@ export function renovationPhases(a: Answers): Phase[] {
   if (!cosmetic && w("gevel", "ramen") && (w("isolatie") || (w("gevel") && w("ramen")))) B.push("Stem gevel, ramen en isolatie op elkaar af.");
   const C: string[] = [];
   if (w("verwarming")) C.push(w("isolatie", "dak", "gevel", "ramen") || has(p, "DI01", "niet", "gedeeltelijk", "beperkt") || has(p, "MI01", "niet", "gedeeltelijk") ? "Laat de toekomstige warmtebehoefte bepalen na de geplande isolatiewerken, voor u een definitieve installatie kiest." : "Bereid de verwarmingskeuze voor op basis van de huidige en toekomstige isolatie.");
+  // 2.3.3: noem uitsluitend daadwerkelijk geselecteerde werken; nooit niet-gemelde werken als gepland.
   const sys = ["elektriciteit", "sanitair"].filter((x) => works.includes(x));
-  if (sys.length + (w("isolatie") && has(p, "Q39", "beperkt", "defect", "onbekend") ? 1 : 0) >= 2 || (sys.length && w("vloeren", "interieur"))) C.push("Plan elektrische, sanitaire en eventuele ventilatiewerken samen en houd rekening met openbreekwerken.");
-  else if (sys.length) C.push(`Bereid de ${joinNl(sys.map((x) => lower(label("Q46", x))))} voor vóór de afwerking.`);
+  const vent = w("isolatie") && has(p, "Q39", "beperkt", "defect", "onbekend");
+  const sysLabels = [...sys.map((x) => lower(label(isApartment(a) ? "Q46A" : "Q46", x))), ...(vent ? ["ventilatie"] : [])];
+  if (sys.length + (vent ? 1 : 0) >= 2 || (sys.length && w("vloeren", "interieur"))) C.push(`Plan de ${joinNl(sysLabels)} samen en houd rekening met openbreekwerken.`);
+  else if (sys.length) C.push(`Bereid de ${joinNl(sysLabels)} voor vóór de afwerking.`);
   const D: string[] = [];
-  if (w("vloeren")) D.push(sys.length ? "Plaats de nieuwe vloeren na de onderliggende technieken." : "Stem de vloerwerken af op eventuele leidingen en vloerisolatie.");
-  if (w("interieur")) D.push("Voer keuken, badkamer en interieurafwerking uit na de technische voorbereiding.");
+  if (w("vloeren")) D.push(sys.length ? "Plaats de nieuwe vloeren na de onderliggende technieken." : "Controleer vóór de nieuwe vloerafwerking of de bestaande onderliggende technieken en vloeropbouw aanpassingen vereisen.");
+  if (w("interieur")) D.push("Voer de interieurafwerking uit na de technische voorbereiding.");
   const out: Phase[] = [];
   if (A.length) out.push({ id: "A", title: "Onderzoek en voorbereiding", why: "Wat u nu nog niet weet, bepaalt mee welke werken zinvol zijn.", items: A, decide: full && !works.length ? "De omvang van de renovatie hangt af van dit onderzoek." : null });
   if (B.length) out.push({ id: "B", title: "Vocht, buitenschil en isolatie", why: "De buitenschil beschermt alles wat binnen volgt.", items: B, decide: null });
