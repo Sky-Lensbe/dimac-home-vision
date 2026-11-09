@@ -1,0 +1,23 @@
+import { describe, expect, it } from "vitest";
+import { attemptOutcome, deliveryKey, deliveryRecipient, MAX_DELIVERY_ATTEMPTS, mayTransition, DELIVERY_ENABLED, DELIVERY_MODE, reportEmail } from "../../supabase/functions/_shared/quickscan/delivery";
+const identity = { reportId: "123-abc", reportNumber: "QS-20261109-ABC12345", recipient: "info@sky-lens.be", synthetic: true, generation: 0 };
+describe("Prepared PDF delivery safety", () => {
+  it("is disabled in test mode", () => { expect(DELIVERY_MODE).toBe("test"); expect(DELIVERY_ENABLED).toBe(false); });
+  it("allows only approved synthetic mailbox in test", () => { expect(deliveryRecipient(identity)).toBe("info@sky-lens.be"); });
+  it("never forwards real reports to the test mailbox", () => { expect(() => deliveryRecipient({ ...identity, synthetic: false })).toThrow("TEST_RECIPIENT_DENIED"); });
+  it("rejects third party test recipients", () => { expect(() => deliveryRecipient({ ...identity, recipient: "other@example.com" })).toThrow("TEST_RECIPIENT_DENIED"); });
+  it("rejects invalid addresses", () => { expect(() => deliveryRecipient({ ...identity, recipient: "invalid" })).toThrow("INVALID_EMAIL"); });
+  it("live recipient is exactly the registered email", () => { expect(deliveryRecipient({ ...identity, recipient: "Visitor@example.com" }, "live")).toBe("visitor@example.com"); });
+  it("duplicate events have the same key", () => { expect(deliveryKey(identity)).toBe("quickscan-report-123-abc-0"); expect(deliveryKey({ ...identity })).toBe(deliveryKey(identity)); });
+  it("controlled resend has distinct key", () => { expect(deliveryKey({ ...identity, generation: 1 })).not.toBe(deliveryKey(identity)); });
+  it("200 is accepted, not delivered", () => { expect(attemptOutcome(200, 1, 0).status).toBe("accepted"); });
+  it("temporary failure schedules backoff", () => { expect(attemptOutcome(503, 2, 1000).nextAt).toBe(61000); });
+  it("honors Retry-After", () => { expect(attemptOutcome(429, 1, 0, 120).nextAt).toBe(120000); });
+  it("has maximum five attempts", () => { expect(MAX_DELIVERY_ATTEMPTS).toBe(5); expect(attemptOutcome(503, 5, 0).status).toBe("failed"); });
+  it("permanent failure never retries", () => { expect(attemptOutcome(422, 1, 0).nextAt).toBeNull(); });
+  it("ambiguous send requires review rather than blind retry", () => { expect(attemptOutcome(null, 1, 0)).toEqual({ status: "failed", nextAt: null, review: true }); });
+  it("delivered cannot be resent by status transition", () => { expect(mayTransition("delivered", "sending")).toBe(false); });
+  it("pending cannot claim delivery", () => { expect(mayTransition("pending", "delivered")).toBe(false); });
+  it("confirmed provider event advances accepted", () => { expect(mayTransition("accepted", "delivered")).toBe(true); });
+  it("escapes recipient name and uses requested identity", () => { const e = reportEmail("<script>", identity.reportNumber, "https://www.dimac.be/logo-dimac.png"); expect(e.html).not.toContain("<script>"); expect(e.from).toBe("Sky-Lens voor DIMAC <info@sky-lens.be>"); expect(e.reply_to).toBe("info@sky-lens.be"); });
+});

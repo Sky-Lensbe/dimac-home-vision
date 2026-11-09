@@ -13,6 +13,8 @@ const STATUSES = [
   ["in_opvolging", "In opvolging"], ["afspraak", "Afspraak gepland"], ["afgehandeld", "Afgehandeld"], ["niet_opvolgen", "Niet verder opvolgen"],
 ] as const;
 const DELIVERY: Record<string, string> = {
+  pending: "In wachtrij", sending: "Wordt aangeboden", accepted: "Door afleverdienst aanvaard (aflevering nog niet bevestigd)",
+  delivered: "Aflevering bevestigd", failed: "Verzending mislukt", retry_scheduled: "Nieuwe poging gepland",
   aangemaakt: "Aangemaakt", klaar: "Klaar voor verzending", geaccepteerd: "Door provider geaccepteerd",
   afgeleverd: "Afgeleverd", fout: "Fout", niet_geconfigureerd: "Niet verzonden (testmodus, geen verzenddomein)",
 };

@@ -10,7 +10,7 @@
  */
 import {
   answerHelpers, attentionPoints, buildReport, droneAdvice, isApartment, privateSignals, QUESTION_MAP, SKIP,
-  type Answers, type Domain, type SafetyId,
+  visibleQuestions, commonOriginQuestions, type Answers, type Domain, type SafetyId,
 } from "./engine.ts";
 import { DRONE_OPTION, getProduct, VAT_RATE, type ProductId } from "./catalog.ts";
 import { ASBESTOS, LEGAL_SOURCES, LEGAL_VERIFIED_AT, LEGAL_VERSION, RENOVATION_OBLIGATION, type LegalSourceId } from "./legal.ts";
@@ -124,6 +124,27 @@ export function missingTopics(a: Answers, code: Domain): string[] {
 export function informationOverview(a: Answers) {
   const topics = (Object.keys(MAIN_BY_DOMAIN) as Domain[]).flatMap((code) => missingTopics(a, code).map((name) => ({ code, name })));
   return { topics, sentence: topics.length ? `Over ${joinNl(topics.map((t) => t.name))} ontbreken nog gegevens. Onbekende informatie betekent niet dat een onderdeel defect is.` : "Over de beantwoorde technische onderwerpen zijn geen bijkomende onzekerheden gemeld. Niet alle onderdelen zijn daarmee onderzocht." };
+}
+
+/** Presentation-only coverage. Never consumed by scoring or product routing. */
+export function informationCoverage233(a: Answers, insufficient = false) {
+  const visible = new Set(visibleQuestions(a).map((q) => q.id));
+  const common = new Set(commonOriginQuestions(a));
+  const p = privateSignals(a);
+  const missing = (q: string, ids = ["onbekend", "spouw", "massief"]) =>
+    p[q] === undefined || p[q] === SKIP || has(p, q, ...ids);
+  const domains = (Object.keys(MAIN_BY_DOMAIN) as Domain[]).filter((code) =>
+    MAIN_BY_DOMAIN[code].some((item) => visible.has(item.q) && !common.has(item.q) && missing(item.q, item.ids)));
+  const context = ["Q03", "BJ01", "Q06", "AS01"].filter((q) =>
+    visible.has(q) && (a[q] === undefined || a[q] === SKIP || has(a, q, "onbekend")));
+  const level = insufficient || domains.length >= 4 ? 4 : domains.length >= 2 ? 3 : domains.length === 1 || context.length > 0 ? 2 : 1;
+  const labels = [
+    "Voldoende informatie voor een eerste indicatie",
+    "Enkele belangrijke gegevens ontbreken",
+    "Meerdere kerngegevens ontbreken",
+    "Onvoldoende informatie voor een betrouwbare eerste beoordeling",
+  ];
+  return { level, label: labels[level - 1], incompleteDomains: domains, missingContext: context };
 }
 
 // ---------- Bevindingen en highlights ----------
@@ -837,6 +858,7 @@ export function composeReport(answers: Answers) {
     // Oude snapshots zonder v233 blijven via het bestaande 2.3.2-renderpad werken.
     v233: {
       version: REPORT_EXTENSION_233,
+      coverage: informationCoverage233(a, base.category.id === "onvoldoende"),
       conclusion: conclusion233(a, base.category.id, fs, information, recommendation),
       documents: documents233(a, base.domainScores),
     },

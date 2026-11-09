@@ -15,6 +15,7 @@ import { buildReportPdf, downloadBlob, type ReportMeta } from "@/lib/quickscanPd
 import { readSaved, SESSION_KEY as KEY, type Saved, type Stage } from "@/lib/quickscanSession";
 import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
+import { deliveryMessage, type DeliveryStatus } from "../../supabase/functions/_shared/quickscan/delivery";
 /** Antwoorden die niet meer geldig zijn vervallen en worden opnieuw gevraagd. */
 const load = (): Saved | null => {
   const s = readSaved(sessionStorage);
@@ -40,7 +41,7 @@ export default function Quickscan() {
   const [startedAt, setStartedAt] = useState(saved?.startedAt ?? 0);
   const [catchUp, setCatchUp] = useState(false);
   const [curId, setCurId] = useState<string | null>(null);
-  const [final, setFinal] = useState<{ report: QuickscanReport; meta: ReportMeta } | null>(null);
+  const [final, setFinal] = useState<{ report: QuickscanReport; meta: ReportMeta; deliveryStatus: DeliveryStatus | "niet_geconfigureerd" } | null>(null);
   const topRef = useRef<HTMLDivElement>(null);
 
   // Een niet-convergerende vragenlogica faalt expliciet; er wordt dan nooit een rapport opgemaakt.
@@ -198,7 +199,7 @@ export default function Quickscan() {
 
       {stage === "form" && (
         <LeadForm answers={active} startedAt={startedAt} onBack={() => setStage("preview")}
-          onDone={(report, meta) => { setFinal({ report, meta }); setStage("report"); track("quickscan_report_view"); }} />
+          onDone={(report, meta, deliveryStatus) => { setFinal({ report, meta, deliveryStatus }); setStage("report"); track("quickscan_report_view"); }} />
       )}
 
       {stage === "report" && final && <FinalReport {...final} onRestart={restart} />}
@@ -258,7 +259,7 @@ const Intro = ({ onStart, resume }: { onStart: () => void; resume?: () => void }
 
 const FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/quickscan-submit`;
 
-const LeadForm = ({ answers, startedAt, onBack, onDone }: { answers: Answers; startedAt: number; onBack: () => void; onDone: (r: QuickscanReport, m: ReportMeta) => void }) => {
+const LeadForm = ({ answers, startedAt, onBack, onDone }: { answers: Answers; startedAt: number; onBack: () => void; onDone: (r: QuickscanReport, m: ReportMeta, status: DeliveryStatus | "niet_geconfigureerd") => void }) => {
   const [f, setF] = useState({ firstName: "", lastName: "", email: "", municipality: "", phone: "", website: "" });
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -278,7 +279,8 @@ const LeadForm = ({ answers, startedAt, onBack, onDone }: { answers: Answers; st
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) { setErr(data.error ?? "Er ging iets mis. Probeer het later opnieuw."); return; }
       track("quickscan_lead_saved"); track("quickscan_report_generated");
-      onDone(data.report, data.report.meta);
+      const known: string[] = ["pending", "sending", "accepted", "delivered", "failed", "retry_scheduled"];
+      onDone(data.report, data.report.meta, known.includes(data.deliveryStatus) ? data.deliveryStatus : "niet_geconfigureerd");
     } catch {
       setErr("Er kon geen verbinding gemaakt worden. Controleer uw internetverbinding en probeer opnieuw.");
     } finally { setBusy(false); }
@@ -319,22 +321,27 @@ const LeadForm = ({ answers, startedAt, onBack, onDone }: { answers: Answers; st
   );
 };
 
-const FinalReport = ({ report, meta, onRestart }: { report: QuickscanReport; meta: ReportMeta; onRestart: () => void }) => {
+const FinalReport = ({ report, meta, deliveryStatus, onRestart }: { report: QuickscanReport; meta: ReportMeta; deliveryStatus: DeliveryStatus | "niet_geconfigureerd"; onRestart: () => void }) => {
+  const [pdfError, setPdfError] = useState<string | null>(null);
   const download = () => {
-    void buildReportPdf(report, meta).then((b) => downloadBlob(b, `DIMAC-Quickscan-${meta.reportNumber}.pdf`));
+    setPdfError(null);
+    void buildReportPdf(report, meta).then((b) => downloadBlob(b, `DIMAC-Quickscan-${meta.reportNumber}.pdf`))
+      .catch(() => setPdfError("Uw PDF kon niet worden gemaakt. Uw rapport blijft hieronder beschikbaar."));
     track("quickscan_report_download");
   };
   return (
     <section className="py-16 md:py-24 bg-background">
       <div className={cn("container-tight", "v23" in report ? "max-w-5xl" : "max-w-3xl")}>
         <p className="mb-5 text-xs uppercase tracking-[0.24em] text-accent">DIMAC Quickscan · Rapport {meta.reportNumber}</p>
-        <h1 className="font-display text-4xl md:text-5xl leading-tight text-primary">Uw persoonlijke woninganalyse</h1>
+        <h1 className="font-display text-4xl md:text-5xl leading-tight text-primary">Uw woningrapport is klaar.</h1>
         <p className="mt-4 text-muted-foreground">{meta.name} · {meta.municipality} · {new Date(meta.date).toLocaleDateString("nl-BE")}</p>
+        <p className="mt-3 text-sm text-muted-foreground" role="status">{deliveryMessage(deliveryStatus)}</p>
         <div className="mt-8 flex flex-wrap gap-3 no-print">
-          <Button onClick={download}><Download /> Rapport downloaden</Button>
+          <Button onClick={download}><Download /> Download mijn PDF</Button>
           <Button variant="outline" onClick={() => window.print()}><Printer /> Rapport printen</Button>
           <Button variant="ghost" onClick={onRestart}><RotateCcw /> Nieuwe Quickscan</Button>
         </div>
+        {pdfError && <p role="alert" className="mt-3 text-sm text-destructive">{pdfError}</p>}
         <div className="mt-10">
           {"v23" in report && (report as QuickscanReport23).v23 ? <Report23 report={report as QuickscanReport23} reportNumber={meta.reportNumber} /> : <ReportView report={report} />}
         </div>

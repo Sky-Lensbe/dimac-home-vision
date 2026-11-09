@@ -60,9 +60,9 @@
 # Quickscan 2.3.3 — Final Quality & Email Delivery
 - [x] Concreet kwaliteits-, implementatie- en migratievoorstel opgesteld vóór gedeelde wijzigingen
 - [ ] Onafhankelijke oorspronkelijke 2.3.2-scorebaseline en historische PDF-layoutreferenties verifiëren
-- [ ] Vier gebruikersgerichte informatiedekkingsniveaus, commerciële codes ongewijzigd
-- [ ] Veilige persoonlijke PDF-bijlage, idempotente verzendopdrachten, statussen en begrensde retries voorbereiden
-- [ ] Vijf praktijkcases, historische snapshots, lokale PDF/browser- en automatische tests met afzonderlijk bewijs
+- [x] Vier gebruikersgerichte informatiedekkingsniveaus, commerciële codes ongewijzigd (13 gerichte kwaliteitstests)
+- [ ] Veilige persoonlijke PDF-bijlage: lokale Deno-generator en 25 mail/worker-tests gereed; productie-adapters/volledige outbox wachten op providerconfiguratie en afzonderlijke migratie-/uitrolfase
+- [ ] 330/330 tests, vijf lokale Deno-PDF's en sessiemigratie op desktop/mobiel uitgevoerd; volledige oorspronkelijke historische referenties ontbreken, VME-slotpagina en Plus-blok nog niet volledig aanvaard
 - [ ] Provider/domein/secrets configureren — wacht op afzonderlijke toestemming en verificatie
 - [ ] Gedeelde migratie/uitrol en echte testmail met PDF — wacht op afzonderlijke toestemming
 - [ ] Publieke activering blijft uitgesloten zonder afzonderlijk akkoord
