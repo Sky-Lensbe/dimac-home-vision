@@ -432,10 +432,8 @@ export async function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, o
     // alleen een losse slotzin bevat.
     const altText = rec.secondary ? `${rec.secondary.text} ${rec.secondary.name}: ${formatEuro(rec.secondary.price)} ${VAT_LABEL}.` : null;
     const closing = [rec.limitation, rec.price !== null ? `${rec.priceNote} Rapportdatum: ${new Date(meta.date).toLocaleDateString("nl-BE")}.` : null].filter(Boolean).join(" ");
-    const tailH = (altText ? measure(altText, CW, "sans", false, 8.5) + 12 : 0) + (closing ? measure(closing, CW, "sans", false, 8) + 12 : 0);
-    if (tailH && y + tailH > BOTTOM && tailH < BOTTOM - TOP) newPage();
-    if (altText) textBlock("Alternatief", [altText], 8.5);
-    if (closing) textBlock("Afbakening", [closing], 8);
+    const tail = [altText, closing].filter(Boolean) as string[];
+    if (tail.length) textBlock(altText ? "Alternatief en afbakening" : "Afbakening", tail, 8);
   }
 
 
