@@ -15,8 +15,9 @@ import {
 import { DRONE_OPTION, getProduct, VAT_RATE, type ProductId } from "./catalog.ts";
 import { ASBESTOS, LEGAL_SOURCES, LEGAL_VERIFIED_AT, LEGAL_VERSION, RENOVATION_OBLIGATION, type LegalSourceId } from "./legal.ts";
 
-export const REPORT_VERSION_23 = "qs-report-2.3.2";
+export const REPORT_VERSION_23 = "qs-report-2.3.3";
 export const REPORT_EXTENSION_232 = "v232";
+export const REPORT_EXTENSION_233 = "v233";
 const { has, plans, fullIntent, plannedCount, buyer, label } = answerHelpers;
 
 const scoreOf = (a: Answers, qid: string): number => {
@@ -266,12 +267,12 @@ export const DOC_STATUS_LABEL: Record<DocStatus, string> = { beschikbaar: "Besch
 export interface DocItem { id: string; label: string; status: DocStatus; statusLabel: string; note: string | null }
 const PRE_2001 = ["voor1945", "1945-1969", "1970-1990"];
 
-/** Asbestcontext volgens OVAM: attest verplicht bij verkoop van een gebouw(deel) gebouwd vóór 2001. */
+/** Asbestcontext volgens OVAM: attest verplicht bij verkoop van een gebouw(deel) gebouwd vóór 2001. 2.3.3: BJ01 verduidelijkt de periode 1991–2010. */
 export function asbestosContext(a: Answers): { applies: "ja" | "verifieren" | "nee" | "onbekend"; note: string } {
   const apt = isApartment(a);
-  if (has(a, "Q03", ...PRE_2001)) return { applies: "ja", note: `Voor een ${apt ? "appartement in een gebouw" : "gebouw"} van vóór 2001 is bij verkoop een geldig asbestattest verplicht (OVAM).${apt ? " Voor de gemene delen moet de VME uiterlijk eind 2026 over een eigen attest beschikken." : ""} Het attest zegt welke materialen asbest bevatten, niet de Quickscan.` };
+  if (has(a, "Q03", ...PRE_2001) || has(a, "BJ01", "voor2001")) return { applies: "ja", note: `Voor een ${apt ? "appartement in een gebouw" : "gebouw"} van vóór 2001 is bij verkoop een geldig asbestattest verplicht (OVAM).${apt ? " Voor de gemene delen moet de VME uiterlijk eind 2026 over een eigen attest beschikken." : ""} Het attest zegt welke materialen asbest bevatten, niet de Quickscan.` };
+  if (has(a, "Q03", "vanaf2011") || has(a, "BJ01", "vanaf2001")) return { applies: "nee", note: "Voor gebouwen vanaf 2001 geldt de verplichting van een asbestattest bij verkoop niet. Dat is geen bevestiging dat er geen asbesthoudende materialen aanwezig zijn." };
   if (has(a, "Q03", "1991-2010")) return { applies: "verifieren", note: "De bouwperiode 1991–2010 overschrijdt de grens van 2001. Verifieer eerst het exacte bouwjaar (kadaster): alleen voor gebouwen van vóór 2001 is een asbestattest bij verkoop verplicht." };
-  if (has(a, "Q03", "vanaf2011")) return { applies: "nee", note: "Voor gebouwen vanaf 2001 geldt de verplichting van een asbestattest bij verkoop niet. Dat is geen bevestiging dat er geen asbesthoudende materialen aanwezig zijn." };
   return { applies: "onbekend", note: "Het bouwjaar is niet gekend. Verifieer het in het kadaster: voor gebouwen van vóór 2001 is een asbestattest bij verkoop verplicht." };
 }
 
