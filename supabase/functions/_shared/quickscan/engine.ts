@@ -721,10 +721,11 @@ export function unknownInformation(a: Answers) {
   const skipped = Object.entries(a).filter(([, v]) => v === SKIP).map(([q]) => ({ id: `SKIP-${q}`, label: QUESTION_MAP[q].text.replace(/\?$/, "").toLowerCase() }));
   const mainUnknown = MAIN_UNKNOWN.filter((q) => has(a, q, "onbekend")).length;
   const level = mainUnknown <= 1 ? "uitgebreid" : mainUnknown <= 3 ? "gedeeltelijk" : "beperkt";
+  // 2.3.3: gebruikerslabels zonder volledigheidssuggestie; de interne niveaucodes blijven ongewijzigd (productroutering leest ze).
   const LEVELS = {
-    uitgebreid: { label: "Uitgebreide informatie", text: "Het merendeel van de relevante hoofdonderdelen is op basis van uw antwoorden voldoende beschreven voor een eerste indicatie." },
-    gedeeltelijk: { label: "Gedeeltelijke informatie", text: "Enkele belangrijke gegevens ontbreken." },
-    beperkt: { label: "Beperkte informatie", text: "Meerdere belangrijke bouwdelen of installaties zijn onbekend." },
+    uitgebreid: { label: "Voldoende informatie voor een eerste indicatie", text: "De beantwoorde hoofdonderdelen zijn voldoende beschreven voor een eerste indicatie. Een ingevulde vraag betekent niet dat het onderdeel onderzocht is." },
+    gedeeltelijk: { label: "Enkele belangrijke gegevens ontbreken", text: "Enkele belangrijke gegevens ontbreken. Onbekende informatie betekent niet dat er een gebrek is." },
+    beperkt: { label: "Meerdere kerngegevens ontbreken", text: "Meerdere belangrijke bouwdelen of installaties zijn onbekend. De beoordeling blijft daardoor beperkt." },
   } as const;
   const shown = items.slice(0, 4);
   const sentence = shown.length
