@@ -100,10 +100,11 @@ describe("2.3 technische rapportage", () => {
     expect(r.v23.recommendation.safetyFirst).toBe(true);
     expect(r.v23.actions[0].id).toBe("ACT-VEILIGHEID");
   });
-  it("6./16. appartement met uitsluitend gemeenschappelijke problemen: privatief geen signaal, koper krijgt Woningscan van de privatieve delen", () => {
+  it("6./16. appartement met uitsluitend gemeenschappelijke problemen: privatief geen signaal, geen fysieke Woningscan zonder privatieve inspectiebehoefte (2.3.2)", () => {
     const r = composeReport(fill({ Q01: "koper", Q02: "appartement", Q03: "1970-1990", G01: "hr", A01: "duidelijk", CD01: "problemen", A02: "ingrijpend", A03: "substantieel" }));
-    expect(r.v23.recommendation.reasonCode).toBe("WS-APT-COMMON");
-    expect(r.v23.recommendation.motivation).toContain("niet volledig geïnspecteerd");
+    expect(r.v23.recommendation.reasonCode).toBe("NONE-VME");
+    expect(r.v23.recommendation.productId).toBeNull();
+    expect(r.v23.recommendation.motivation).toContain("VME-documenten");
     expect(r.v23.domains.every((d) => d.scopeNote?.startsWith("Beoordeling binnen het appartement"))).toBe(true);
     expect(r.v23.documents.some((d) => d.id === "DOC-VME-AV")).toBe(true);
   });
