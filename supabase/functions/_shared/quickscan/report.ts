@@ -638,6 +638,57 @@ export function documents232(a: Answers): DocItem232[] {
   return items.map((d) => ({ ...d, statusLabel: DOC_STATUS_LABEL_232[d.status] }));
 }
 
+// ---------- 2.3.3: documenten met beschikbaarheid, inhoud en relevantie ----------
+export type DocContent = "gekend" | "niet-gecontroleerd" | "aandachtspunt" | null;
+export const DOC_CONTENT_LABEL: Record<Exclude<DocContent, null>, string> = { gekend: "Inhoud gekend", "niet-gecontroleerd": "Inhoud nog te controleren", aandachtspunt: "Bevat volgens u een aandachtspunt" };
+export interface DocItem233 { id: string; label: string; status: DocStatus232; statusLabel: string; content: DocContent; contentLabel: string | null; note: string | null }
+/**
+ * Persoonlijke documentenchecklist 2.3.3. Drie dimensies: beschikbaarheid, inhoud en (impliciet) geldigheid.
+ * De Quickscan verifieert nooit zelf documenten. Niet uitgevraagd is nooit "ontbrekend".
+ * De lijst blijft beperkt tot wat relevant is voor situatie, bouwperiode, problemen en geplande werken.
+ */
+export function documents233(a: Answers): DocItem233[] {
+  const q06 = a.Q06;
+  const fromQ06 = (key: string): DocStatus232 => q06 === undefined ? "niet-gevraagd" : q06 === SKIP ? "overgeslagen" : !Array.isArray(q06) ? "onbekend" : q06.includes(key) ? "beschikbaar" : q06.includes("geen") ? "niet-beschikbaar" : q06.includes("onbekend") ? "onbekend" : "verifieren";
+  const items: Omit<DocItem233, "statusLabel" | "contentLabel">[] = [];
+  const buy = buyer(a); const apt = isApartment(a);
+  const works = selectedWorks(a);
+  const cosmeticOnly = works.length > 0 && works.every((x) => ["vloeren", "interieur"].includes(x)) && !fullIntent(a);
+  const technicalSignals = technicalDomains(buildDomainScores(a)).length > 0;
+  const epcKnown = typeof a.Q34 === "string" && a.Q34 !== SKIP && a.Q34 !== "onbekend";
+  items.push({ id: "DOC-EPC", label: "EPC en volledig EPC-verslag", status: fromQ06("epc") === "beschikbaar" ? "beschikbaar" : epcKnown ? "verifieren" : fromQ06("epc"), content: epcKnown ? "gekend" : null, note: epcKnown ? `Het label (${label("Q34", a.Q34)}) is gekend; het volledige verslag bevat de isolatiegegevens en de officiële aanbevelingen.` : null });
+  // Beschikbaarheid en inhoud gescheiden: een beschikbaar verslag met onbekende conclusies is niet "onbekend".
+  const keuringBeschikbaar = has(a, "Q40", "conform", "beperkt", "inbreuken") || (Array.isArray(q06) && q06.includes("keuring"));
+  const keuring: DocStatus232 = keuringBeschikbaar ? "beschikbaar" : has(a, "Q40", "geen") ? "niet-beschikbaar" : has(a, "Q40", "onbekend") ? "onbekend" : fromQ06("keuring");
+  const keuringContent: DocContent = has(a, "Q40", "conform") ? "gekend" : has(a, "Q40", "beperkt", "inbreuken") ? "aandachtspunt" : keuringBeschikbaar ? "niet-gecontroleerd" : null;
+  items.push({ id: "DOC-KEURING", label: "Keuringsverslag elektrische installatie", status: keuring, content: keuringContent, note: keuring === "beschikbaar" && keuringContent === "niet-gecontroleerd" ? "Keuringsverslag beschikbaar volgens uw antwoorden. De inhoud en eventuele opmerkingen zijn nog te controleren." : keuring !== "beschikbaar" ? "Een ontbrekend verslag bewijst geen technisch defect." : null });
+  const asb = asbestosContext(a);
+  const asbKnownMaterial = has(a, "AS01", "attest_toepassingen", "gekend");
+  const asbStatus: DocStatus232 = has(a, "AS01", "attest_geen", "attest_toepassingen") ? "beschikbaar" : has(a, "AS01", "geen_attest") ? "niet-beschikbaar" : has(a, "AS01", "onbekend") ? "onbekend" : a.AS01 === SKIP ? "overgeslagen" : fromQ06("asbest");
+  // 2.3.3: bij een bevestigd bouwjaar vanaf 2001 zonder gemelde toepassingen geen attestitem.
+  if (asb.applies !== "nee" || asbKnownMaterial) items.push({ id: "DOC-ASBEST", label: apt ? "Asbestattest van het appartement" : "Asbestattest", status: asbStatus, content: asbKnownMaterial ? "aandachtspunt" : has(a, "AS01", "attest_geen") ? "gekend" : null, note: asbKnownMaterial ? "Er zijn asbesthoudende toepassingen vermeld; laat ze passend beoordelen vóór ingrijpende werken." : has(a, "AS01", "attest_geen") ? "Een attest zonder vermelde toepassingen is geen absolute garantie dat het gebouw asbestvrij is." : asb.note });
+  if (buy || has(a, "ST01", "ja", "onduidelijk") || (works.length > 0 && !cosmeticOnly)) items.push({ id: "DOC-PLANNEN", label: "Bouwplannen en relevante vergunningen", status: fromQ06("plannen"), content: null, note: has(a, "ST01", "ja", "onduidelijk") ? "U vermeldt mogelijke stedenbouwkundige aandachtspunten." : null });
+  if (!apt && (buy || has(a, "RI01", "septisch", "niet", "onbekend"))) items.push({ id: "DOC-RIOLERING", label: "Informatie over riolering en afvalwater", status: has(a, "RI01", "riolering", "riolering_septisch") ? "verifieren" : has(a, "RI01", "onbekend") ? "onbekend" : a.RI01 === undefined ? "niet-gevraagd" : "verifieren", content: null, note: "Dit is geen conformiteitsbeoordeling." });
+  if (has(a, "H01", "gas", "mazout", "hout", "andere", "warmtepomp") && (buy || technicalSignals || has(a, "Q44", "gt3j", "onbekend"))) items.push({ id: "DOC-ONDERHOUD", label: "Onderhoudsdocumenten verwarming", status: fromQ06("onderhoud"), content: null, note: null });
+  if (has(a, "H01", "mazout")) items.push({ id: "DOC-STOOKOLIE", label: "Documentatie stookolietank", status: "niet-gevraagd", content: null, note: "Bijvoorbeeld keuringen van de tank, indien van toepassing." });
+  if (buy) items.push({ id: "DOC-OVERSTROMING", label: "Officieel overstromingsrapport (P- en G-score)", status: (["a", "b", "c", "d"].includes(a.FL01 as string) || ["a", "b", "c", "d"].includes(a.FL02 as string)) ? "verifieren" : a.FL01 === SKIP && a.FL02 === SKIP ? "overgeslagen" : "onbekend", content: null, note: "Administratieve informatie; geen bewijs van vochtproblemen." });
+  if (apt) {
+    const a05 = a.A05;
+    const vme = (key: string): DocStatus232 => a05 === undefined ? "niet-gevraagd" : !Array.isArray(a05) ? "onbekend" : a05.includes(key) ? "beschikbaar" : a05.includes("geen") ? "niet-beschikbaar" : a05.includes("onbekend") ? "onbekend" : "verifieren";
+    items.push({ id: "DOC-EPC-GD", label: "EPC gemeenschappelijke delen", status: "niet-gevraagd", content: null, note: "Niet uitgevraagd; vraag het na bij de syndicus." });
+    if (asb.applies !== "nee" || asbKnownMaterial) items.push({ id: "DOC-ASBEST-GD", label: "Asbestattest gemene delen", status: "niet-gevraagd", content: null, note: `Verplicht voor VME's van gebouwen vóór ${ASBESTOS.cutoffYear}, uiterlijk ${ASBESTOS.commonPartsDeadline}.` });
+    items.push({ id: "DOC-VME-AV", label: "Verslagen van de algemene vergadering", status: vme("verslagen"), content: null, note: null });
+    items.push({ id: "DOC-VME-FONDS", label: "Reservefonds", status: vme("reservefonds"), content: null, note: null });
+    items.push({ id: "DOC-VME-BIJDRAGEN", label: "Bijzondere bijdragen", status: vme("bijdragen"), content: null, note: null });
+  }
+  return items.map((d) => ({ ...d, statusLabel: DOC_STATUS_LABEL_232[d.status], contentLabel: d.content ? DOC_CONTENT_LABEL[d.content] : null }));
+}
+
+/** Domeinscores opnieuw afleiden zonder circulaire import: via buildReport is duur, dus lokaal via engine-export. */
+function buildDomainScores(a: Answers): Record<Domain, number | null> {
+  return buildReport(a).domainScores;
+}
+
 export interface Phase { id: "A" | "B" | "C" | "D"; title: string; why: string; items: string[]; decide: string | null }
 /** Voorlopig renovatietraject: alleen toepasselijke fasen; geen traject zonder plannen; volledige renovatie zonder deelwerken = scopebepaling. */
 export function renovationPhases(a: Answers): Phase[] {
