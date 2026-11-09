@@ -33,7 +33,7 @@
 - [x] PDF-paginatie 2.3.1: keep-with-next/keep-together-laag, y-correctie disclaimer, aanbeveling zonder volledige paginareservatie, adviestitel-fontmeting, geen lege adviestitel; vier profielen visueel gecontroleerd
 
 # Quickscan 2.3.2 (testmodus)
-- [ ] Vragenresolver, renovatie-intentie, verbanden, EPC/wettelijk, documenten, fasen, acties, rapport/PDF
-- [ ] Tests, typecheck, lokale PDF- en browsercontroles
+- [x] Vragenresolver, renovatie-intentie, verbanden, EPC/wettelijk, documenten, fasen, acties, rapport/PDF
+- [x] Tests, typecheck, lokale PDF- en browsercontroles
 - [ ] Heruitrol serverfunctie — wacht op afzonderlijke toestemming
 - [ ] Publicatie — wacht op toestemming
