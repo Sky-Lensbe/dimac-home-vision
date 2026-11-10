@@ -1,11 +1,11 @@
 # Roadmap
 
 ## Finale rapportoptimalisatie 2.3.4
-- [ ] Gedeelde presentatie zonder wijzigingen aan scores, veiligheid, routing of snapshots
-- [ ] Originele tekeningen online; compacte A4-cover en inhoudsgestuurde paginering
-- [ ] Eén afsluitend voorbehoud, contextuele waarschuwingen behouden, duidelijke premielinks
-- [ ] Vijf rapportlengtes lokaal genereren en elke pagina inspecteren; desktop/mobiel en download controleren
-- [ ] Voorbeeld-PDF, screenshots en vergelijking opleveren
+- [x] Gedeelde presentatie zonder wijzigingen aan scores, veiligheid, routing of snapshots
+- [x] Originele tekeningen online; compacte A4-cover en inhoudsgestuurde paginering
+- [x] Eén afsluitend voorbehoud, contextuele waarschuwingen behouden, duidelijke premielinks
+- [x] Vijf rapportlengtes lokaal genereren en elke pagina inspecteren; desktop/mobiel en download controleren
+- [x] Voorbeeld-PDF, screenshots en vergelijking opleveren
 - [ ] Serveruitrol van deze presentatiecorrecties — wacht op afzonderlijke toestemming
 
 ## Quickscan 2.3.4 (lokale implementatie — afgerond)
