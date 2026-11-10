@@ -281,23 +281,22 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
 
   // ---------- Pagina 2: analyse ----------
   const firstDomain = v.domains[0];
-  const domainHeight = (d: typeof firstDomain) => 10 + measure(d.title, CW - 70, "sans", true, 9, 1.25) + [d.analysis, d.missing, d.scopeNote].filter(Boolean).reduce((n, t, i) => n + measure(t as string, CW - 70, "sans", false, i ? 8.5 : 9) + 1, 0);
+  const domainHeight = (d: typeof firstDomain) => 16 + measure(d.title, CW - 28, "sans", true, 9, 1.25) + [d.analysis, d.missing, d.scopeNote].filter(Boolean).reduce((n, t, i) => n + measure(t as string, CW - 28, "sans", false, i ? 8.5 : 9) + 1, 0);
   const firstDomainH = firstDomain ? domainHeight(firstDomain) + 3 : 25;
-  const analysisHeight = 34 + v.domains.reduce((n, d) => n + domainHeight(d) + 3, 0);
-  if (analysisHeight <= BOTTOM - TOP) ensure(analysisHeight + 9);
-  startSection(34, firstDomainH);
+  const analysisHeight = 25 + v.domains.reduce((n, d) => n + domainHeight(d) + 3, 0);
+  if (analysisHeight <= BOTTOM - TOP && y > 155) ensure(analysisHeight + 9);
+  startSection(25, firstDomainH);
   eyebrow("Analyse per bouwdeel", M, y + 4);
-  font("serif", false, 26, INK); doc.text("De resultaten", M, y + 16); doc.text("in detail.", M, y + 26);
-  font("sans", false, 7.6, MUTED); para("Per bouwdeel ziet u de gemelde signalen, ontbrekende informatie en aandachtspunten.", 118, y + 12, W - M - 118, 7.6);
-  y += 34;
+  font("serif", false, 22, INK); doc.text("De resultaten in detail.", M, y + 15);
+  y += 25;
   const STATUS: Record<DomainStatus, { fill: RGB | null; stroke: RGB; dash?: boolean }> = {
     geen: { fill: null, stroke: [150, 150, 156] }, beperkt: { fill: [200, 200, 206], stroke: [150, 150, 156] },
     duidelijk: { fill: ORANGE, stroke: ORANGE }, ernstig: { fill: RED, stroke: RED }, onvoldoende: { fill: null, stroke: [150, 150, 156], dash: true },
   };
   for (const d of v.domains) {
-    const tw = CW - 70;
+    const tw = CW - 28;
     const body = [d.analysis, d.missing, d.scopeNote].filter(Boolean) as string[];
-    const h = 10 + measure(d.title, tw, "sans", true, 9, 1.25) + body.reduce((n, t, i) => n + measure(t, tw, "sans", false, i ? 8.5 : 9) + 1, 0);
+    const h = 16 + measure(d.title, tw, "sans", true, 9, 1.25) + body.reduce((n, t, i) => n + measure(t, tw, "sans", false, i ? 8.5 : 9) + 1, 0);
     ensure(h + 3);
     doc.setDrawColor(...LINE); doc.setLineWidth(0.25); doc.rect(M, y, CW, h, "S");
     icon(d.icon, M + 5, y + (h - 11) / 2, 11);
@@ -306,9 +305,9 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
     body.forEach((t, i) => { font("sans", false, i ? 8.5 : 9, i ? MUTED : BODY); by += para(t, M + 22, by, tw, i ? 8.5 : 9) + 1; });
     const st = STATUS[d.status];
     doc.setLineDashPattern(st.dash ? [0.5, 0.5] : [], 0); doc.setDrawColor(...st.stroke); doc.setLineWidth(0.45);
-    if (st.fill) { doc.setFillColor(...st.fill); doc.circle(W - M - 46, y + h / 2 - 1, 1.5, "FD"); } else doc.circle(W - M - 46, y + h / 2 - 1, 1.5, "S");
+    if (st.fill) { doc.setFillColor(...st.fill); doc.circle(M + 23, y + h - 5, 1.5, "FD"); } else doc.circle(M + 23, y + h - 5, 1.5, "S");
     doc.setLineDashPattern([], 0);
-    font("sans", true, 8.2, INK); para(d.statusLabel, W - M - 42, y + h / 2 - 2, 38, 8.2, 1.25);
+    font("sans", true, 8.2, INK); para(d.statusLabel, M + 28, y + h - 4, CW - 34, 8.2, 1.25);
     y += h + 3;
   }
 
@@ -346,12 +345,12 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
 
   const textBlock = (title: string, body: string[], size = 9) => {
     const titleH = measure(title, CW, "sans", true, 8.8);
-    const h = 5 + titleH + body.reduce((n, t) => n + measure(t, CW, "sans", false, size) + 1, 0);
+    const h = 4 + titleH + body.reduce((n, t) => n + measure(t, CW, "sans", false, size) + 1, 0);
     ensure(h);
     font("sans", true, 8.8, INK); para(title, M, y + 4, CW, 8.8);
-    let by = y + 5 + titleH;
+    let by = y + 4 + titleH;
     for (const t of body) { font("sans", false, size, BODY); by += para(t, M, by, CW, size) + 1; }
-    y = by + 1;
+    y = by;
   };
   const chapter = (eb: string, title: string, firstH: number) => {
     const titleH = measure(title, CW, "serif", false, 18);
@@ -482,10 +481,10 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
   // Aanbeveling: dezelfde snapshot, leesbare volle breedte en deelblokken die mogen doorlopen.
   {
     const rec = v.recommendation;
-    const th = measure(rec.title, CW, "serif", false, 24);
+    const th = measure(rec.title, CW, "serif", false, 22);
     const blockHeight = (title: string, body: string[], size = 9) => 6 + measure(title, CW, "sans", true, 8.8) + body.reduce((n, t) => n + measure(t, CW, "sans", false, size) + 1, 0);
     const altText = rec.secondary ? `${rec.secondary.text} ${rec.secondary.name}: ${formatEuro(rec.secondary.price)} ${VAT_LABEL}.` : null;
-    const closing = [rec.limitation, rec.price !== null ? `${rec.priceNote} Rapportdatum: ${new Date(meta.date).toLocaleDateString("nl-BE")}.` : null].filter(Boolean).join(" ");
+    const closing = [rec.limitation, rec.price !== null ? rec.priceNote : null].filter(Boolean).join(" ");
     const tail = [altText, closing].filter(Boolean) as string[];
     const finalHeight = (rec.price !== null ? 15 : 0) + (rec.availability === "coming_soon" ? 10 : 0) +
       (rec.drone ? blockHeight("Optionele drone-dakscreening", [`+ ${formatEuro(rec.drone.price)} ${VAT_LABEL}. ${rec.drone.text}`, `${rec.drone.condition} De optie staat standaard uit.`]) : 0) +
@@ -495,15 +494,15 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
     const limitsHeight = measure(r.limits, CW, "sans", false, 8) + 16;
     // Reserve the WHOLE recommendation and closing information when both fit.
     // Never reserve the tail again after rendering: that caused the previous split.
-    if (totalHeight <= BOTTOM - TOP) ensure(totalHeight + (totalHeight + limitsHeight <= BOTTOM - TOP ? limitsHeight : 0));
+    if (totalHeight <= BOTTOM - TOP) ensure(totalHeight + 12 + (totalHeight + limitsHeight + 12 <= BOTTOM - TOP ? limitsHeight : 0));
     y += 5; keepWithNext(13, (rec.safetyFirst ? 22 : 0) + th + 12);
     doc.setDrawColor(...ORANGE); doc.setLineWidth(0.6); doc.line(M, y, W - M, y);
     eyebrow("Uw aanbevolen volgende stap", M, y + 8); y += 13;
     if (rec.safetyFirst) textBlock("Veiligheid eerst", ["Volg eerst het veiligheidsadvies bovenaan dit rapport. Een Woningscan vervangt geen onmiddellijke veiligheidsmaatregel."]);
-    ensure(th + 8); font("serif", false, 24, INK); y += para(rec.title, M, y + 5, CW, 24) + 3;
+    ensure(th + 8); font("serif", false, 22, INK); y += para(rec.title, M, y + 5, CW, 22) + 3;
     textBlock("Waarom deze dienst?", [rec.motivation]);
     if (rec.gains || rec.benefits.length) textBlock("Concrete meerwaarde", [rec.gains, ...rec.benefits.map((b) => `– ${b}`)].filter(Boolean));
-    ensure(Math.min(finalHeight, BOTTOM - TOP));
+
     if (rec.price !== null && model.priceLabel) {
       ensure(20); font("serif", false, 22, INK); doc.text(model.priceLabel, M, y + 8);
       const pw = doc.getTextWidth(model.priceLabel); font("sans", false, 9, MUTED); doc.text(VAT_LABEL, M + pw + 4, y + 8); y += 15;
