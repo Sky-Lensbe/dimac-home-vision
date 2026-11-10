@@ -780,6 +780,8 @@ export function renovationPhases(a: Answers): Phase[] {
   if (!cosmetic && w("gevel", "ramen") && (w("isolatie") || (w("gevel") && w("ramen")))) B.push("Stem gevel, ramen en isolatie op elkaar af.");
   const C: string[] = [];
   if (w("verwarming")) C.push(w("isolatie", "dak", "gevel", "ramen") || has(p, "DI01", "niet", "gedeeltelijk", "beperkt") || has(p, "MI01", "niet", "gedeeltelijk") ? "Laat de toekomstige warmtebehoefte bepalen na de geplande isolatiewerken, voor u een definitieve installatie kiest." : "Bereid de verwarmingskeuze voor op basis van de huidige en toekomstige isolatie.");
+  // 2.3.4: voorwaardelijk advies bij overwogen vloerverwarming; geen geschiktheidsgarantie.
+  if (has(a, "VL03", "ja", "twijfel")) C.push("Wanneer u vloerverwarming overweegt, laat dan vooraf controleren of de bestaande vloeropbouw en de verwarmingsinstallatie hiervoor geschikt zijn. Houd rekening met de beschikbare opbouwhoogte en mogelijke aanpassingen aan vloerniveaus, dorpels en deuren.");
   // 2.3.3: noem uitsluitend daadwerkelijk geselecteerde werken; nooit niet-gemelde werken als gepland.
   const sys = ["elektriciteit", "sanitair"].filter((x) => works.includes(x));
   const vent = w("isolatie") && has(p, "Q39", "beperkt", "defect", "onbekend");
@@ -788,6 +790,9 @@ export function renovationPhases(a: Answers): Phase[] {
   else if (sys.length) C.push(`Bereid de ${joinNl(sysLabels)} voor vóór de afwerking.`);
   const D: string[] = [];
   if (w("vloeren")) D.push(sys.length ? "Plaats de nieuwe vloeren na de onderliggende technieken." : "Controleer vóór de nieuwe vloerafwerking of de bestaande onderliggende technieken en vloeropbouw aanpassingen vereisen.");
+  // 2.3.4: bestaande vloerverwarming beschermen bij vloerwerken; vloerverwarming is warmteafgifte, geen warmtebron.
+  if (w("vloeren") && (has(a, "H03", "vloerverwarming") || has(a, "VL03", "aanwezig"))) D.push("Er is al vloerverwarming aanwezig: laat die bij de vloerwerken beschermen en stem de nieuwe vloeropbouw erop af.");
+  if (w("vloeren") && has(a, "VL03", "ja", "twijfel")) D.push("Stem de volgorde van installatie- en afwerkingswerken af: eerst de technische voorbereiding van de vloerverwarming, daarna de definitieve vloerafwerking.");
   if (w("interieur")) D.push("Voer de interieurafwerking uit na de technische voorbereiding.");
   const out: Phase[] = [];
   if (A.length) out.push({ id: "A", title: "Onderzoek en voorbereiding", why: "Wat u nu nog niet weet, bepaalt mee welke werken zinvol zijn.", items: A, decide: full && !works.length ? "De omvang van de renovatie hangt af van dit onderzoek." : null });
