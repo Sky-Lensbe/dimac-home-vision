@@ -196,7 +196,7 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
     font("sans", false, 9.5, INK);
     const s1 = "Vastgoed ontwikkelen.  Expertise delen.  ";
     doc.text(s1, M, bandY + 20, { charSpace: 0.3 });
-    const w1 = doc.getTextWidth(s1) + 0.3 * 0.3528 * (s1.length - 1);
+    const w1 = doc.getTextWidth(s1) + 0.3 * (s1.length - 1);
     font("sans", true, 9.5, ORANGE); doc.text("Waarde creëren.", M + w1 + 1.5, bandY + 20, { charSpace: 0.3 });
   }
   // De inhoud start op pagina 2; de cover blijft een volledige, rustige pagina.
@@ -516,7 +516,7 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
     font("sans", false, 8.5, INK);
     const c1 = "Vastgoed ontwikkelen.  Expertise delen.  ";
     doc.text(c1, M, y + 8, { charSpace: 0.25 });
-    const cw1 = doc.getTextWidth(c1) + 0.25 * 0.3528 * (c1.length - 1);
+    const cw1 = doc.getTextWidth(c1) + 0.25 * (c1.length - 1);
     font("sans", true, 8.5, ORANGE); doc.text("Waarde creëren.", M + cw1 + 1.2, y + 8, { charSpace: 0.25 });
     y += 14;
   }
