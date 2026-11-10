@@ -281,7 +281,7 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
 
   // ---------- Pagina 2: analyse ----------
   const firstDomain = v.domains[0];
-  const domainHeight = (d: typeof firstDomain) => 16 + measure(d.title, CW - 28, "sans", true, 9, 1.25) + [d.analysis, d.missing, d.scopeNote].filter(Boolean).reduce((n, t, i) => n + measure(t as string, CW - 28, "sans", false, i ? 8.5 : 9) + 1, 0);
+  const domainHeight = (d: typeof firstDomain) => 10 + measure(d.title, CW - 70, "sans", true, 9, 1.25) + [d.analysis, d.missing, d.scopeNote].filter(Boolean).reduce((n, t, i) => n + measure(t as string, CW - 28, "sans", false, i ? 8.5 : 9) + 1, 0);
   const firstDomainH = firstDomain ? domainHeight(firstDomain) + 3 : 25;
   const analysisHeight = 25 + v.domains.reduce((n, d) => n + domainHeight(d) + 3, 0);
   if (analysisHeight <= BOTTOM - TOP && y > 155) ensure(analysisHeight + 9);
@@ -296,18 +296,18 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
   for (const d of v.domains) {
     const tw = CW - 28;
     const body = [d.analysis, d.missing, d.scopeNote].filter(Boolean) as string[];
-    const h = 16 + measure(d.title, tw, "sans", true, 9, 1.25) + body.reduce((n, t, i) => n + measure(t, tw, "sans", false, i ? 8.5 : 9) + 1, 0);
+    const h = 10 + measure(d.title, CW - 70, "sans", true, 9, 1.25) + body.reduce((n, t, i) => n + measure(t, tw, "sans", false, i ? 8.5 : 9) + 1, 0);
     ensure(h + 3);
     doc.setDrawColor(...LINE); doc.setLineWidth(0.25); doc.rect(M, y, CW, h, "S");
     icon(d.icon, M + 5, y + (h - 11) / 2, 11);
-    font("sans", true, 9, INK); const titleHeight = para(d.title, M + 22, y + 7, tw, 9, 1.25);
+    font("sans", true, 9, INK); const titleHeight = para(d.title, M + 22, y + 7, CW - 70, 9, 1.25);
     let by = y + 9 + titleHeight;
     body.forEach((t, i) => { font("sans", false, i ? 8.5 : 9, i ? MUTED : BODY); by += para(t, M + 22, by, tw, i ? 8.5 : 9) + 1; });
     const st = STATUS[d.status];
     doc.setLineDashPattern(st.dash ? [0.5, 0.5] : [], 0); doc.setDrawColor(...st.stroke); doc.setLineWidth(0.45);
-    if (st.fill) { doc.setFillColor(...st.fill); doc.circle(M + 23, y + h - 5, 1.5, "FD"); } else doc.circle(M + 23, y + h - 5, 1.5, "S");
+    if (st.fill) { doc.setFillColor(...st.fill); doc.circle(W - M - 46, y + 5, 1.5, "FD"); } else doc.circle(W - M - 46, y + 5, 1.5, "S");
     doc.setLineDashPattern([], 0);
-    font("sans", true, 8.2, INK); para(d.statusLabel, M + 28, y + h - 4, CW - 34, 8.2, 1.25);
+    font("sans", true, 8.2, INK); para(d.statusLabel, W - M - 42, y + 6, 38, 8.2, 1.25);
     y += h + 3;
   }
 
@@ -345,11 +345,11 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
 
   const textBlock = (title: string, body: string[], size = 9) => {
     const titleH = measure(title, CW, "sans", true, 8.8);
-    const h = 4 + titleH + body.reduce((n, t) => n + measure(t, CW, "sans", false, size) + 1, 0);
+    const h = 4 + titleH + body.reduce((n, t) => n + measure(t, CW, "sans", false, size, 1.3) + .8, 0);
     ensure(h);
     font("sans", true, 8.8, INK); para(title, M, y + 4, CW, 8.8);
     let by = y + 4 + titleH;
-    for (const t of body) { font("sans", false, size, BODY); by += para(t, M, by, CW, size) + 1; }
+    for (const t of body) { font("sans", false, size, BODY); by += para(t, M, by, CW, size, 1.3) + .8; }
     y = by;
   };
   const chapter = (eb: string, title: string, firstH: number) => {
