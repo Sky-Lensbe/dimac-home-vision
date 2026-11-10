@@ -825,6 +825,39 @@ export function actionGroups(a: Answers, fs: Finding[], syndic: string[], hasPri
   return { technical, documents };
 }
 
+// ---------- 2.3.4: mogelijke premies en financiële ondersteuning ----------
+export interface Premiums {
+  title: string;
+  intro: string;
+  /** Dynamische relevantie op basis van gemelde werken of toestand; geen garantie op geschiktheid. */
+  relevant: string[];
+  note: string;
+  closing: string;
+  sources: { label: string; url: string }[];
+}
+/**
+ * Compacte, informatieve premiesectie. Geen bedragen, geen garanties, geen uitspraak over inkomen.
+ * Algemene beschikbaarheid van een regeling is geen individuele premiegeschiktheid.
+ */
+export function premiums(a: Answers): Premiums {
+  const p = privateSignals(a);
+  const works = selectedWorks(a);
+  const rel: string[] = [];
+  if (works.includes("dak") || has(p, "DI01", "niet", "gedeeltelijk", "beperkt")) rel.push("dakisolatie");
+  if (works.includes("vloeren") || has(p, "VL02", "nee", "gedeeltelijk")) rel.push("vloerisolatie");
+  if (works.includes("gevel") || has(p, "MI01", "niet", "gedeeltelijk")) rel.push("gevel- of muurisolatie");
+  if (works.includes("ramen") || has(p, "G01", "enkel", "dubbel")) rel.push("beglazing");
+  if (works.includes("verwarming") || has(p, "H01", "warmtepomp")) rel.push("warmtepompinstallaties");
+  return {
+    title: "Mogelijke premies en financiële ondersteuning",
+    intro: "Voor bepaalde renovatie- en energiebesparende werken bestaan mogelijk premies of financieringsmogelijkheden. Of u hiervoor in aanmerking komt, hangt af van uw persoonlijke situatie, de woning, de aard van de werken en de voorwaarden op het moment van de aanvraag.",
+    relevant: rel,
+    note: "Informeer ook bij het bevoegde Energiehuis en eventueel het gemeentelijke woonloket.",
+    closing: "Premies en voorwaarden kunnen wijzigen. Controleer steeds de actuele voorwaarden bij de bevoegde instantie voordat u werken bestelt of uitvoert.",
+    sources: src("premiezoeker", "renovatiepremies", "verbouwpremie", "verbouwlening"),
+  };
+}
+
 // ---------- Compositie ----------
 export function composeReport(answers: Answers) {
   const base = buildReport(answers);
@@ -887,9 +920,15 @@ export function composeReport(answers: Answers) {
       conclusion: conclusion233(a, base.category.id, fs, information, recommendation),
       documents: documents233(a, base.domainScores),
     },
+    // 2.3.4: additieve extensie met de premiesectie. Oude snapshots zonder v234 volgen hun eigen renderpad.
+    v234: {
+      version: REPORT_EXTENSION_234,
+      premiums: premiums(a),
+    },
   };
 }
 export type QuickscanReport23 = ReturnType<typeof composeReport>;
 export type ReportV23 = QuickscanReport23["v23"];
 export type ReportV232 = QuickscanReport23["v232"];
 export type ReportV233 = QuickscanReport23["v233"];
+export type ReportV234 = QuickscanReport23["v234"];
