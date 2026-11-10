@@ -1,0 +1,44 @@
+# DIMAC Quickscan 2.3.4 — Implementatievoorstel (Fase 1)
+
+Gerichte upgrade van 2.3.3: vragenlijstverfijning, comfort- en premieadvies, en een premium PDF-voorpagina volgens de goedgekeurde mock-up. Geen herontwikkeling. Scores, veiligheidsregels, prijzen, productroutering, historische rapporten en de Resend-verzending blijven behouden.
+
+## Versies
+- `QUESTION_VERSION` → `qs-questions-2.3.4` (nieuwe/aangepaste vragen).
+- `REPORT_VERSION_23` → `qs-report-2.3.4` + nieuwe additieve extensie `v234`.
+- `RULE_VERSION` blijft `qs-rules-2.2.2`: geen bestaande score, gewicht of veiligheidsregel wijzigt. De nieuwe beglazingsoptie krijgt een nieuwe, conservatieve score die alleen nieuwe antwoorden raakt.
+- Sessiesleutel → `dimac-quickscan-v2.3.4` met expliciete migratie vanaf 2.3.3 (zie compatibiliteit).
+
+## Deel A — Vragenlijst (`engine.ts`)
+- **A1 Scheuren (tekstueel):** Q30-optie `haar` → "Kleine, volgens u stabiele scheuren". ID, score en logica ongewijzigd. De vaste zin in `report.ts` (domeinanalyse S) wordt mee aangepast. Historische rapporten bewaren hun opgeslagen labels.
+- **A2 Beglazing:** nieuwe optie `dubbel-recent` "Recent dubbel glas" in G01, op positie 3. Conservatieve score E2 (tussen ouder dubbel E3 en HR-glas E0). Geen U-waarde-aanname, geen vervangingsaanbeveling (die regel bestaat niet). Geraakte logica gecontroleerd: comfortbudget, Q21-condensvraag, energienotities, ontbrekende-informatielijsten — allemaal compatibel.
+- **A3 Temperatuur (tekstueel):** Q37-optie `kamers` → "Bepaalde ruimtes zijn moeilijk te verwarmen". ID en score ongewijzigd.
+- **A4 Verwarming multi:** H01 wordt meerkeuze ("Welke verwarmingssystemen zijn aanwezig in uw woning?") met hulptekst; `geen` en `onbekend` exclusief. Nieuwe vervolgvraag **H01B** "Welk systeem verwarmt de woning voornamelijk?" bij ≥2 systemen, met dynamische opties (alleen de gekozen systemen) — hiervoor komt een `optionsFor`-mechanisme in de vraagdefinitie, ook meegenomen in sanitize/validatie. H02 (leeftijd) en Q44 (onderhoud) interpreteren voortaan de hoofdverwarming (H01B, of de enige keuze); bijkomende systemen krijgen geen leeftijd of onderhoudstoestand toegeschreven. Q42 (werking) en Q43 (gas/CO) blijven algemeen en veiligheidskritisch voor álle relevante installaties. H01-opties dragen geen score, dus geen dubbele risicopunten; Q42/Q44 blijven enkelvoudig. Collectieve-verwarminglogica (barometer, veiligheid, documenten) werkt ongewijzigd met arrays.
+- **A5 Vloerverwarming:** nieuwe vraag **H03** "Hoe wordt de warmte in uw woning verspreid?" (multi: radiatoren, convectoren, vloerverwarming, luchtverwarming, andere, weet ik niet; `andere`/`onbekend` exclusief), getoond wanneer er minstens één echt verwarmingssysteem is. Nieuwe vraag **VL03** "Overweegt u vloerverwarming bij deze vloerwerken?" (ja/nee/twijfel/al aanwezig), alleen bij geplande vloerwerken en nog geen bekende vloerverwarming. Vloerverwarming = warmteafgifte, geen warmtebron; geen negatief risicopunt.
+
+## Deel B — Rapport (`report.ts`, `legal.ts`)
+- **B1 Comfortadvies:** AP-COMFORT krijgt titel "Laat temperatuurproblemen onderzoeken", toelichting "U ervaart temperatuurproblemen in bepaalde ruimtes." en vervolgstap "Laat de verwarming, isolatie en beglazing nakijken om de mogelijke oorzaak te achterhalen." Contextgevoelig wanneer concrete info bestaat (verwarming, isolatie, beglazing, tocht, ventilatie, zonwering bij oververhitting); nooit de conclusie dat de verwarming de oorzaak is. Doorgevoerd in online weergave, actielijst, PDF en daarmee de mailbijlage.
+- **B2 Premies:** nieuwe compacte sectie "Mogelijke premies en financiële ondersteuning" met de voorgestelde intro en afsluiting, links naar Premiezoeker, Vlaanderen.be (renovatiepremies, Mijn VerbouwLening, Mijn VerbouwPremie) en verwijzing naar Energiehuis/woonloket. Dynamische relevantie op basis van geplande werken (dak-, vloer-, gevelisolatie, beglazing, warmtepomp). Geen bedragen, geen garanties, geen inkomensvragen. Bronnen komen in `legal.ts` met verificatiedatum; ik controleer vooraf dat de URL's werken. Online én PDF met klikbare links.
+- **A5-gevolgen:** voorwaardelijke vloerverwarming-adviezen in `renovationPhases` en combinatieadvies (vloeropbouw, opbouwhoogte, installatiegeschiktheid, volgorde, bescherming bestaande vloerverwarming). Nooit standaard uitbraak advies, geen nieuwe installatie zonder aanleiding, geen geschiktheidsgarantie.
+
+## Deel C/D — Premium PDF (`pdf/render234.ts` nieuw, assets)
+- **Artwork:** de aangeleverde `technical_illustration_highres.png` (oranje lijnen op zwart) wordt lokaal met beeldbewerking omgezet naar transparante PNG's (zwart → alpha, DIMAC-oranje behouden), opgesplitst in de twee tekeningen (appartementsblok en woning) zoals op de mock-up. Geen AI-gegenereerde vervangtekeningen. Assets worden als Lovable-assets opgeslagen en via `PdfDependencies` geïnjecteerd, zodat browser-PDF en server-PDF (mailbijlage) identiek zijn.
+- **Cover volgens mock-up:** logo linkboven met oranje accentlijn en dunne scheidingslijn; rechts WONINGSCAN / QUICKSCAN + paginering; linkerkolom PERSOONLIJK WONINGRAPPORT, grote seriftitel "Uw woning in beeld.", dynamische woninggegevens, omschrijving, datum en rapportnummer; rechts de DIMAC-tekeningen in oranje; grote lichtgrijze diagonale underlays met subtiel verloop; onderaan een lichte gradientzone (gedempt oranje/perzik → warmgrijs → wit) met de slagzin "Vastgoed ontwikkelen. Expertise delen. **Waarde creëren.**" (laatste deel oranje). Geen donkere banner, geen "illustratie"-bijschrift op de cover, geen ingebakken voorbeeldgegevens.
+- **Overige pagina's (Deel D):** subtiele verfijning in dezelfde stijl; slagzin opnieuw op de laatste pagina bij de afsluiting; inhoudelijke structuur en leesbaarheid leidend.
+- **Versiebeheer:** huidige `render233.ts` wordt bevroren als `pdf/render233-frozen.ts` voor 2.3.3-snapshots; 2.3/2.3.1/2.3.2 blijven op `historical-frozen.ts`. Dispatch in `quickscanPdf23.ts` uitsluitend op opgeslagen `reportVersion`. Historische PDF's wijzigen niet.
+
+## Compatibiliteit
+- **Sessies:** v2.3.3-sessies migreren naar 2.3.4: een oud enkelvoudig H01-antwoord wordt veilig als éénkeuze-array geïnterpreteerd; de sessie hervat in de vragenlijst zodat nieuw toepasselijke vragen (H01B, H03, VL03) alsnog gesteld worden. Oudere sleutels volgen het bestaande pad.
+- **Historische rapporten:** snapshots worden nooit herberekend; opgeslagen labels, extensies en renderpaden blijven bevroren. De engine accepteert legacy-H01 (string) defensief voor het geval oudere antwoorden toch de resolver passeren.
+- **E-mail:** Resend-configuratie, afzender, ontvangers, testmodus en verzendbeveiligingen blijven onaangeroerd. De mailbijlage is dezelfde PDF als de download.
+
+## Testplan (Fase 2)
+1. Regressie: identieke bestaande antwoorden → identieke domeinscores, barometer en veiligheidsmeldingen (2.3.3 ↔ 2.3.4).
+2. Nieuwe logica: recent dubbel glas (score, geen vervangingsadvies), multi-verwarming incl. H01B (geen dubbele punten, veiligheid behouden, collectief + elektrisch), H03/VL03-zichtbaarheid en rapportadvies, comfortteksten, premiesectie (inhoud, links, geen garanties).
+3. De negen praktijkgevallen uit Deel F, incl. appartement met collectieve + elektrische verwarming.
+4. PDF: lokale generatie van alle cases, visuele controle van elke pagina (cover, diagonale vlakken, gradientzone, geen overlap of lege pagina's), browser-PDF vs. server-PDF identiek, historische snapshots ongewijzigd.
+5. Browsercontrole van de vragenlijst (incl. mobiel) en het online rapport.
+
+## Grenzen en blockers
+- **Serveruitrol:** `quickscan-submit` composeert server-side; zolang die niet opnieuw uitgerold is, maakt de server 2.3.3-rapporten. Heruitrol vraag ik apart aan na uw goedkeuring van de lokale resultaten — pas daarna zijn server-side end-to-end-tests en een gecontroleerde testmail met de nieuwe PDF mogelijk.
+- **Geen** databasewijzigingen, publicatie, prijswijzigingen of wijzigingen aan privacy-/cookiepagina's.
+- De premielinks worden geverifieerd op bereikbaarheid; de inhoudelijke voorwaarden blijven verwijzingen, geen vastgelegde regels.
