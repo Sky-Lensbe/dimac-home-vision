@@ -1,7 +1,8 @@
 /** Test-mode report mail: server PDF (strict assets) + Resend via the connector gateway.
  * Only the test allowlist (mail-policy) can receive; any other visitor gets no mail. */
 import { jsPDF } from "npm:jspdf@4.2.1";
-import { renderSnapshotPdf } from "./pdf/render233.ts";
+import { renderSnapshotPdf as render233 } from "./pdf/render233.ts";
+import { renderSnapshotPdf as render234 } from "./pdf/render234.ts";
 import { MAIL_MODE, TEST_ALLOWLIST } from "./mail-policy.ts";
 import { reportEmail } from "./delivery.ts";
 
@@ -12,6 +13,8 @@ const ASSETS: Record<string, string> = {
   "PlayfairDisplay-SemiBold.ttf": "4165c84c-1c29-415c-b7ae-79f7a0113a8f",
   "Inter-Regular.ttf": "2788c9b1-ed65-497a-bb5d-fdc86391ff74",
   "Inter-SemiBold.ttf": "a38f5209-6d60-447e-b242-43722b7f6b74",
+  "dimac-gebouw.png": "5d196c5f-fe0f-4c92-991d-cee2ea4d2f2d",
+  "dimac-woning.png": "6ce414ea-2c41-46da-8f2a-417ba6b568c7",
 };
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/resend";
 
@@ -28,7 +31,7 @@ export async function sendReportMail(snapshot: any, meta: { reportNumber: string
   const deps = {
     jsPDF,
     categories: ["Beperkte renovatiesignalen", "Enkele aandachtspunten", "Verhoogde renovatiesignalen", "Prioritaire beoordeling aanbevolen"].map((label) => ({ label })),
-    assets: { logo: ["dimac-logo.jpg"], fonts: { serif: ["PlayfairDisplay-Regular.ttf", "PlayfairDisplay-SemiBold.ttf"], sans: ["Inter-Regular.ttf", "Inter-SemiBold.ttf"] } },
+    assets: { logo: ["dimac-logo.jpg"], fonts: { serif: ["PlayfairDisplay-Regular.ttf", "PlayfairDisplay-SemiBold.ttf"], sans: ["Inter-Regular.ttf", "Inter-SemiBold.ttf"] }, art: { building: ["dimac-gebouw.png"], house: ["dimac-woning.png"] } },
     absoluteUrl: (path: string) => /^https?:/.test(path) ? path : `https://www.dimac.be${path}`,
     withReportRef: (path: string, number: string) => {
       const [base, hash] = path.split("#");
@@ -37,7 +40,9 @@ export async function sendReportMail(snapshot: any, meta: { reportNumber: string
     formatEuro: (n: number) => `€${n.toLocaleString("nl-BE", { maximumFractionDigits: 2, minimumFractionDigits: Number.isInteger(n) ? 0 : 2 })}`,
     vatLabel: "incl. 21% btw",
   };
-  const pdf = await renderSnapshotPdf(snapshot, meta, deps as never, { strictAssets: true, load: async (name: string) => {
+  // 2.3.4-rapporten krijgen de nieuwe premium renderer; 2.3.3 behoudt haar eigen renderpad.
+  const render = snapshot?.reportVersion === "qs-report-2.3.4" ? render234 : render233;
+  const pdf = await render(snapshot, meta, deps as never, { strictAssets: true, load: async (name: string) => {
     const id = ids[name];
     if (!id) throw new Error(`ASSET_UNKNOWN ${name}`);
     const r = await fetch(`${ASSET_BASE}/${id}/${name}`);

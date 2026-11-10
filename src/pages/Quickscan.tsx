@@ -8,7 +8,7 @@ import { Barometer, ReportView, SafetyAlerts } from "@/components/quickscan/Repo
 import { Report23 } from "@/components/quickscan/Report23";
 import type { QuickscanReport23 } from "@/lib/quickscanReport";
 import {
-  activeAnswers, buildReport, questionText, safetyFlags, stepTitle, visibleQuestions, SKIP, STEP_TITLES,
+  activeAnswers, buildReport, questionOptions, questionText, safetyFlags, stepTitle, visibleQuestions, SKIP, STEP_TITLES,
   type Answers, type Question, type QuickscanReport,
 } from "@/lib/quickscan";
 import { buildReportPdf, downloadBlob, type ReportMeta } from "@/lib/quickscanPdf";
@@ -71,12 +71,13 @@ export default function Quickscan() {
   const select = (opt: string) => {
     if (!q) return;
     if (!q.multi) { setAnswers({ ...active, [q.id]: opt }); return; }
+    const opts = questionOptions(q, active);
     const cur = Array.isArray(active[q.id]) ? (active[q.id] as string[]) : [];
-    const isExcl = q.options.find((o) => o.id === opt)?.exclusive;
+    const isExcl = opts.find((o) => o.id === opt)?.exclusive;
     let next: string[];
     if (cur.includes(opt)) next = cur.filter((x) => x !== opt);
     else if (isExcl) next = [opt];
-    else next = [...cur.filter((x) => !q.options.find((o) => o.id === x)?.exclusive), opt];
+    else next = [...cur.filter((x) => !opts.find((o) => o.id === x)?.exclusive), opt];
     const copy = { ...active };
     if (next.length) copy[q.id] = next; else delete copy[q.id];
     setAnswers(copy);
@@ -132,7 +133,7 @@ export default function Quickscan() {
             <h1 className="mt-3 font-display text-3xl md:text-4xl leading-tight text-primary">{questionText(q, active)}</h1>
             {q.help && <p className="mt-3 text-sm text-muted-foreground">{q.help}</p>}
             <div className="mt-8 grid gap-3 sm:grid-cols-2" role={q.multi ? "group" : "radiogroup"} aria-label={questionText(q, active)}>
-              {q.options.map((o) => {
+              {questionOptions(q, active).map((o) => {
                 const v = active[q.id];
                 const on = Array.isArray(v) ? v.includes(o.id) : v === o.id;
                 return (

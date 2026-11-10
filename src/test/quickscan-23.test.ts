@@ -60,7 +60,7 @@ describe("2.3 Tessenderlo-acceptatie", () => {
     expect(e.missing).toContain("dakisolatie");
     const s = r.v23.domains.find((d) => d.code === "S")!;
     expect(s.status).toBe("beperkt");
-    expect(s.analysis).toContain("haarscheur");
+    expect(s.analysis).toContain("stabiele scheuren");
   });
   it("actieplan steunt op de antwoorden en toont ontbrekende informatie", () => {
     const ids = r.v23.actions.map((x) => x.id);
@@ -223,7 +223,7 @@ describe("2.3 commerciële aanbeveling", () => {
     expect(r.reportVersion).toBe(REPORT_VERSION_23);
     expect(r.ruleVersion).toBe(RULE_VERSION);
     expect(r.questionVersion).toBe(QUESTION_VERSION);
-    expect(RULE_VERSION).toBe("qs-rules-2.2.2");
+    expect(RULE_VERSION).toBe("qs-rules-2.3.4");
   });
   it("aanbeveling verandert de barometer nooit", () => {
     for (const seed of [TESSENDERLO, RECENT_OK]) {

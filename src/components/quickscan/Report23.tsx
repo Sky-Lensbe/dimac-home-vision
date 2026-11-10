@@ -4,7 +4,7 @@ import { ArrowRight, Check, Minus, HelpCircle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Barometer, SafetyAlerts } from "@/components/quickscan/ReportView";
 import { ICONS, ILLUSTRATIONS, svgPath, type Shape } from "@/lib/reportArt";
-import { withReportRef, type QuickscanReport23, type DomainStatus, type IconId, type ReportV232, type ReportV233 } from "@/lib/quickscanReport";
+import { withReportRef, type QuickscanReport23, type DomainStatus, type IconId, type ReportV232, type ReportV233, type ReportV234 } from "@/lib/quickscanReport";
 import type { SafetyId } from "@/lib/quickscan";
 import { formatEuro, VAT_LABEL } from "@/data/woningscan";
 import { track } from "@/lib/analytics";
@@ -69,6 +69,8 @@ export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; 
   const x = (report as { v232?: ReportV232 }).v232;
   // 2.3.3-extensie is optioneel en additief: snapshots zonder v233 volgen exact het 2.3.2-pad.
   const x3 = (report as { v233?: ReportV233 }).v233;
+  // 2.3.4-extensie is optioneel en additief: snapshots zonder v234 tonen geen premiesectie.
+  const x4 = (report as { v234?: ReportV234 }).v234;
   const actionList = x ? x.actions.technical : v.actions;
   const docList: { id: string; label: string; status: string; statusLabel: string; contentLabel?: string | null; note: string | null }[] = x3 ? x3.documents : x ? x.documents : v.documents;
   // 2.3.3: persoonlijke conclusie; oudere rapporten tonen hun opgeslagen conclusie ongewijzigd.
@@ -211,6 +213,26 @@ export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; 
               ))}
               <p className="text-xs text-muted-foreground">Informatieve context, geen individueel juridisch advies. Gecontroleerd op {new Date(x.legalVerifiedAt).toLocaleDateString("nl-BE")}.</p>
             </div>}
+          </div>
+        )}
+
+        {x4 && (
+          <div className="mt-10 border border-border p-6 md:p-8">
+            <Eyebrow>Premies en financiering</Eyebrow>
+            <h3 className="mt-3 font-display text-3xl text-primary">{x4.premiums.title}</h3>
+            <p className="mt-3 text-sm text-primary/85 leading-relaxed">{x4.premiums.intro}</p>
+            {x4.premiums.relevant.length > 0 && (
+              <p className="mt-3 text-sm text-primary/80 leading-relaxed">
+                Op basis van uw antwoorden kunnen onder meer deze werken in aanmerking komen: {x4.premiums.relevant.join(", ")}. De algemene beschikbaarheid van een regeling betekent niet dat u er individueel recht op hebt.
+              </p>
+            )}
+            <p className="mt-3 text-sm text-primary/80">{x4.premiums.note}</p>
+            <ul className="mt-4 space-y-1 text-sm">
+              {x4.premiums.sources.map((s) => (
+                <li key={s.url}><a href={s.url} target="_blank" rel="noopener noreferrer" className="text-accent underline underline-offset-2">{s.label}</a></li>
+              ))}
+            </ul>
+            <p className="mt-4 text-xs text-muted-foreground">{x4.premiums.closing}</p>
           </div>
         )}
 

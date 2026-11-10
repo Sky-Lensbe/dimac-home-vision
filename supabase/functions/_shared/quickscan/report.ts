@@ -15,9 +15,10 @@ import {
 import { DRONE_OPTION, getProduct, VAT_RATE, type ProductId } from "./catalog.ts";
 import { ASBESTOS, LEGAL_SOURCES, LEGAL_VERIFIED_AT, LEGAL_VERSION, RENOVATION_OBLIGATION, type LegalSourceId } from "./legal.ts";
 
-export const REPORT_VERSION_23 = "qs-report-2.3.3";
+export const REPORT_VERSION_23 = "qs-report-2.3.4";
 export const REPORT_EXTENSION_232 = "v232";
 export const REPORT_EXTENSION_233 = "v233";
+export const REPORT_EXTENSION_234 = "v234";
 const { has, plans, fullIntent, plannedCount, buyer, label } = answerHelpers;
 
 const scoreOf = (a: Answers, qid: string): number => {
@@ -104,7 +105,7 @@ function domainCards(a: Answers, ds: Record<Domain, number | null>, privateFlags
     }
     let analysis = signals.length ? `U vermeldt ${joinNl(signals.slice(0, 3))}.` : "U meldt hier geen problemen. Dat betekent niet dat dit onderdeel gecontroleerd of in orde is.";
     if (code === "E" && has(a, "Q34", "aplus", "b")) analysis = `${signals.length ? `U vermeldt ${joinNl(signals.slice(0, 3))}. ` : ""}Het EPC-label (${label("Q34", a.Q34)}) wijst op een goede energieprestatie. Een EPC is geen bouwkundige keuring.`;
-    if (code === "S" && has(p, "Q30", "haar")) analysis = "U meldt een kleine, volgens u stabiele haarscheur. Dat is op zich geen ernstig structureel signaal. Volg op of ze groter wordt.";
+    if (code === "S" && has(p, "Q30", "haar")) analysis = "U meldt kleine, volgens u stabiele scheuren. Dat is op zich geen ernstig structureel signaal. Volg op of ze groter worden.";
     if (code === "V" && v === null && has(a, "Q24", "onbekend")) analysis = "U weet niet of er vochtproblemen zijn.";
     const unknown = missingTopics(a, code);
     let scopeNote: string | null = null;
@@ -283,6 +284,22 @@ export function connections(a: Answers): Connection[] {
 export interface ActionCard { id: string; icon: IconId; title: string; text: string; next: string | null }
 const MOISTURE_POINTS = ["AP-SCHIMMEL", "AP-VOCHTPLEKKEN", "AP-VOCHT-REGEN", "AP-VOCHT-TERUG", "AP-KELDER", "AP-BADKAMER"];
 
+/** 2.3.4: contextgevoelige comforttoelichting; nooit de conclusie dat de verwarming de oorzaak is. */
+function comfortText(a: Answers): string {
+  const p = privateSignals(a);
+  const causes: string[] = [];
+  if (has(p, "Q42", "ouder", "storingen") || has(p, "H02", "gt20")) causes.push("de verwarming");
+  if (has(p, "DI01", "niet", "gedeeltelijk", "beperkt") || has(p, "MI01", "niet", "gedeeltelijk") || has(p, "VL02", "nee", "gedeeltelijk")) causes.push("de isolatie");
+  if (has(p, "G01", "enkel", "dubbel", "gemengd")) causes.push("de beglazing");
+  if (has(p, "Q20", "tocht") || has(p, "Q22", "beperkt", "duidelijk")) causes.push("tocht langs ramen of deuren");
+  if (has(p, "Q39", "beperkt", "defect") || has(p, "V01", "geen")) causes.push("de ventilatie");
+  if (has(p, "Q37", "sterk")) causes.push("zonwering bij oververhitting");
+  return causes.length
+    ? `U ervaart temperatuurproblemen in bepaalde ruimtes. Op basis van uw antwoorden zijn ${joinNl(causes)} mogelijke aandachtspunten.`
+    : "U ervaart temperatuurproblemen in bepaalde ruimtes.";
+}
+const COMFORT_NEXT = "Laat de verwarming, isolatie en beglazing nakijken om de mogelijke oorzaak te achterhalen.";
+
 function actions(a: Answers, fs: Finding[], links: Connection[], syndic: string[], hasPrivateSafety: boolean): ActionCard[] {
   const out: ActionCard[] = [];
   const buy = buyer(a);
@@ -296,6 +313,8 @@ function actions(a: Answers, fs: Finding[], links: Connection[], syndic: string[
       push({ id: "ACT-RAMEN", icon: "window", title: "Controleer het schrijnwerk", text: "Onderzoek de raamafstelling, de dichtingen en de aansluitingen tussen raamkaders en muren.", next: null });
     } else if (f.id === "FND-VENT" || f.id === "AP-VENT") {
       push({ id: "ACT-VENT", icon: "fan", title: "Controleer de ventilatie", text: has(a, "V01", "mechanisch") ? "Verifieer de werking van het mechanische systeem en vraag de onderhoudsinformatie op." : "Ga na hoe de woning geventileerd wordt en of roosters of afvoeren goed werken.", next: null });
+    } else if (f.id === "AP-COMFORT") {
+      push({ id: "ACT-COMFORT", icon: "leaf", title: "Laat temperatuurproblemen onderzoeken", text: comfortText(a), next: COMFORT_NEXT });
     } else {
       push({ id: `ACT-${f.id}`, icon: f.icon, title: `Laat ${lower(f.title)} beoordelen`, text: f.short, next: f.next });
     }
@@ -616,7 +635,7 @@ export function energyContext(a: Answers): EnergyContext {
   if (has(p, "DI01", "niet", "gedeeltelijk", "beperkt")) points.push("Volgens uw antwoorden is de dakisolatie beperkt of onvolledig.");
   if (has(p, "MI01", "niet", "gedeeltelijk")) points.push("De buitenmuren zijn volgens u niet of gedeeltelijk geïsoleerd.");
   if (has(p, "VL02", "nee", "gedeeltelijk")) points.push("De vloer op het gelijkvloers is volgens u niet of gedeeltelijk geïsoleerd.");
-  if (has(p, "G01", "enkel", "dubbel", "gemengd")) points.push(`Beglazing: ${lower(label("G01", p.G01))}.`);
+  if (has(p, "G01", "enkel", "dubbel", "dubbel-recent", "gemengd")) points.push(`Beglazing: ${lower(label("G01", p.G01))}.`);
   if (has(p, "H02", "gt20")) points.push("De verwarmingsinstallatie is volgens u meer dan 20 jaar oud; ouderdom alleen is geen gebrek.");
   const unknownInsul = ["DI01", "MI01", "G01"].filter((q) => has(p, q, "onbekend") || p[q] === SKIP).length;
   if (unknownInsul) points.push("Een deel van de isolatie- of beglazingsgegevens is onbekend; het volledige EPC-verslag kan die aanvullen.");
@@ -761,6 +780,8 @@ export function renovationPhases(a: Answers): Phase[] {
   if (!cosmetic && w("gevel", "ramen") && (w("isolatie") || (w("gevel") && w("ramen")))) B.push("Stem gevel, ramen en isolatie op elkaar af.");
   const C: string[] = [];
   if (w("verwarming")) C.push(w("isolatie", "dak", "gevel", "ramen") || has(p, "DI01", "niet", "gedeeltelijk", "beperkt") || has(p, "MI01", "niet", "gedeeltelijk") ? "Laat de toekomstige warmtebehoefte bepalen na de geplande isolatiewerken, voor u een definitieve installatie kiest." : "Bereid de verwarmingskeuze voor op basis van de huidige en toekomstige isolatie.");
+  // 2.3.4: voorwaardelijk advies bij overwogen vloerverwarming; geen geschiktheidsgarantie.
+  if (has(a, "VL03", "ja", "twijfel")) C.push("Wanneer u vloerverwarming overweegt, laat dan vooraf controleren of de bestaande vloeropbouw en de verwarmingsinstallatie hiervoor geschikt zijn. Houd rekening met de beschikbare opbouwhoogte en mogelijke aanpassingen aan vloerniveaus, dorpels en deuren.");
   // 2.3.3: noem uitsluitend daadwerkelijk geselecteerde werken; nooit niet-gemelde werken als gepland.
   const sys = ["elektriciteit", "sanitair"].filter((x) => works.includes(x));
   const vent = w("isolatie") && has(p, "Q39", "beperkt", "defect", "onbekend");
@@ -769,6 +790,9 @@ export function renovationPhases(a: Answers): Phase[] {
   else if (sys.length) C.push(`Bereid de ${joinNl(sysLabels)} voor vóór de afwerking.`);
   const D: string[] = [];
   if (w("vloeren")) D.push(sys.length ? "Plaats de nieuwe vloeren na de onderliggende technieken." : "Controleer vóór de nieuwe vloerafwerking of de bestaande onderliggende technieken en vloeropbouw aanpassingen vereisen.");
+  // 2.3.4: bestaande vloerverwarming beschermen bij vloerwerken; vloerverwarming is warmteafgifte, geen warmtebron.
+  if (w("vloeren") && (has(a, "H03", "vloerverwarming") || has(a, "VL03", "aanwezig"))) D.push("Er is al vloerverwarming aanwezig: laat die bij de vloerwerken beschermen en stem de nieuwe vloeropbouw erop af.");
+  if (w("vloeren") && has(a, "VL03", "ja", "twijfel")) D.push("Stem de volgorde van installatie- en afwerkingswerken af: eerst de technische voorbereiding van de vloerverwarming, daarna de definitieve vloerafwerking.");
   if (w("interieur")) D.push("Voer de interieurafwerking uit na de technische voorbereiding.");
   const out: Phase[] = [];
   if (A.length) out.push({ id: "A", title: "Onderzoek en voorbereiding", why: "Wat u nu nog niet weet, bepaalt mee welke werken zinvol zijn.", items: A, decide: full && !works.length ? "De omvang van de renovatie hangt af van dit onderzoek." : null });
@@ -789,6 +813,7 @@ export function actionGroups(a: Answers, fs: Finding[], syndic: string[], hasPri
     if (MOISTURE_POINTS.includes(f.id)) push(technical, { id: "ACT-VOCHT", icon: "drop", title: "Onderzoek de vochtbron", text: `De gemelde ${f.id === "AP-SCHIMMEL" ? "condens- of schimmelvorming" : lower(f.title)} verdient een gerichte beoordeling. Noteer waar en wanneer het optreedt.`, next: f.next });
     else if (f.id === "FND-RAMEN" || WINDOW_POINTS.includes(f.id)) push(technical, { id: "ACT-RAMEN", icon: "window", title: "Controleer het schrijnwerk", text: "Onderzoek de raamafstelling, de dichtingen en de aansluitingen tussen raamkaders en muren.", next: null });
     else if (f.id === "FND-VENT" || f.id === "AP-VENT") push(technical, { id: "ACT-VENT", icon: "fan", title: "Controleer de ventilatie", text: has(a, "V01", "mechanisch") ? "Verifieer de werking van het mechanische systeem en vraag de onderhoudsinformatie op." : "Ga na hoe de woning geventileerd wordt en of roosters of afvoeren goed werken.", next: null });
+    else if (f.id === "AP-COMFORT") push(technical, { id: "ACT-COMFORT", icon: "leaf", title: "Laat temperatuurproblemen onderzoeken", text: comfortText(a), next: COMFORT_NEXT });
     else push(technical, { id: `ACT-${f.id}`, icon: f.icon, title: `Laat ${lower(f.title)} beoordelen`, text: f.short, next: f.next });
   }
   const documents: ActionCard[] = [];
@@ -798,6 +823,39 @@ export function actionGroups(a: Answers, fs: Finding[], syndic: string[], hasPri
   if (has(a, "AS01", "gekend", "attest_toepassingen") && plannedCount(a) > 0) push(documents, { id: "ACT-ASBEST", icon: "shield", title: "Laat asbesttoepassingen beoordelen vóór werken", text: "Bij gekende of vermelde asbesthoudende toepassingen is een passende beoordeling nodig vóór ingrijpende werken. De Quickscan stelt geen asbestdiagnose.", next: null });
   if (syndic.length) push(documents, { id: "ACT-SYNDICUS", icon: "building", title: "Stel uw vragen aan de syndicus", text: syndic[0], next: null });
   return { technical, documents };
+}
+
+// ---------- 2.3.4: mogelijke premies en financiële ondersteuning ----------
+export interface Premiums {
+  title: string;
+  intro: string;
+  /** Dynamische relevantie op basis van gemelde werken of toestand; geen garantie op geschiktheid. */
+  relevant: string[];
+  note: string;
+  closing: string;
+  sources: { label: string; url: string }[];
+}
+/**
+ * Compacte, informatieve premiesectie. Geen bedragen, geen garanties, geen uitspraak over inkomen.
+ * Algemene beschikbaarheid van een regeling is geen individuele premiegeschiktheid.
+ */
+export function premiums(a: Answers): Premiums {
+  const p = privateSignals(a);
+  const works = selectedWorks(a);
+  const rel: string[] = [];
+  if (works.includes("dak") || has(p, "DI01", "niet", "gedeeltelijk", "beperkt")) rel.push("dakisolatie");
+  if (works.includes("vloeren") || has(p, "VL02", "nee", "gedeeltelijk")) rel.push("vloerisolatie");
+  if (works.includes("gevel") || has(p, "MI01", "niet", "gedeeltelijk")) rel.push("gevel- of muurisolatie");
+  if (works.includes("ramen") || has(p, "G01", "enkel", "dubbel")) rel.push("beglazing");
+  if (works.includes("verwarming") || has(p, "H01", "warmtepomp")) rel.push("warmtepompinstallaties");
+  return {
+    title: "Mogelijke premies en financiële ondersteuning",
+    intro: "Voor bepaalde renovatie- en energiebesparende werken bestaan mogelijk premies of financieringsmogelijkheden. Of u hiervoor in aanmerking komt, hangt af van uw persoonlijke situatie, de woning, de aard van de werken en de voorwaarden op het moment van de aanvraag.",
+    relevant: rel,
+    note: "Informeer ook bij het bevoegde Energiehuis en eventueel het gemeentelijke woonloket.",
+    closing: "Premies en voorwaarden kunnen wijzigen. Controleer steeds de actuele voorwaarden bij de bevoegde instantie voordat u werken bestelt of uitvoert.",
+    sources: src("premiezoeker", "renovatiepremies", "verbouwpremie", "verbouwlening"),
+  };
 }
 
 // ---------- Compositie ----------
@@ -862,9 +920,15 @@ export function composeReport(answers: Answers) {
       conclusion: conclusion233(a, base.category.id, fs, information, recommendation),
       documents: documents233(a, base.domainScores),
     },
+    // 2.3.4: additieve extensie met de premiesectie. Oude snapshots zonder v234 volgen hun eigen renderpad.
+    v234: {
+      version: REPORT_EXTENSION_234,
+      premiums: premiums(a),
+    },
   };
 }
 export type QuickscanReport23 = ReturnType<typeof composeReport>;
 export type ReportV23 = QuickscanReport23["v23"];
 export type ReportV232 = QuickscanReport23["v232"];
 export type ReportV233 = QuickscanReport23["v233"];
+export type ReportV234 = QuickscanReport23["v234"];

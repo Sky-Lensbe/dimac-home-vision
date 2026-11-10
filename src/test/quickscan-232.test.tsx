@@ -86,7 +86,7 @@ describe("2.3.2 vraagroutering", () => {
     expect(s?.stage).toBe("questions");
     expect(s?.index).toBe(0);
     expect(store.has(SESSION_KEY_221)).toBe(false);
-    expect(SESSION_KEY).toBe("dimac-quickscan-v2.3.3");
+    expect(SESSION_KEY).toBe("dimac-quickscan-v2.3.4");
   });
   it("9. geen navigatielussen: herhaald invullen convergeert en stabiliseert", () => {
     for (const seed of [RECENT, { ...RECENT, Q46: ["volledig"] }, { ...RECENT, Q02: "appartement", Q46A: ["sanitair", "interieur"] }]) {
@@ -109,7 +109,7 @@ describe("2.3.2 vraagroutering", () => {
     expect(ids({ ...apt, Q46A: ["sanitair"] })).not.toContain("RI01");
   });
   it("versies: vragen 2.3.2, scoreregels ongewijzigd 2.2.2, rapport 2.3.2", () => {
-    expect([QUESTION_VERSION, RULE_VERSION, REPORT_VERSION_23]).toEqual(["qs-questions-2.3.3", "qs-rules-2.2.2", "qs-report-2.3.3"]);
+    expect([QUESTION_VERSION, RULE_VERSION, REPORT_VERSION_23]).toEqual(["qs-questions-2.3.4", "qs-rules-2.3.4", "qs-report-2.3.4"]);
   });
 });
 

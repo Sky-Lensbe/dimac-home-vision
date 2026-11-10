@@ -33,7 +33,7 @@ const CASE05_RECENT: Answers = { Q01: "eigenaar", Q02: "gesloten", Q03: "vanaf20
 
 describe("2.3.3 versies en score-invariantie", () => {
   it("vragen 2.3.3, scoreregels en veiligheidsregels ongewijzigd 2.2.2, rapport 2.3.3", () => {
-    expect([QUESTION_VERSION, RULE_VERSION, REPORT_VERSION_23, REPORT_EXTENSION_233]).toEqual(["qs-questions-2.3.3", "qs-rules-2.2.2", "qs-report-2.3.3", "v233"]);
+    expect([QUESTION_VERSION, RULE_VERSION, REPORT_VERSION_23, REPORT_EXTENSION_233]).toEqual(["qs-questions-2.3.4", "qs-rules-2.3.4", "qs-report-2.3.4", "v233"]);
   });
   it("identieke bestaande antwoorden geven gelijke domeinscores, barometer en veiligheidsmeldingen", () => {
     // Q29 'geen' is neutraal (geen score): toevoegen ervan mag niets aan de scoring veranderen.
@@ -288,7 +288,7 @@ describe("2.3.3 sessiemigratie en historische rapporten", () => {
     expect(s?.index).toBe(0);
     expect(s?.answers.Q01).toBe("eigenaar");
     expect(store.has(SESSION_KEY_232)).toBe(false);
-    expect(SESSION_KEY).toBe("dimac-quickscan-v2.3.3");
+    expect(SESSION_KEY).toBe("dimac-quickscan-v2.3.4");
   });
   it("gemigreerde sessie stelt nieuw toepasselijke vragen alsnog (BJ01)", () => {
     // Oude 2.3.2-sessies kennen BJ01 nog niet; verwijder het uit de opgeslagen antwoorden.
