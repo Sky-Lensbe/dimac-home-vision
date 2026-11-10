@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Check, Minus, HelpCircle, Clock } from "lucide-react";
+import { ArrowRight, Check, Minus, HelpCircle, Clock, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Barometer, SafetyAlerts } from "@/components/quickscan/ReportView";
 import { ICONS, ILLUSTRATIONS, svgPath, type Shape } from "@/lib/reportArt";
@@ -9,6 +9,9 @@ import type { SafetyId } from "@/lib/quickscan";
 import { formatEuro, VAT_LABEL } from "@/data/woningscan";
 import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
+import { presentReport234, premiumLink234, REPORT_INFORMATION_TITLE } from "../../../supabase/functions/_shared/quickscan/presentation234";
+import buildingAsset from "@/assets/dimac-gebouw.png.asset.json";
+import houseAsset from "@/assets/dimac-woning.png.asset.json";
 import logoAsset from "@/assets/dimac-logo.jpg.asset.json";
 
 const Art = ({ shapes, viewBox, className, strokeScale = 1 }: { shapes: Shape[]; viewBox: string; className?: string; strokeScale?: number }) => (
@@ -64,6 +67,8 @@ const Page = ({ n, total, reportNumber, children }: { n: number; total: number; 
 );
 
 export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; reportNumber: string }) => {
+  const modern = report.reportVersion === "qs-report-2.3.4";
+  report = presentReport234(report);
   const v = report.v23;
   // 2.3.2-extensie is optioneel: oudere snapshots (2.3, 2.3.1) tonen exact hun opgeslagen v23-inhoud.
   const x = (report as { v232?: ReportV232 }).v232;
@@ -95,7 +100,7 @@ export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; 
   const ctaTo = rec.ctaPath ? withReportRef(rec.ctaPath, reportNumber) : null;
 
   return (
-    <div>
+    <div className={modern ? "report234" : undefined}>
       {report.safety.length > 0 && (
         <div className="mb-10">
           <Eyebrow>Veiligheid eerst</Eyebrow>
@@ -113,14 +118,16 @@ export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; 
             <p className="mt-5 text-primary/85 leading-relaxed max-w-md">Een heldere eerste analyse van uw {report.apartment ? "appartement" : "woning"}, op basis van uw eigen antwoorden in de DIMAC Quickscan.</p>
           </div>
           <figure className="text-primary/70">
+            {modern ? <div className="report234-art"><img src={buildingAsset.url} alt="DIMAC architectuurtekening van een gebouw" /><img src={houseAsset.url} alt="DIMAC architectuurtekening van een woning" /></div> : <>
             <Art shapes={ILLUSTRATIONS[v.illustration]} viewBox="0 0 220 150" className="w-full h-auto" strokeScale={1} />
-            <figcaption className="mt-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Illustratie, geen weergave van uw woning</figcaption>
+            <figcaption className="mt-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Illustratie, geen weergave van uw woning</figcaption></>}
           </figure>
         </div>
 
+        {modern && <p className="report234-motto">Vastgoed ontwikkelen. Expertise delen. <span className="text-accent">Waarde creëren.</span></p>}
         <div className="mt-10 bg-surface border border-border p-6 md:p-8">
           <Eyebrow>Uw renovatiebarometer</Eyebrow>
-          <div className="mt-4"><Barometer level={report.level} label={report.category.label} text={report.category.text} /></div>
+          <div className="mt-4"><Barometer level={report.level} label={report.category.label} text={report.category.text} showGeneralNote={!modern} /></div>
         </div>
 
         {v.highlights.length > 0 && (
@@ -160,7 +167,7 @@ export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; 
             <Eyebrow>Analyse per bouwdeel</Eyebrow>
             <h2 className="mt-3 font-display text-4xl md:text-5xl leading-tight text-primary">De resultaten in detail.</h2>
           </div>
-          <p className="text-sm text-muted-foreground leading-relaxed">Op basis van uw antwoorden geven we per thema een eerste inschatting. Dit is een indicatie en geen technische diagnose. Een lage score bewijst niet dat een onderdeel in orde is.</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">{modern ? "Per bouwdeel ziet u de gemelde signalen, ontbrekende informatie en aandachtspunten." : "Op basis van uw antwoorden geven we per thema een eerste inschatting. Dit is een indicatie en geen technische diagnose. Een lage score bewijst niet dat een onderdeel in orde is."}</p>
         </div>
         <ul className="mt-8 space-y-3">
           {v.domains.map((d) => (
@@ -188,7 +195,7 @@ export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; 
                   <div>
                     <p className="font-medium text-primary">{c.title}</p>
                     <p className="mt-2 text-sm text-primary/85 leading-relaxed">{c.text}</p>
-                    <p className="mt-3 text-xs text-muted-foreground">Een mogelijk verband, geen bewezen oorzaak.</p>
+                    {!modern && <p className="mt-3 text-xs text-muted-foreground">Een mogelijk verband, geen bewezen oorzaak.</p>}
                   </div>
                 </div>
               ))}
@@ -223,14 +230,12 @@ export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; 
             <p className="mt-3 text-sm text-primary/85 leading-relaxed">{x4.premiums.intro}</p>
             {x4.premiums.relevant.length > 0 && (
               <p className="mt-3 text-sm text-primary/80 leading-relaxed">
-                Op basis van uw antwoorden kunnen onder meer deze werken in aanmerking komen: {x4.premiums.relevant.join(", ")}. De algemene beschikbaarheid van een regeling betekent niet dat u er individueel recht op hebt.
+                Op basis van uw antwoorden kunnen onder meer deze werken in aanmerking komen: {x4.premiums.relevant.join(", ")}.
               </p>
             )}
             <p className="mt-3 text-sm text-primary/80">{x4.premiums.note}</p>
             <ul className="mt-4 space-y-1 text-sm">
-              {x4.premiums.sources.map((s) => (
-                <li key={s.url}><a href={s.url} target="_blank" rel="noopener noreferrer" className="text-accent underline underline-offset-2">{s.label}</a></li>
-              ))}
+              {x4.premiums.sources.map((source) => { const s = premiumLink234(source); return <li key={s.url} className="py-2"><a href={s.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-primary underline decoration-accent underline-offset-4 font-medium">{s.label}<ExternalLink className="h-3.5 w-3.5 shrink-0 text-accent" /></a><p className="mt-1 text-xs text-muted-foreground">{s.caption}</p></li>; })}
             </ul>
             <p className="mt-4 text-xs text-muted-foreground">{x4.premiums.closing}</p>
           </div>
@@ -318,7 +323,7 @@ export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; 
                 </li>
               ))}
             </ol>
-            <p className="mt-5 text-xs text-muted-foreground">Dit traject is geen uitvoeringsbestek, technische keuring of kostenraming.</p>
+            {!modern && <p className="mt-5 text-xs text-muted-foreground">Dit traject is geen uitvoeringsbestek, technische keuring of kostenraming.</p>}
           </div>
         )}
 
@@ -355,8 +360,8 @@ export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; 
         )}
 
         <div ref={recRef} className="mt-10 border border-border p-6 md:p-8 relative overflow-hidden">
-          <Art shapes={ILLUSTRATIONS[v.illustration]} viewBox="0 0 220 150" className="hidden md:block absolute -right-6 bottom-0 w-64 text-primary/15" />
-          <div className="relative md:max-w-[68%]">
+          {!modern && <Art shapes={ILLUSTRATIONS[v.illustration]} viewBox="0 0 220 150" className="hidden md:block absolute -right-6 bottom-0 w-64 text-primary/15" />}
+          <div className={cn("relative", !modern && "md:max-w-[68%]")}>
             <Eyebrow>Uw aanbevolen volgende stap</Eyebrow>
             {rec.safetyFirst && <p className="mt-3 text-sm text-destructive font-medium">Volg eerst het veiligheidsadvies bovenaan dit rapport. Een Woningscan vervangt geen onmiddellijke veiligheidsmaatregel.</p>}
             <h3 className="mt-3 font-display text-3xl md:text-4xl leading-tight text-primary">{rec.title}</h3>
@@ -399,7 +404,7 @@ export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; 
         </div>
 
         <div className="mt-10">
-          <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">Grenzen van de Quickscan</p>
+          <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">{modern ? REPORT_INFORMATION_TITLE : "Grenzen van de Quickscan"}</p>
           <p className="mt-2 text-xs text-muted-foreground leading-relaxed">{report.limits}</p>
         </div>
       </Page>

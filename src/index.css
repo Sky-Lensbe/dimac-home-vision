@@ -418,3 +418,25 @@ html.reveal-ready [data-reveal].stagger-list.is-visible > * {
   header, footer, nav, .no-print { display: none !important; }
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* Versioned report rhythm: historical reports never receive these rules. */
+.report234 { --report-section-space: 2rem; --report-item-space: .75rem; letter-spacing: 0; }
+.report234 h2, .report234 h3, .report234 h4 { letter-spacing: 0; }
+.report234 > section { border: 0; box-shadow: none; margin-bottom: 0; }
+.report234 > section > header, .report234 > section > footer { display: none; }
+.report234 > section > div { padding: 2rem 0; border-top: 1px solid hsl(var(--border)); }
+.report234 > section:first-of-type > div { border-top: 0; }
+.report234 .mt-10 { margin-top: var(--report-section-space); }
+.report234 .space-y-10 > :not([hidden]) ~ :not([hidden]) { margin-top: var(--report-section-space); }
+.report234-art { position: relative; display: grid; grid-template-columns: 1.4fr 1fr; align-items: end; gap: .75rem; padding: 1.5rem .5rem; background: linear-gradient(145deg, hsl(var(--background)) 40%, hsl(var(--surface-strong)) 40%, hsl(var(--surface)) 68%, hsl(var(--background)) 68%); }
+.report234-art img { width: 100%; height: auto; object-fit: contain; }
+.report234-motto { margin-top: 1.5rem; padding: 1rem 0; font-size: .875rem; background: linear-gradient(90deg, hsl(var(--accent-soft)), hsl(var(--background))); }
+.report234 li { min-width: 0; }
+.report234 li > div { min-width: 0; }
+.report234 .whitespace-nowrap { white-space: normal; }
+@media (max-width: 640px) {
+  .report234 h2 { font-size: 2.5rem; line-height: 1.1; }
+  .report234 h3 { font-size: 1.75rem; }
+  .report234 .grid-cols-\[3rem_2\.5rem_1fr\] { grid-template-columns: 1.75rem 1fr; gap: .75rem; }
+  .report234 .grid-cols-\[3rem_2\.5rem_1fr\] > svg { display: none; }
+}
