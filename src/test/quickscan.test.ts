@@ -27,7 +27,7 @@ const APT: Answers = { Q01: "eigenaar", Q02: "appartement", Q03: "1991-2010", R0
 
 describe("versies en vragenbank 2.2", () => {
   it("vraag-, regel- en rapportversie zijn 2.2.2", () => {
-    expect([QUESTION_VERSION, RULE_VERSION, REPORT_VERSION]).toEqual(["qs-questions-2.3.3", "qs-rules-2.2.2", "qs-report-2.2.2"]);
+    expect([QUESTION_VERSION, RULE_VERSION, REPORT_VERSION]).toEqual(["qs-questions-2.3.4", "qs-rules-2.3.4", "qs-report-2.2.2"]);
   });
   it("unieke vraag-ID's", () => expect(new Set(QUESTIONS.map((q) => q.id)).size).toBe(QUESTIONS.length));
   it("bevat alle nieuwe onderwerpen", () => {
@@ -192,7 +192,7 @@ describe("algemene logica (25–36)", () => {
   });
   it("28. rapport bewaart vraagversie en antwoordlabels", () => {
     const r = buildReport(fill(HOUSE));
-    expect(r.questionVersion).toBe("qs-questions-2.3.3");
+    expect(r.questionVersion).toBe("qs-questions-2.3.4");
     expect(r.answerLabels.Q02.a).toBe("Open bebouwing");
   });
   it("29. type wijzigen verwijdert niet-toepasselijke antwoorden", () => {
@@ -270,9 +270,9 @@ describe("voorwaarde 1: deterministische prioritering en vraagaantallen", () => 
     expect(n).toBeGreaterThan(10);
     expect(n).toBeLessThan(60);
   });
-  it("een normale scan blijft compact (≤ 27 vragen; +1 voor de bouwjaarverduidelijking 2.3.3)", () => {
-    expect(count(HOUSE)).toBeLessThanOrEqual(27);
-    expect(count(APT)).toBeLessThanOrEqual(27);
+  it("een normale scan blijft compact (≤ 30 vragen; +1 voor de bouwjaarverduidelijking 2.3.3, +3 voor hoofdverwarming, warmteverdeling en vloerverwarming 2.3.4)", () => {
+    expect(count(HOUSE)).toBeLessThanOrEqual(30);
+    expect(count(APT)).toBeLessThanOrEqual(30);
   });
 });
 
@@ -311,7 +311,7 @@ describe("voorwaarde 3: migratie v2.1 → v2.2", () => {
     expect(s!.answers.Q34).toBeUndefined();
     expect(s!.answers.A04).toBe("aanwezig");
     expect(store.has(OLD_SESSION_KEY)).toBe(false);
-    expect(SESSION_KEY).toBe("dimac-quickscan-v2.3.3");
+    expect(SESSION_KEY).toBe("dimac-quickscan-v2.3.4");
   });
 });
 

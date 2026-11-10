@@ -193,7 +193,7 @@ describe("2.2.2 opslag", () => {
 
 describe("2.2.2 versies en historische rapporten", () => {
   it("regel-, rapport- en vraagversie zijn 2.2.2", () => {
-    expect([RULE_VERSION, REPORT_VERSION, QUESTION_VERSION]).toEqual(["qs-rules-2.2.2", "qs-report-2.2.2", "qs-questions-2.3.3"]);
+    expect([RULE_VERSION, REPORT_VERSION, QUESTION_VERSION]).toEqual(["qs-rules-2.3.4", "qs-report-2.2.2", "qs-questions-2.3.4"]);
   });
   for (const v of ["2.1", "2.2", "2.2.1"]) {
     it(`historisch ${v}-rapport wordt niet herberekend`, () => {
