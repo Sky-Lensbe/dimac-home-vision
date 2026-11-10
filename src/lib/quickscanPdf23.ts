@@ -9,15 +9,19 @@ import playfairRegular from "@/assets/fonts/PlayfairDisplay-Regular.ttf.asset.js
 import playfairSemi from "@/assets/fonts/PlayfairDisplay-SemiBold.ttf.asset.json";
 import interRegular from "@/assets/fonts/Inter-Regular.ttf.asset.json";
 import interSemi from "@/assets/fonts/Inter-SemiBold.ttf.asset.json";
+import artBuilding from "@/assets/dimac-gebouw.png.asset.json";
+import artHouse from "@/assets/dimac-woning.png.asset.json";
 import type { ReportMeta } from "@/lib/quickscanPdf";
 
 import { renderSnapshotPdf, reportPdfModel as snapshotModel, type PdfDependencies } from "../../supabase/functions/_shared/quickscan/pdf/render233";
+import { renderSnapshotPdf as render234, type PdfDependencies as PdfDependencies234 } from "../../supabase/functions/_shared/quickscan/pdf/render234";
 import { renderSnapshotPdf as historicalPdf } from "../../supabase/functions/_shared/quickscan/pdf/historical-frozen";
 export type { PdfLoadOptions } from "../../supabase/functions/_shared/quickscan/pdf/render233";
 import type { PdfLoadOptions } from "../../supabase/functions/_shared/quickscan/pdf/render233";
 export const PDF_ASSETS = {
   logo: [logoAsset.url, "/logo-dimac.png"],
   fonts: { serif: [playfairRegular.url, playfairSemi.url], sans: [interRegular.url, interSemi.url] },
+  art: { building: [artBuilding.url], house: [artHouse.url] },
 };
 
 export const pdfDependencies: PdfDependencies = {
@@ -29,6 +33,7 @@ export function reportPdfModel(r: QuickscanReport23, meta: ReportMeta) {
 }
 /** Dispatch solely by stored version. No engine call, no new report composition. */
 export function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, opts: PdfLoadOptions = {}): Promise<Blob> {
+  if (r.reportVersion === "qs-report-2.3.4") return render234(r, meta, pdfDependencies as PdfDependencies234, opts);
   if (r.reportVersion === "qs-report-2.3.3") return renderSnapshotPdf(r, meta, pdfDependencies, opts);
   if (["qs-report-2.3", "qs-report-2.3.1", "qs-report-2.3.2"].includes(r.reportVersion)) return historicalPdf(r, meta, pdfDependencies, opts);
   throw new Error("Unsupported stored PDF report version");
