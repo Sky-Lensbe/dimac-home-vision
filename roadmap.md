@@ -1,5 +1,12 @@
 # Roadmap
 
+## Juridische frontend en launchaudit
+- [ ] Audit bedrijfsgegevens, mailmodus, opslag, tracking en retentie
+- [ ] Vier juridische pagina’s, herroepingsmodel en footerlinks
+- [ ] Quickscan-, Woningscan- en contactteksten zonder verplichte marketing/privacytoestemming
+- [ ] Regeltests, browsercontrole desktop/mobiel en oplevering launchblokkades
+- [ ] Juridische goedkeuring en bewaarbeleid activeren — afzonderlijk akkoord en contractuele controle nodig
+
 ## Finale rapportoptimalisatie 2.3.4
 - [x] Gedeelde presentatie zonder wijzigingen aan scores, veiligheid, routing of snapshots
 - [x] Originele tekeningen online; compacte A4-cover en inhoudsgestuurde paginering
