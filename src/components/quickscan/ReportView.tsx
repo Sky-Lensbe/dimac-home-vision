@@ -5,7 +5,7 @@ import { CATEGORIES, SAFETY_TEXT, type QuickscanReport, type SafetyId } from "@/
 import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
-export const Barometer = ({ level, label, text }: { level: number | null; label: string; text: string }) => (
+export const Barometer = ({ level, label, text, showGeneralNote = true }: { level: number | null; label: string; text: string; showGeneralNote?: boolean }) => (
   <div>
     <div className="grid grid-cols-4 gap-1" role="img" aria-label={`Renovatiebarometer: ${label}`}>
       {CATEGORIES.map((c, i) => (
@@ -17,7 +17,7 @@ export const Barometer = ({ level, label, text }: { level: number | null; label:
     </div>
     <p className="mt-6 font-display text-2xl md:text-3xl text-primary">{label}</p>
     <p className="mt-2 text-muted-foreground leading-relaxed">{text}</p>
-    <p className="mt-2 text-xs text-muted-foreground">De barometer geeft de signalen weer die u zelf opgeeft, niet een bewezen renovatienoodzaak.</p>
+    {showGeneralNote && <p className="mt-2 text-xs text-muted-foreground">De barometer geeft de signalen weer die u zelf opgeeft, niet een bewezen renovatienoodzaak.</p>}
   </div>
 );
 

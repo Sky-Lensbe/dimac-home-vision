@@ -5,6 +5,7 @@
  */
 import type { jsPDF as PdfConstructor } from "jspdf";
 import type { QuickscanReport23, DomainStatus, IconId, ReportV232, ReportV233, ReportV234 } from "../report.ts";
+import { presentReport234, premiumLink234, recommendationScope234, REPORT_INFORMATION_TITLE } from "../presentation234.ts";
 import { ICONS, type Shape } from "./art.ts";
 export interface ReportMeta { reportNumber: string; name: string; municipality: string; date: string }
 export interface PdfDependencies {
@@ -52,6 +53,7 @@ const toBase64 = (buf: ArrayBuffer) => {
 const isImage = (b: Uint8Array) => (b[0] === 0x89 && b[1] === 0x50) || (b[0] === 0xff && b[1] === 0xd8);
 
 export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, deps: PdfDependencies, opts: PdfLoadOptions = {}): Promise<Blob> {
+  r = presentReport234(r);
   const { jsPDF, categories: CATEGORIES, assets: PDF_ASSETS, absoluteUrl, withReportRef, formatEuro, vatLabel: VAT_LABEL } = deps;
   const load = opts.load ?? defaultLoad;
   const doc = new jsPDF({ unit: "mm", format: "a4", compress: true });
@@ -169,23 +171,36 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
       const d = pts.slice(1).map((p, i) => [p[0] - pts[i][0], p[1] - pts[i][1]] as [number, number]);
       doc.lines(d, pts[0][0], pts[0][1], [1, 1], "F", true);
     };
-    poly([[96, 30], [W, 30], [W, 148], [132, 196]], [244, 244, 246]);
-    poly([[128, 30], [W, 30], [W, 118], [150, 158]], [238, 238, 241]);
-    poly([[86, 190], [W, 120], [W, 236], [120, 262]], [246, 246, 248]);
+    poly([[108, 30], [W, 30], [W, 128], [144, 163]], [244, 244, 246]);
+    poly([[145, 30], [W, 30], [W, 96], [161, 131]], [238, 238, 241]);
+    poly([[112, 155], [W, 98], [W, 177], [137, 197]], [246, 246, 248]);
     // Linkerkolom: dynamische rapportgegevens.
     eyebrow("Persoonlijk woningrapport", M, 52);
-    font("serif", false, 40, INK); doc.text("Uw woning", M, 70); doc.text("in beeld.", M, 85);
+    font("serif", false, 34, INK); doc.text("Uw woning", M, 68); doc.text("in beeld.", M, 82);
     font("sans", false, 8.6, INK);
-    let cy = 96;
+    let cy = 94;
     if (v.facts.length) cy += para(v.facts.map((f) => f.value.replace(/ /g, "\u00a0")).join("  ·  "), M, cy, 82, 8.6) + 3;
     font("sans", false, 8.8, BODY);
     cy += para(`Een heldere eerste analyse van uw ${r.apartment ? "appartement" : "woning"}, op basis van uw eigen antwoorden in de DIMAC Quickscan.`, M, cy, 80, 8.8) + 2;
     font("sans", false, 7.2, MUTED); doc.text(new Date(meta.date).toLocaleDateString("nl-BE", { day: "numeric", month: "long", year: "numeric" }) + `  ·  Rapport ${meta.reportNumber}`, M, cy + 3);
     // Rechterzijde: originele DIMAC-tekeningen in oranje, ruimtelijk geplaatst, zonder tekst erover.
-    if (artBuilding) { const bw = 92; doc.addImage(artBuilding.data, artBuilding.fmt, 104, 44, bw, bw / artBuilding.ratio, undefined, "FAST"); }
-    if (artHouse) { const hw = 56; doc.addImage(artHouse.data, artHouse.fmt, 138, 152, hw, hw / artHouse.ratio, undefined, "FAST"); }
+    if (artBuilding) { const bw = 78; doc.addImage(artBuilding.data, artBuilding.fmt, 118, 43, bw, bw / artBuilding.ratio, undefined, "FAST"); }
+    if (artHouse) { const hw = 49; doc.addImage(artHouse.data, artHouse.fmt, 143, 128, hw, hw / artHouse.ratio, undefined, "FAST"); }
+    const coverFacts = [
+      { label: "Rapport voor", value: meta.name },
+      { label: "Gemeente", value: meta.municipality },
+      ...v.facts,
+    ].filter((f) => f.value);
+    let fy = 187;
+    for (let i = 0; i < coverFacts.length; i += 2) {
+      const pair = coverFacts.slice(i, i + 2);
+      const rowH = Math.max(...pair.map((f) => measure(f.value, 78, "sans", false, 9))) + 10;
+      if (fy + rowH > 247) break;
+      pair.forEach((f, j) => { const fx = M + j * 90; eyebrow(f.label, fx, fy, MUTED); font("sans", false, 9, INK); para(f.value, fx, fy + 6, 78, 9); });
+      fy += rowH;
+    }
     // Lichte onderzijde: subtiel lineair verloop van gedempt oranje/perzik naar wit, zonder afscheidingslijn.
-    const bandY = 250, bandH = 32, steps = 48;
+    const bandY = 253, bandH = 29, steps = 48;
     for (let i = 0; i < steps; i++) {
       const t = i / (steps - 1);
       const c: RGB = [Math.round(248 + (255 - 248) * t), Math.round(226 + (255 - 226) * t), Math.round(208 + (255 - 208) * t)];
@@ -216,7 +231,7 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
   // Barometer
   {
     const textH = measure(r.category.text, CW - 16, "sans", false, 8.4);
-    const h = 48 + textH;
+    const h = 44 + textH;
     ensure(h + 8);
     doc.setFillColor(...SURFACE); doc.setDrawColor(...LINE); doc.setLineWidth(0.2); doc.rect(M, y, CW, h, "FD");
     eyebrow("Uw renovatiebarometer", M + 8, y + 9);
@@ -229,7 +244,7 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
       font("sans", on, 7.4, on ? INK : MUTED); doc.text(lines(c.label, segW - 2), M + 8 + i * segW + 0.8, y + 34);
     });
     font("sans", false, 8.4, BODY); para(r.category.text, M + 8, y + 41, CW - 16, 8.4);
-    font("sans", false, 6.8, MUTED); doc.text("Een eerste indicatie op basis van uw antwoorden, geen technische diagnose.", M + 8, y + h - 3.5);
+
     y += h + 8;
   }
 
@@ -266,37 +281,39 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
 
   // ---------- Pagina 2: analyse ----------
   const firstDomain = v.domains[0];
-  const firstDomainH = firstDomain ? 18 + [firstDomain.analysis, firstDomain.missing, firstDomain.scopeNote].filter(Boolean).reduce((n, text) => n + measure(text as string, CW - 70, "sans", false, 9), 0) : 25;
-  startSection(34, firstDomainH);
+  const domainHeight = (d: typeof firstDomain) => 10 + measure(d.title, CW - 70, "sans", true, 9, 1.25) + [d.analysis, d.missing, d.scopeNote].filter(Boolean).reduce((n, t, i) => n + measure(t as string, CW - 28, "sans", false, i ? 8.5 : 9) + 1, 0);
+  const firstDomainH = firstDomain ? domainHeight(firstDomain) + 3 : 25;
+  const analysisHeight = 25 + v.domains.reduce((n, d) => n + domainHeight(d) + 3, 0);
+  if (analysisHeight <= BOTTOM - TOP) ensure(analysisHeight + 9);
+  startSection(25, firstDomainH);
   eyebrow("Analyse per bouwdeel", M, y + 4);
-  font("serif", false, 26, INK); doc.text("De resultaten", M, y + 16); doc.text("in detail.", M, y + 26);
-  font("sans", false, 7.6, MUTED); para("Op basis van uw antwoorden geven we per thema een eerste inschatting. Dit is een indicatie en geen technische diagnose. Een lage score bewijst niet dat een onderdeel in orde is.", 118, y + 12, W - M - 118, 7.6);
-  y += 34;
+  font("serif", false, 22, INK); doc.text("De resultaten in detail.", M, y + 15);
+  y += 25;
   const STATUS: Record<DomainStatus, { fill: RGB | null; stroke: RGB; dash?: boolean }> = {
     geen: { fill: null, stroke: [150, 150, 156] }, beperkt: { fill: [200, 200, 206], stroke: [150, 150, 156] },
     duidelijk: { fill: ORANGE, stroke: ORANGE }, ernstig: { fill: RED, stroke: RED }, onvoldoende: { fill: null, stroke: [150, 150, 156], dash: true },
   };
   for (const d of v.domains) {
-    const tw = CW - 70;
+    const tw = CW - 28;
     const body = [d.analysis, d.missing, d.scopeNote].filter(Boolean) as string[];
-    const h = 10 + measure(d.title, tw, "sans", true, 9, 1.25) + body.reduce((n, t, i) => n + measure(t, tw, "sans", false, i ? 8.5 : 9) + 1, 0);
+    const h = 10 + measure(d.title, CW - 70, "sans", true, 9, 1.25) + body.reduce((n, t, i) => n + measure(t, tw, "sans", false, i ? 8.5 : 9) + 1, 0);
     ensure(h + 3);
     doc.setDrawColor(...LINE); doc.setLineWidth(0.25); doc.rect(M, y, CW, h, "S");
     icon(d.icon, M + 5, y + (h - 11) / 2, 11);
-    font("sans", true, 9, INK); const titleHeight = para(d.title, M + 22, y + 7, tw, 9, 1.25);
+    font("sans", true, 9, INK); const titleHeight = para(d.title, M + 22, y + 7, CW - 70, 9, 1.25);
     let by = y + 9 + titleHeight;
     body.forEach((t, i) => { font("sans", false, i ? 8.5 : 9, i ? MUTED : BODY); by += para(t, M + 22, by, tw, i ? 8.5 : 9) + 1; });
     const st = STATUS[d.status];
     doc.setLineDashPattern(st.dash ? [0.5, 0.5] : [], 0); doc.setDrawColor(...st.stroke); doc.setLineWidth(0.45);
-    if (st.fill) { doc.setFillColor(...st.fill); doc.circle(W - M - 46, y + h / 2 - 1, 1.5, "FD"); } else doc.circle(W - M - 46, y + h / 2 - 1, 1.5, "S");
+    if (st.fill) { doc.setFillColor(...st.fill); doc.circle(W - M - 46, y + 5, 1.5, "FD"); } else doc.circle(W - M - 46, y + 5, 1.5, "S");
     doc.setLineDashPattern([], 0);
-    font("sans", true, 8.2, INK); para(d.statusLabel, W - M - 42, y + h / 2 - 2, 38, 8.2, 1.25);
+    font("sans", true, 8.2, INK); para(d.statusLabel, W - M - 42, y + 6, 38, 8.2, 1.25);
     y += h + 3;
   }
 
   if (v.connections.length) {
     const first = v.connections[0];
-    const firstH = 48 + measure(first.title, CW - 16, "sans", true, 10) + Math.max(...first.nodes.map((n) => measure(n.caption, (CW - 24) / first.nodes.length - 8, "sans", false, 8.5))) + measure(first.text, CW - 16, "sans", false, 9);
+    const firstH = 35 + measure(first.title, CW - 16, "sans", true, 10) + Math.max(...first.nodes.map((n) => measure(n.caption, (CW - 24) / first.nodes.length - 8, "sans", false, 8.5))) + measure(first.text, CW - 16, "sans", false, 9);
     y += 5; keepWithNext(21, firstH);
     eyebrow("Wat vertellen uw antwoorden samen?", M, y + 4);
     font("serif", false, 18, INK); doc.text("Verbanden die het verschil maken.", M, y + 14); y += 21;
@@ -304,11 +321,11 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
       const titleH = measure(c.title, CW - 16, "sans", true, 10);
       const captionH = Math.max(...c.nodes.map((n) => measure(n.caption, (CW - 24) / c.nodes.length - 8, "sans", false, 8.5)));
       const textH = measure(c.text, CW - 16, "sans", false, 9);
-      const h = 48 + titleH + captionH + textH;
+      const h = 35 + titleH + captionH + textH;
       ensure(h + 5);
       doc.setFillColor(...SURFACE); doc.setDrawColor(...LINE); doc.rect(M, y, CW, h, "FD");
       font("sans", true, 10, INK); para(c.title, M + 8, y + 8, CW - 16, 10);
-      const ny = y + 12 + titleH;
+      const ny = y + 9 + titleH;
       const nw = (CW - 24) / c.nodes.length;
       doc.setDrawColor(...ORANGE); doc.setLineDashPattern([1, 1], 0);
       doc.line(M + 12 + nw / 2, ny + 5, M + 12 + nw * (c.nodes.length - 0.5), ny + 5); doc.setLineDashPattern([], 0);
@@ -316,27 +333,30 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
         const nx = M + 12 + nw * j;
         doc.setFillColor(255, 255, 255); doc.circle(nx + nw / 2, ny + 5, 7, "F");
         icon(node.icon, nx + nw / 2 - 4.5, ny + 0.5, 9);
-        font("sans", true, 9, INK); doc.text(node.label, nx + nw / 2, ny + 16, { align: "center" });
-        font("sans", false, 8.5, MUTED); para(node.caption, nx + 4, ny + 22, nw - 8, 8.5);
+        font("sans", true, 9, INK); doc.text(node.label, nx + nw / 2, ny + 14, { align: "center" });
+        font("sans", false, 8.5, MUTED); para(node.caption, nx + 4, ny + 19, nw - 8, 8.5);
       });
-      const ty = ny + 26 + captionH;
+      const ty = ny + 21 + captionH;
       font("sans", false, 9, BODY); para(c.text, M + 8, ty, CW - 16, 9);
-      font("sans", false, 8, MUTED); doc.text("Mogelijke afstemming of samenhang, geen bewezen oorzaak.", M + 8, ty + textH + 3);
+
       y += h + 5;
     }
   }
 
   const textBlock = (title: string, body: string[], size = 9) => {
-    const h = 9 + body.reduce((n, t) => n + measure(t, CW, "sans", false, size) + 1, 0);
+    const titleH = measure(title, CW, "sans", true, 8.8);
+    const h = 4 + titleH + body.reduce((n, t) => n + measure(t, CW, "sans", false, size, 1.3) + .8, 0);
     ensure(h);
-    font("sans", true, 8.8, INK); doc.text(title, M, y + 4);
-    let by = y + 9;
-    for (const t of body) { font("sans", false, size, BODY); by += para(t, M, by, CW, size) + 1; }
-    y = by + 1;
+    font("sans", true, 8.8, INK); para(title, M, y + 4, CW, 8.8);
+    let by = y + 4 + titleH;
+    for (const t of body) { font("sans", false, size, BODY); by += para(t, M, by, CW, size, 1.3) + .8; }
+    y = by;
   };
   const chapter = (eb: string, title: string, firstH: number) => {
-    y += 6; keepWithNext(22, firstH);
-    eyebrow(eb, M, y + 4); font("serif", false, 18, INK); doc.text(title, M, y + 15); y += 22;
+    const titleH = measure(title, CW, "serif", false, 18);
+    const headingH = 14 + titleH;
+    y += 8; keepWithNext(headingH, firstH);
+    eyebrow(eb, M, y + 4); font("serif", false, 18, INK); para(title, M, y + 14, CW, 18); y += headingH;
   };
   if (x) {
     const e = x.energy;
@@ -353,10 +373,15 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
   }
   if (x4) {
     chapter("Premies en financiering", x4.premiums.title, measure(x4.premiums.intro, CW, "sans", false, 9) + 10);
-    textBlock("Wat is mogelijk?", [x4.premiums.intro, ...(x4.premiums.relevant.length ? [`Op basis van uw antwoorden kunnen onder meer deze werken in aanmerking komen: ${x4.premiums.relevant.join(", ")}. De algemene beschikbaarheid van een regeling betekent niet dat u er individueel recht op hebt.`] : []), x4.premiums.note]);
-    for (const source of x4.premiums.sources) {
-      ensure(7); font("sans", false, 8, ORANGE);
-      doc.textWithLink(`Bron: ${source.label}`, M, y + 3, { url: source.url }); y += 7;
+    textBlock("Wat is mogelijk?", [x4.premiums.intro, ...(x4.premiums.relevant.length ? [`Op basis van uw antwoorden kunnen onder meer deze werken in aanmerking komen: ${x4.premiums.relevant.join(", ")}.`] : []), x4.premiums.note]);
+    for (const raw of x4.premiums.sources) {
+      const source = premiumLink234(raw);
+      const h = measure(source.label, CW, "sans", true, 9) + 8;
+      ensure(h); font("sans", true, 9, ORANGE);
+      const th = para(source.label, M, y + 4, CW, 9);
+      doc.link(M, y, CW, h, { url: source.url });
+      doc.setDrawColor(...ORANGE); doc.setLineWidth(.15); doc.line(M, y + th + 1, M + doc.getTextWidth(source.label), y + th + 1);
+      font("sans", false, 7.5, MUTED); doc.text(source.caption, M, y + th + 5); y += h;
     }
     textBlock("Voorwaarden", [x4.premiums.closing], 8.5);
   }
@@ -403,13 +428,14 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
     y += 17 + tl.length * 9;
     actionList.forEach((x, i) => {
     const tw = CW - 42;
-    const h = 18 + measure(x.text, tw, "sans", false, 9) + (x.next ? measure(`Volgende stap: ${x.next}`, tw, "sans", false, 8.5) + 1 : 0);
+    const titleH = measure(x.title, tw, "sans", true, 9);
+    const h = 13 + titleH + measure(x.text, tw, "sans", false, 9) + (x.next ? measure(`Volgende stap: ${x.next}`, tw, "sans", false, 8.5) + 1 : 0);
     ensure(h + 3);
     doc.setDrawColor(...(x.id === "ACT-VEILIGHEID" ? RED : LINE)); doc.setLineWidth(0.25); doc.rect(M, y, CW, h, "S");
     font("serif", false, 18, ORANGE); doc.text(String(i + 1).padStart(2, "0"), M + 5, y + 10);
     icon(x.icon, M + 20, y + 4, 10, [92, 96, 104]);
-    font("sans", true, 9, INK); doc.text(x.title, M + 36, y + 7);
-    font("sans", false, 9, BODY); let ty = y + 12 + para(x.text, M + 36, y + 12, tw, 9);
+    font("sans", true, 9, INK); para(x.title, M + 36, y + 7, tw, 9);
+    font("sans", false, 9, BODY); let ty = y + 8 + titleH + para(x.text, M + 36, y + 8 + titleH, tw, 9);
     if (x.next) { font("sans", false, 8.5, MUTED); ty += para(`Volgende stap: ${x.next}`, M + 36, ty + 1, tw, 8.5); }
       y += h + 3;
     });
@@ -419,7 +445,7 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
     const ph0 = x.phases[0];
     chapter("Voorlopig digitaal advies", "Uw voorlopig renovatietraject", 12 + ph0.items.reduce((n, t) => n + measure(t, CW, "sans", false, 9) + 1, 0));
     for (const ph of x.phases) textBlock(`Fase ${ph.id} — ${ph.title}`, [ph.why, ...ph.items.map((t) => `– ${t}`), ...(ph.decide ? [`Beslissing hangt af van: ${ph.decide}`] : [])]);
-    textBlock("Afbakening traject", ["Dit traject is geen uitvoeringsbestek, technische keuring of kostenraming."], 8.5);
+
   }
   if (x && x.actions.documents.length) {
     const d0 = x.actions.documents[0];
@@ -452,40 +478,31 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
     textBlock("Beschikbaarheid", ["Een onbekend document is niet automatisch afwezig."], 8.5);
   }
 
-  {
-    const h = measure(r.limits, CW, "sans", false, 8) + 9;
-    ensure(h);
-    eyebrow("Grenzen van de Quickscan", M, y + 3, MUTED);
-    font("sans", false, 8, MUTED); para(r.limits, M, y + 7, CW, 8);
-    y += h;
-  }
-
-
   // Aanbeveling: dezelfde snapshot, leesbare volle breedte en deelblokken die mogen doorlopen.
   {
     const rec = v.recommendation;
-    const th = measure(rec.title, CW, "serif", false, 24);
-    // Reserve the complete recommendation when it fits on one fresh page.
-    // Otherwise reserve its meaningful final portion, not merely a link and disclaimer.
-    const blockHeight = (body: string[], size = 9) => 11 + body.reduce((n, t) => n + measure(t, CW, "sans", false, size) + 1, 0);
-    const finalHeight = (rec.price !== null ? 25 : 0) +
-      (rec.drone ? blockHeight([rec.drone.text, rec.drone.condition]) + 15 : 0) +
-      (model.ctaUrl ? 15 + measure(model.ctaUrl, CW - 12, "sans", false, 8) : 0) +
-      15 + measure(model.infoUrl, CW - 12, "sans", false, 8) +
-      blockHeight([rec.limitation, rec.priceNote, rec.secondary?.text ?? ""], 8) + 15;
-    const totalHeight = 25 + th + (rec.safetyFirst ? 35 : 0) + blockHeight([rec.motivation]) +
-      (rec.gains || rec.benefits.length ? blockHeight([rec.gains, ...rec.benefits].filter(Boolean)) : 0) + finalHeight;
-    if (totalHeight <= BOTTOM - TOP) ensure(totalHeight);
-    // Keep-with-next: scheidingslijn, eyebrow en titel blijven samen; de deelblokken
-    // eronder (motivatie, meerwaarde, prijs, links) breken zelfstandig via ensure().
+    const th = measure(rec.title, CW, "serif", false, 22);
+    const blockHeight = (title: string, body: string[], size = 9) => 6 + measure(title, CW, "sans", true, 8.8) + body.reduce((n, t) => n + measure(t, CW, "sans", false, size) + 1, 0);
+    const altText = rec.secondary ? `${rec.secondary.text} ${rec.secondary.name}: ${formatEuro(rec.secondary.price)} ${VAT_LABEL}.` : null;
+    const closing = [recommendationScope234(rec.limitation), rec.price !== null ? rec.priceNote : null].filter(Boolean).join(" ");
+    const tail = [altText, closing].filter(Boolean) as string[];
+    const finalHeight = (rec.price !== null ? 15 : 0) + (rec.availability === "coming_soon" ? 10 : 0) +
+      (rec.drone ? blockHeight("Optionele drone-dakscreening", [`+ ${formatEuro(rec.drone.price)} ${VAT_LABEL}. ${rec.drone.text}`, `${rec.drone.condition} De optie staat standaard uit.`]) : 0) +
+      (model.ctaUrl ? 15 : 0) + 15 + (tail.length ? blockHeight(altText ? "Alternatief en afbakening" : "Afbakening", tail, 8) : 0);
+    const totalHeight = 21 + th + (rec.safetyFirst ? blockHeight("Veiligheid eerst", ["Volg eerst het veiligheidsadvies bovenaan dit rapport. Een Woningscan vervangt geen onmiddellijke veiligheidsmaatregel."]) : 0) + blockHeight("Waarom deze dienst?", [rec.motivation]) +
+      (rec.gains || rec.benefits.length ? blockHeight("Concrete meerwaarde", [rec.gains, ...rec.benefits.map((b) => `– ${b}`)].filter(Boolean)) : 0) + finalHeight;
+    const limitsHeight = measure(r.limits, CW, "sans", false, 8) + 16;
+    // Reserve the WHOLE recommendation and closing information when both fit.
+    // Never reserve the tail again after rendering: that caused the previous split.
+    if (totalHeight <= BOTTOM - TOP) ensure(totalHeight + 12 + (totalHeight + limitsHeight + 12 <= BOTTOM - TOP ? limitsHeight : 0));
     y += 5; keepWithNext(13, (rec.safetyFirst ? 22 : 0) + th + 12);
     doc.setDrawColor(...ORANGE); doc.setLineWidth(0.6); doc.line(M, y, W - M, y);
     eyebrow("Uw aanbevolen volgende stap", M, y + 8); y += 13;
     if (rec.safetyFirst) textBlock("Veiligheid eerst", ["Volg eerst het veiligheidsadvies bovenaan dit rapport. Een Woningscan vervangt geen onmiddellijke veiligheidsmaatregel."]);
-    ensure(th + 8); font("serif", false, 24, INK); y += para(rec.title, M, y + 5, CW, 24) + 3;
+    ensure(th + 8); font("serif", false, 22, INK); y += para(rec.title, M, y + 5, CW, 22) + 3;
     textBlock("Waarom deze dienst?", [rec.motivation]);
     if (rec.gains || rec.benefits.length) textBlock("Concrete meerwaarde", [rec.gains, ...rec.benefits.map((b) => `– ${b}`)].filter(Boolean));
-    ensure(Math.min(finalHeight, BOTTOM - TOP));
+
     if (rec.price !== null && model.priceLabel) {
       ensure(20); font("serif", false, 22, INK); doc.text(model.priceLabel, M, y + 8);
       const pw = doc.getTextWidth(model.priceLabel); font("sans", false, 9, MUTED); doc.text(VAT_LABEL, M + pw + 4, y + 8); y += 15;
@@ -493,34 +510,23 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
     }
     if (rec.drone) textBlock("Optionele drone-dakscreening", [`+ ${formatEuro(rec.drone.price)} ${VAT_LABEL}. ${rec.drone.text}`, `${rec.drone.condition} De optie staat standaard uit.`]);
     const pdfLink = (title: string, url: string, primary: boolean) => {
-      const h = 11 + measure(url, CW - 12, "sans", false, 8);
-      ensure(h + 4); doc.setDrawColor(...(primary ? ORANGE : LINE)); doc.rect(M, y, CW, h, "S");
-      font("sans", true, 10, primary ? ORANGE : INK); doc.text(title, M + 6, y + 6.5);
-      font("sans", false, 8, BODY); para(url, M + 6, y + 10, CW - 12, 8);
+      const h = measure(title, CW - 12, "sans", true, 10) + 8;
+      ensure(h + 2); doc.setDrawColor(...(primary ? ORANGE : LINE)); doc.setLineWidth(.25); doc.line(M, y + h - 1, W - M, y + h - 1);
+      font("sans", true, 10, primary ? ORANGE : INK); para(`${title}  >`, M, y + 6, CW - 12, 10);
       doc.link(M, y, CW, h, { url }); y += h + 2;
     };
-    // Slotblok: alternatief, afbakening en prijsnota blijven samen, zodat de laatste pagina nooit
-    // alleen een losse slotzin bevat.
-    const altText = rec.secondary ? `${rec.secondary.text} ${rec.secondary.name}: ${formatEuro(rec.secondary.price)} ${VAT_LABEL}.` : null;
-    const closing = [rec.limitation, rec.price !== null ? `${rec.priceNote} Rapportdatum: ${new Date(meta.date).toLocaleDateString("nl-BE")}.` : null].filter(Boolean).join(" ");
-    const tail = [altText, closing].filter(Boolean) as string[];
-    // 2.3.3: de laatste link en het slotblok blijven samen, zodat het slotblok nooit alleen op een pagina staat.
-    const tailH = tail.length ? 9 + tail.reduce((n, t) => n + measure(t, CW, "sans", false, 8) + 1, 0) : 0;
-    const linkH = (url: string) => 11 + measure(url, CW - 12, "sans", false, 8) + 4;
-    if (model.ctaUrl) { ensure(linkH(model.ctaUrl) + linkH(rec.infoPath ? absoluteUrl(rec.infoPath) : "") + tailH); pdfLink(rec.ctaLabel, model.ctaUrl, true); }
-    if (tailH) ensure(linkH(absoluteUrl(rec.infoPath)) + tailH);
+    if (model.ctaUrl) pdfLink(rec.ctaLabel, model.ctaUrl, true);
     pdfLink(rec.infoLabel, model.infoUrl, false);
     if (tail.length) textBlock(altText ? "Alternatief en afbakening" : "Afbakening", tail, 8);
-    // 2.3.4: de DIMAC-slagzin sluit het rapport af, subtiel en zonder de inhoud te verdringen.
-    ensure(14);
-    font("sans", false, 8.5, INK);
-    const c1 = "Vastgoed ontwikkelen.  Expertise delen.  ";
-    doc.text(c1, M, y + 8, { charSpace: 0.25 });
-    const cw1 = doc.getTextWidth(c1) + 0.25 * (c1.length - 1);
-    font("sans", true, 8.5, ORANGE); doc.text("Waarde creëren.", M + cw1 + 1.2, y + 8, { charSpace: 0.25 });
-    y += 14;
   }
 
+  // One compact general limitation, anchored after the commercial next step.
+  const limitsHeight = measure(r.limits, CW, "sans", false, 8) + 16;
+  ensure(limitsHeight + 4);
+  y = Math.max(y + 4, BOTTOM - limitsHeight);
+  doc.setDrawColor(...LINE); doc.setLineWidth(.2); doc.line(M, y, W - M, y);
+  font("sans", true, 8.8, INK); doc.text(REPORT_INFORMATION_TITLE, M, y + 7);
+  font("sans", false, 8, MUTED); para(r.limits, M, y + 13, CW, 8);
 
   // Voetteksten en paginering
   const pages = doc.getNumberOfPages();

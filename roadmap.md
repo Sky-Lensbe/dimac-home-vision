@@ -1,5 +1,13 @@
 # Roadmap
 
+## Finale rapportoptimalisatie 2.3.4
+- [x] Gedeelde presentatie zonder wijzigingen aan scores, veiligheid, routing of snapshots
+- [x] Originele tekeningen online; compacte A4-cover en inhoudsgestuurde paginering
+- [x] Eén afsluitend voorbehoud, contextuele waarschuwingen behouden, duidelijke premielinks
+- [x] Vijf rapportlengtes lokaal genereren en elke pagina inspecteren; desktop/mobiel en download controleren
+- [x] Voorbeeld-PDF, screenshots en vergelijking opleveren
+- [ ] Serveruitrol van deze presentatiecorrecties — wacht op afzonderlijke toestemming
+
 ## Quickscan 2.3.4 (lokale implementatie — afgerond)
 - [x] Engine: G01 "Recent dubbel glas" (E2), H01 meerkeuze + H01B hoofdverwarming (dynamische opties), H03 warmteverdeling, VL03 vloerverwarming, Q30/Q37-teksten, legacy H01-normalisatie vóór resolver
 - [x] Rapportlaag: comfortadvies (verwarming nooit automatisch oorzaak), COM-11 vloerverwarming, premiesectie met vier officiële bronnen, extensie v234
@@ -10,6 +18,5 @@
 - [x] Lokale strenge PDF-controle (Deno, strict assets): 2.3.4-PDF gegenereerd, cover visueel gecontroleerd
 
 ## Open — wacht op afzonderlijk akkoord van de gebruiker
-- [ ] Heruitrol serverfunctie `quickscan-submit` (bevat 2.3.4-engine/rapport/PDF) — geblokkeerd: geen deploymenttoestemming
-- [ ] Server-side end-to-end-tests na uitrol (vier dossiers, duplicaten, historische rapporten)
+- [x] Eerdere 2.3.4-serveruitrol en vijf synthetische servertests (zoals bevestigd in vorige oplevering); niet herhaald voor deze correctieronde
 - [ ] Publicatie — geblokkeerd: nooit zonder expliciete toestemming
