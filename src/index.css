@@ -424,6 +424,9 @@ html.reveal-ready [data-reveal].stagger-list.is-visible > * {
 .report234 h2, .report234 h3, .report234 h4 { letter-spacing: 0; }
 .report234 > section { border: 0; box-shadow: none; margin-bottom: 0; }
 .report234 > section > header, .report234 > section > footer { display: none; }
+.report234 > section:first-of-type > header { display: flex; padding: 0 0 1.5rem; }
+.report234 > section:first-of-type > header img { width: 4rem; height: 4rem; }
+.report234 > section:first-of-type > header > div:last-child { display: none; }
 .report234 > section > div { padding: 2rem 0; border-top: 1px solid hsl(var(--border)); }
 .report234 > section:first-of-type > div { border-top: 0; }
 .report234 .mt-10 { margin-top: var(--report-section-space); }
