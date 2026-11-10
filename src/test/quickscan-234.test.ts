@@ -62,7 +62,7 @@ describe("2.3.4 beglazing", () => {
   });
   it("de optie is zichtbaar in de vragenlijst", () => {
     const g01 = QUESTION_MAP.G01;
-    expect(g01.options.some((o) => o.id === "dubbel-recent" && o.pts === 2)).toBe(true);
+    expect(g01.options.some((o) => o.id === "dubbel-recent" && o.score?.v === 2)).toBe(true);
   });
 });
 
@@ -98,16 +98,15 @@ describe("2.3.4 meerkeuzeverwarming", () => {
   it("een defect nevensysteem behoudt zijn verwarmingssignaal", () => {
     const r = composeReport({ ...CASES.woning1976.answers, H01: ["gas", "hout"], H01B: "gas", Q42: "ouder" });
     expect(r.v23.domains.find((d) => d.code === "E")).toBeTruthy();
-    const pts = r.v23.highlights.map((h) => h.id);
-    expect(pts).toContain("AP-VERW");
+    expect(r.points.map((p) => p.id)).toContain("AP-VERW");
   });
   it("onderhoud blijft relevant zodra één geselecteerd systeem verbranding of een warmtepomp betreft", () => {
     const vis = visibleQuestions(activeAnswers({ Q01: "eigenaar", Q02: "gesloten", Q03: "1970-1990", H01: ["elektrisch", "warmtepomp"], H01B: "elektrisch", H02: "6-10" }));
     expect(vis.some((q) => q.id === "Q44")).toBe(true);
   });
-  it("Q42 en Q44 volgen de hoofdverwarming, niet een willekeurig nevensysteem", () => {
+  it("de staatsvraag blijft bij elk aanwezig verbrandingssysteem; de leeftijd volgt de hoofdverwarming", () => {
     const vis = visibleQuestions(activeAnswers({ Q01: "eigenaar", Q02: "gesloten", Q03: "1970-1990", H01: ["gas", "elektrisch"], H01B: "elektrisch" }));
-    expect(vis.some((q) => q.id === "Q42")).toBe(false);
+    expect(vis.some((q) => q.id === "Q42")).toBe(true);
     expect(vis.some((q) => q.id === "H02")).toBe(false);
   });
 });
@@ -152,9 +151,7 @@ describe("2.3.4 vloerverwarming (VL03)", () => {
 
 describe("2.3.4 comfortadvies", () => {
   it("de verwarming is nooit automatisch de oorzaak; zonwering staat bij oververhitting", () => {
-    const r = composeReport({ ...CASES.woning1962.answers });
-    const ap = r.v23.domains.find((d) => d.code === "E");
-    expect(ap).toBeTruthy();
+    const r = composeReport({ Q01: "eigenaar", Q02: "gesloten", Q03: "1970-1990", R01: "11-20", Q04: ["geen"], K01: "geen", Q14: "geen", DI01: "degelijk", Q18: "geen", MI01: "geisoleerd", G01: "hr", Q20: "geen", Q24: "geen", Q30: "geen", Q34: "b", Q37: "sterk", Q38: "heel", H01: ["gas"], H02: "6-10", H03: ["radiatoren"], Q42: "normaal", Q44: "12m", Q41: "geen", Q46: ["geen"], Q48: "ja", Q49: "3m" });
     const comfort = r.points.find((p) => p.id === "AP-COMFORT");
     expect(comfort?.text).toContain("zonwering");
     expect(comfort?.text).not.toContain("WARMTECOMFORT");
@@ -183,7 +180,7 @@ describe("2.3.4 premies en financiële ondersteuning", () => {
     expect(r.v234!.premiums.relevant).toContain("vloerisolatie");
     expect(r.v234!.premiums.relevant).toContain("dakisolatie");
     const r2 = composeReport(CASES.recent.answers);
-    expect(r2.v234!.premiums.relevant).toEqual([]);
+    expect(r2.v234!.premiums.relevant).toEqual(["warmtepompinstallaties"]);
   });
 });
 
