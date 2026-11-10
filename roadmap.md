@@ -1,18 +1,15 @@
 # Roadmap
 
-## Quickscan 2.3.4 (goedgekeurd, Fase 2 lokaal)
-- [ ] Artwork: DIMAC-tekening → transparante oranje PNG's (2 stukken), als assets opslaan
-- [ ] engine.ts: versies (questions 2.3.4, rules 2.3.4), A1/A3 teksten, A2 beglazing, A4 H01 multi + H01B (optionsFor, sanitize, migratie), A5 H03 + VL03
-- [ ] report.ts: B1 comfortadvies, B2 premiesectie (v234-extensie), vloerverwarming-adviezen, domeintekst S
-- [ ] legal.ts: premiebronnen + verificatiedatum (URL's eerst controleren)
-- [ ] PDF: render233 bevriezen, render234 met nieuwe cover, dispatch, serverpad controleren
-- [ ] Report23.tsx: premiesectie online, comforttitel
-- [ ] quickscanSession.ts: nieuwe sleutel + migratie v2.3.3
-- [ ] Tests: regressie-invariantie, nieuwe logica, 9 praktijkgevallen, PDF-dispatch
-- [ ] Lokale PDF's genereren + visuele QA (elke pagina, cover expliciet)
-- [ ] Browsercontrole vragenlijst + rapport (ook mobiel)
-- [ ] Opleverdocument + testresultaten + voorbeeld-PDF
+## Quickscan 2.3.4 (lokale implementatie — afgerond)
+- [x] Engine: G01 "Recent dubbel glas" (E2), H01 meerkeuze + H01B hoofdverwarming (dynamische opties), H03 warmteverdeling, VL03 vloerverwarming, Q30/Q37-teksten, legacy H01-normalisatie vóór resolver
+- [x] Rapportlaag: comfortadvies (verwarming nooit automatisch oorzaak), COM-11 vloerverwarming, premiesectie met vier officiële bronnen, extensie v234
+- [x] Sessiemigratie 2.3.3 → 2.3.4 (H01 string → array, hervat in vragenlijst)
+- [x] PDF: nieuwe renderer render234 (premium A4-cover met DIMAC-tekeningen, diagonale vlakken, gradientzone, slagzin, premiesectie); dispatch per opgeslagen versie; 2.3.3 en ouder ongemoeid
+- [x] Server (send-report): dispatch 2.3.4 → render234 met art-assets; allowlist/testmodus ongewijzigd
+- [x] Testen: 356/356 groen (incl. 26 nieuwe 2.3.4-testen, score-invariantie vijf cases), typecheck schoon
+- [x] Lokale strenge PDF-controle (Deno, strict assets): 2.3.4-PDF gegenereerd, cover visueel gecontroleerd
 
-## Wacht op aparte toestemming
-- Heruitrol quickscan-submit (server-side 2.3.4 + testmail met nieuwe PDF)
-- Publicatie
+## Open — wacht op afzonderlijk akkoord van de gebruiker
+- [ ] Heruitrol serverfunctie `quickscan-submit` (bevat 2.3.4-engine/rapport/PDF) — geblokkeerd: geen deploymenttoestemming
+- [ ] Server-side end-to-end-tests na uitrol (vier dossiers, duplicaten, historische rapporten)
+- [ ] Publicatie — geblokkeerd: nooit zonder expliciete toestemming
