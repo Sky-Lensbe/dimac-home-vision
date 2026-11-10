@@ -362,15 +362,19 @@ export const QUESTION_MAP: Record<string, Question> = Object.fromEntries(QUESTIO
 export const STEP_TITLES = ["Uw woning", "Bouwkundige toestand", "Energie en installaties", "Renovatieplannen"];
 export const stepTitle = (step: number, a: Answers) => (step === 3 && isApartment(a) ? "Energie, installaties en mede-eigendom" : STEP_TITLES[step - 1]);
 
+/** Opties van een vraag bij de huidige antwoorden (dynamisch waar gedefinieerd, bv. H01B). */
+export const questionOptions = (q: Question, a: Answers): Option[] => (q.optionsFor ? q.optionsFor(a) : q.options);
+
 /** Geldige antwoorden filteren op toegestane opties en exclusieve keuzes. Overslaan alleen bij optionele vragen. */
-function sanitize(q: Question, v: unknown): string | string[] | undefined {
+function sanitize(q: Question, v: unknown, ctx: Answers = {}): string | string[] | undefined {
   if (v === SKIP) return q.optional && !q.safety ? SKIP : undefined;
-  const ids = new Set(q.options.map((y) => y.id));
+  const opts = questionOptions(q, ctx);
+  const ids = new Set(opts.map((y) => y.id));
   if (q.multi) {
     if (!Array.isArray(v)) return undefined;
     const vals = [...new Set(v.filter((y): y is string => typeof y === "string" && ids.has(y)))];
     if (!vals.length) return undefined;
-    const excl = vals.filter((y) => q.options.find((op) => op.id === y)?.exclusive);
+    const excl = vals.filter((y) => opts.find((op) => op.id === y)?.exclusive);
     if (excl.length) return vals.length === 1 ? vals : undefined;
     return vals;
   }
@@ -395,7 +399,7 @@ function pass(answers: Answers, ctx: Answers): { visible: Question[]; active: An
       used[q.group] = n + 1;
     }
     visible.push(q);
-    const v = sanitize(q, answers[q.id]);
+    const v = sanitize(q, answers[q.id], view);
     if (v !== undefined) active[q.id] = v;
   }
   return { visible, active };
@@ -410,7 +414,14 @@ const sig = (r: { visible: Question[]; active: Answers }) => JSON.stringify([r.v
  * zichzelf nooit opnieuw kunnen activeren; daarna herhalen tot zichtbare vragen en actieve antwoorden stabiel zijn.
  * Niet-convergentie faalt expliciet: nooit een schijnbaar volledig rapport.
  */
-function walk(answers: Answers): { visible: Question[]; active: Answers } {
+/** 2.3.4: een oud enkelvoudig H01-antwoord wordt vóór de resolver als éénkeuze-array gelezen. */
+function normalizeLegacy(a: Answers): Answers {
+  if (typeof a.H01 === "string") return { ...a, H01: [a.H01] };
+  return a;
+}
+
+function walk(raw: Answers): { visible: Question[]; active: Answers } {
+  const answers = normalizeLegacy(raw);
   let cur = pass(answers, {});
   let key = sig(cur);
   for (let i = 0; i < MAX_PASSES; i++) {
@@ -671,7 +682,8 @@ export const POINTS: PointDef[] = [
   { id: "AP-TOCHT", domain: "B", title: "Tocht", text: "U ervaart tocht langs gesloten ramen of deuren. De aansluitingen, dichtingen en algemene toestand van het schrijnwerk verdienen mogelijk extra aandacht.", next: "Laat dichtingen en aansluitingen van het schrijnwerk bekijken.", sev: (a) => Math.max(when(has(a, "Q20", "tocht"), 5), sc(a, "Q22") >= 3 ? sc(a, "Q22") : 0) },
   { id: "AP-RAMEN-OUD", domain: "B", title: "Verouderde ramen", text: "U vermeldt dat uw ramen verouderd of beschadigd zijn. De werkelijke toestand, luchtdichtheid en beglazing bepalen of onderhoud, herstel of vervanging zinvol kan zijn.", next: "Laat de toestand van het schrijnwerk beoordelen vóór u kiest voor vervanging.", sev: (a) => (has(a, "Q20", "verouderd", "beschadigd") ? sc(a, "Q20") : 0) },
   { id: "AP-GEVEL", domain: "B", title: "Gevel", text: "U vermeldt verwering of beschadigde voegen of afwerking aan de gevel. Een gerichte beoordeling helpt bepalen of onderhoud of herstel nodig is.", next: "Laat de gevel en aansluitingen bekijken.", sev: (a) => (has(a, "Q18", "verwering", "voegen") ? sc(a, "Q18") : 0) },
-  { id: "AP-COMFORT", domain: "E", title: "Thermisch comfort", text: "U ervaart temperatuurproblemen in bepaalde ruimtes. Isolatie, beglazing, zonwering, ventilatie en verwarming zijn mogelijke aandachtspunten voor verdere beoordeling.", next: "Bekijk comfortproblemen samen met isolatie en verwarming.", sev: (a) => sc(a, "Q37") },
+  // 2.3.4: begrijpelijke formulering; de verwarming is nooit automatisch de oorzaak.
+  { id: "AP-COMFORT", domain: "E", title: "Temperatuurproblemen", text: "U ervaart temperatuurproblemen in bepaalde ruimtes. Verwarming, isolatie, beglazing, tocht, ventilatie en zonwering bij oververhitting zijn mogelijke aandachtspunten voor verdere beoordeling.", next: "Laat de verwarming, isolatie en beglazing nakijken om de mogelijke oorzaak te achterhalen.", sev: (a) => sc(a, "Q37") },
   { id: "AP-HERHAALD-ANDERS", domain: "B", title: "Terugkerend probleem", text: "U geeft aan dat een eerder hersteld probleem opnieuw optreedt. Omdat het betrokken onderdeel niet gekend is, vormt dit een algemeen aandachtspunt.", next: "Bespreek het probleem tijdens een beoordeling ter plaatse.", sev: (a) => when(hasR(a, "Q07", "anders"), 4) },
 ];
 
@@ -716,6 +728,7 @@ export function energyNotes(a: Answers): string[] {
   part("MI01", "Buitenmuren");
   part("VL02", "Vloer");
   if (has(a, "G01", "enkel")) n.push("Beglazing: voornamelijk enkel glas.");
+  else if (has(a, "G01", "dubbel-recent")) n.push("Beglazing: recent dubbel glas.");
   else if (has(a, "G01", "dubbel", "gemengd")) n.push("Beglazing: ouder dubbel glas of verschillende soorten.");
   if (has(a, "Q34", "b")) n.push("EPC B: een goede energieprestatie; geen ernstig renovatieprobleem.");
   if (has(a, "Q34", "e", "f")) n.push("EPC E of F: er zijn waarschijnlijk energetische verbetermogelijkheden.");
@@ -791,6 +804,8 @@ export const COMBINATIONS = [
   { id: "COM-08", title: "Buitenschil als geheel", text: "Bereid dak, gevel en schrijnwerk voor als één samenhangend geheel.", test: (a: Answers) => ["dak", "gevel", "ramen"].filter((w) => plans(a, w)).length >= 2 },
   { id: "COM-09", title: "Vloer en vloerisolatie", text: "Combineer nieuwe vloerafwerking met de beoordeling van vloerisolatie, zodat u de vloer maar één keer opbreekt.", test: (a: Answers) => plans(a, "vloeren") && has(a, "VL02", "nee", "gedeeltelijk", "onbekend") },
   { id: "COM-10", title: "Asbest vóór werken", text: "Laat gekende of mogelijke asbesthoudende toepassingen vóór de start van werken beoordelen door een bevoegde deskundige.", test: (a: Answers) => plannedCount(a) > 0 && has(a, "AS01", "attest_toepassingen", "gekend") },
+  // 2.3.4: voorwaardelijk advies bij overwogen vloerverwarming; geen geschiktheidsgarantie en geen standaard uitbraakadvies.
+  { id: "COM-11", title: "Vloerwerken en vloerverwarming", text: "Wanneer u vloerverwarming overweegt, laat dan vooraf controleren of de bestaande vloeropbouw en verwarmingsinstallatie hiervoor geschikt zijn. Stem de technische aanpassingen af voordat de nieuwe vloerafwerking wordt geplaatst.", test: (a: Answers) => plans(a, "vloeren") && has(a, "VL03", "ja", "twijfel") },
 ];
 
 export function combinationAdvice(a: Answers) {
