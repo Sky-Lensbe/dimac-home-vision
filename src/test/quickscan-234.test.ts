@@ -106,7 +106,7 @@ describe("2.3.4 meerkeuzeverwarming", () => {
   it("de staatsvraag blijft bij elk aanwezig verbrandingssysteem; de leeftijd volgt de hoofdverwarming", () => {
     const vis = visibleQuestions(activeAnswers({ Q01: "eigenaar", Q02: "gesloten", Q03: "1970-1990", H01: ["gas", "hout"], H01B: "hout" }));
     expect(vis.some((q) => q.id === "Q42")).toBe(true);
-    expect(vis.some((q) => q.id === "H02")).toBe(false);
+    expect(questionText(QUESTION_MAP.H02, { H01: ["gas", "hout"], H01B: "hout" })).toBe("Hoe oud is de hoofdverwarming ongeveer?");
   });
 });
 
@@ -150,7 +150,7 @@ describe("2.3.4 vloerverwarming (VL03)", () => {
 
 describe("2.3.4 comfortadvies", () => {
   it("de verwarming is nooit automatisch de oorzaak; zonwering staat bij oververhitting", () => {
-    const r = composeReport({ Q01: "eigenaar", Q02: "gesloten", Q03: "1970-1990", R01: "11-20", Q04: ["geen"], K01: "geen", Q14: "geen", DI01: "degelijk", Q18: "geen", MI01: "geisoleerd", G01: "hr", Q20: "geen", Q24: "geen", Q30: "geen", Q34: "e", Q37: "sterk", Q38: "heel", H01: ["gas"], H02: "6-10", H03: ["radiatoren"], Q42: "normaal", Q44: "12m", Q41: "geen", Q46: ["geen"], Q48: "ja", Q49: "3m" });
+    const r = composeReport({ Q01: "eigenaar", Q02: "gesloten", Q03: "1970-1990", R01: "11-20", Q04: ["geen"], K01: "geen", Q14: "geen", DI01: "gedeeltelijk", Q18: "geen", MI01: "geisoleerd", G01: "hr", Q20: "geen", Q24: "geen", Q30: "geen", Q34: "b", Q37: "sterk", Q38: "heel", H01: ["gas"], H02: "6-10", H03: ["radiatoren"], Q42: "normaal", Q44: "12m", Q41: "geen", Q46: ["geen"], Q48: "ja", Q49: "3m" });
     const comfort = r.points.find((p) => p.id === "AP-COMFORT");
     expect(comfort?.text).toContain("zonwering");
     expect(comfort?.text).not.toContain("WARMTECOMFORT");
