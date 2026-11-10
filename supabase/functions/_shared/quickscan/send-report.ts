@@ -31,7 +31,7 @@ export async function sendReportMail(snapshot: any, meta: { reportNumber: string
   const deps = {
     jsPDF,
     categories: ["Beperkte renovatiesignalen", "Enkele aandachtspunten", "Verhoogde renovatiesignalen", "Prioritaire beoordeling aanbevolen"].map((label) => ({ label })),
-    assets: { logo: ["dimac-logo.jpg"], fonts: { serif: ["PlayfairDisplay-Regular.ttf", "PlayfairDisplay-SemiBold.ttf"], sans: ["Inter-Regular.ttf", "Inter-SemiBold.ttf"] } },
+    assets: { logo: ["dimac-logo.jpg"], fonts: { serif: ["PlayfairDisplay-Regular.ttf", "PlayfairDisplay-SemiBold.ttf"], sans: ["Inter-Regular.ttf", "Inter-SemiBold.ttf"] }, art: { building: ["dimac-gebouw.png"], house: ["dimac-woning.png"] } },
     absoluteUrl: (path: string) => /^https?:/.test(path) ? path : `https://www.dimac.be${path}`,
     withReportRef: (path: string, number: string) => {
       const [base, hash] = path.split("#");
@@ -40,7 +40,9 @@ export async function sendReportMail(snapshot: any, meta: { reportNumber: string
     formatEuro: (n: number) => `€${n.toLocaleString("nl-BE", { maximumFractionDigits: 2, minimumFractionDigits: Number.isInteger(n) ? 0 : 2 })}`,
     vatLabel: "incl. 21% btw",
   };
-  const pdf = await renderSnapshotPdf(snapshot, meta, deps as never, { strictAssets: true, load: async (name: string) => {
+  // 2.3.4-rapporten krijgen de nieuwe premium renderer; 2.3.3 behoudt haar eigen renderpad.
+  const render = snapshot?.reportVersion === "qs-report-2.3.4" ? render234 : render233;
+  const pdf = await render(snapshot, meta, deps as never, { strictAssets: true, load: async (name: string) => {
     const id = ids[name];
     if (!id) throw new Error(`ASSET_UNKNOWN ${name}`);
     const r = await fetch(`${ASSET_BASE}/${id}/${name}`);
