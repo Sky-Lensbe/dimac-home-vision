@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { composeReport } from "../../supabase/functions/_shared/quickscan/report";
 import {
-  activeAnswers, questionOptions, safetyFlags, visibleQuestions, RULE_VERSION, QUESTION_MAP,
+  activeAnswers, questionOptions, questionText, safetyFlags, visibleQuestions, RULE_VERSION, QUESTION_MAP,
   type Answers,
 } from "../../supabase/functions/_shared/quickscan/engine";
 import { readSaved, SESSION_KEY } from "@/lib/quickscanSession";
