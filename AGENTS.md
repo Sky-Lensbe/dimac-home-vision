@@ -20,3 +20,4 @@
 - User-facing information coverage is a report-only additive extension; never use it as a scoring or product-routing input, so more truthful display levels cannot change recommendations.
 - Version 2.3.4 browser and PDF presentation share `presentation234.ts`, which clones stored prose without recalculation; historical versions bypass it so editorial changes never mutate snapshots or decisions.
 - Delivery preparation uses dependency-injected worker ports and a non-applied SQL proposal under docs; absent provider/database adapters keep it inactive until separately approved configuration and migration. Ambiguous provider outcomes require reconciliation rather than blind retry.
+- Legal pages share LegalPage and frontend-only policy constants; prices are read from the existing catalog, and legal display values must never trigger billing, deletion or alter Quickscan decisions.

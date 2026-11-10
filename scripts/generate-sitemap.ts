@@ -18,6 +18,9 @@ const paths = [
   "/over",
   "/contact",
   "/privacy",
+  "/algemene-voorwaarden",
+  "/cookies",
+  "/wettelijke-vermeldingen",
 ];
 
 const xml = [

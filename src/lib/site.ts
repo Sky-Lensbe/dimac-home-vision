@@ -27,7 +27,15 @@ export function absoluteUrl(path = "/"): string {
  */
 export const COMPANY = {
   name: "Dimac",
-  legalName: "Dimac",
+  legalName: "DIMAC BV",
+  street: "Schansstraat 8",
+  postalCode: "3290",
+  city: "Diest",
+  country: "België",
+  enterpriseNumber: "0479.917.693",
+  vatNumber: "BE 0479.917.693",
+  phone: "013 35 53 35",
+  phoneHref: "tel:+3213355335",
   email: "info@dimac.be",
   url: SITE_URL,
   /** Stabiele identiteit voor structured data, één entiteit voor de hele site. */
@@ -59,6 +67,10 @@ export function organizationSchema() {
     "@type": "Organization",
     "@id": COMPANY.id,
     name: COMPANY.name,
+    legalName: COMPANY.legalName,
+    telephone: COMPANY.phone,
+    vatID: COMPANY.vatNumber,
+    address: { "@type": "PostalAddress", streetAddress: COMPANY.street, postalCode: COMPANY.postalCode, addressLocality: COMPANY.city, addressCountry: "BE" },
     description:
       "Vastgoedontwikkelaar met praktische bouwexpertise. Eigen vastgoedprojecten, totaalrenovaties en Woningscans.",
     url: `${SITE_URL}/`,

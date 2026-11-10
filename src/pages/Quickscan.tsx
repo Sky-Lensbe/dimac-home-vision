@@ -304,12 +304,13 @@ const LeadForm = ({ answers, startedAt, onBack, onDone }: { answers: Answers; st
             <input id="website" tabIndex={-1} autoComplete="off" value={f.website} onChange={(e) => set("website")(e.target.value)} />
           </div>
           <p className="sm:col-span-2 text-sm text-muted-foreground leading-relaxed">
-            We gebruiken uw gegevens om uw persoonlijke rapport op te maken, te bezorgen en uw aanvraag administratief te verwerken. Meer informatie vindt u in ons{" "}
-            <Link to="/privacy" className="text-accent underline underline-offset-2">privacybeleid</Link>.
+            Wij gebruiken uw gegevens om uw persoonlijke woningrapport op te maken, te bewaren en beschikbaar te stellen. Wanneer de e-maillevering actief is, ontvangt u het rapport ook per e-mail. Lees onze{" "}
+            <Link to="/privacy" className="text-accent underline underline-offset-2">privacyverklaring</Link>. Momenteel blijft de e-maillevering beperkt tot toegestane tests. Voor deze gratis dienst gelden de{" "}
+            <Link to="/algemene-voorwaarden#quickscan" className="text-accent underline underline-offset-2">Quickscan-voorwaarden</Link>.
           </p>
           <label className="sm:col-span-2 flex items-start gap-3 text-sm text-muted-foreground leading-relaxed cursor-pointer">
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1 h-4 w-4 accent-[hsl(var(--accent))] shrink-0" />
-            <span>Ja, DIMAC mag mij vrijblijvend contacteren per e-mail of telefoon over mijn renovatieplannen en passende dienstverlening. Dit is niet nodig om uw rapport te ontvangen.</span>
+            <span>Ja, uitsluitend DIMAC mag mij vrijblijvend contacteren per e-mail of telefoon over mijn renovatieplannen en passende DIMAC-diensten. Dit is vrijwillig en niet nodig om uw rapport te ontvangen. U kunt uw toestemming op elk moment intrekken via info@dimac.be.</span>
           </label>
           {err && <p role="alert" className="sm:col-span-2 text-sm text-destructive">{err}</p>}
           <div className="sm:col-span-2 flex flex-wrap gap-3">

@@ -4,7 +4,7 @@ import { ArrowRight, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHero } from "@/components/site/PageHero";
 import {
-  ConsentField,
+  RequestPrivacyNotice,
   HandoffMessage,
   MailtoNotice,
   SelectField,
@@ -18,7 +18,6 @@ import { track } from "@/lib/analytics";
 
 const Contact = () => {
   const [f, setF] = useState({ subject: "", name: "", email: "", phone: "", message: "" });
-  const [consent, setConsent] = useState(false);
   const [sent, setSent] = useState(false);
   const set = (k: keyof typeof f) => (v: string) => setF((x) => ({ ...x, [k]: v }));
 
@@ -94,7 +93,7 @@ const Contact = () => {
             <TextField id="phone" type="tel" label="Telefoon" autoComplete="tel" className="sm:col-span-2" value={f.phone} onChange={set("phone")} />
             <TextAreaField id="message" label="Bericht" required className="sm:col-span-2" value={f.message} onChange={set("message")} />
             <div className="sm:col-span-2 space-y-5">
-              <ConsentField checked={consent} onChange={setConsent} />
+              <RequestPrivacyNotice />
               <Button type="submit" size="lg" className="w-full sm:w-auto">
                 Bericht voorbereiden <ArrowRight />
               </Button>
