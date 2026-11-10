@@ -883,11 +883,12 @@ export function droneAdvice(a: Answers): boolean {
 }
 
 // ---------- Rapport ----------
-function LABEL(qid: string, v: string | string[] | undefined) {
+function LABEL(qid: string, v: string | string[] | undefined, a?: Answers) {
   if (v === undefined) return "Niet ingevuld";
   if (v === SKIP) return "Overgeslagen";
   const q = QUESTION_MAP[qid];
-  return (Array.isArray(v) ? v : [v]).map((id) => q.options.find((y) => y.id === id)?.label ?? id).join(", ");
+  const opts = a && q.optionsFor ? questionOptions(q, a) : q.options;
+  return (Array.isArray(v) ? v : [v]).map((id) => opts.find((y) => y.id === id)?.label ?? id).join(", ");
 }
 
 /** Contextgegevens apart van de technische score, voor later hergebruik (bv. budgetindicator). */
@@ -957,7 +958,7 @@ export function buildReport(answers: Answers) {
     nuance: "Dit is een eerste indicatie op basis van uw eigen antwoorden en geen vaststelling ter plaatse.",
   };
   /** Vraag- en antwoordteksten zoals getoond, zodat een oud rapport later niet met nieuwe labels gelezen wordt. */
-  const answerLabels = Object.fromEntries(Object.entries(a).map(([q, v]) => [q, { q: questionText(QUESTION_MAP[q], a), a: LABEL(q, v) }]));
+  const answerLabels = Object.fromEntries(Object.entries(a).map(([q, v]) => [q, { q: questionText(QUESTION_MAP[q], a), a: LABEL(q, v, a) }]));
   return {
     ruleVersion: RULE_VERSION,
     reportVersion: REPORT_VERSION,
