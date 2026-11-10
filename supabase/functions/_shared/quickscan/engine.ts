@@ -274,17 +274,34 @@ export const QUESTIONS: Question[] = [
   { id: "Q37", step: 3, group: "comfort", text: "Ervaart u temperatuurproblemen?", showIf: (a) => has(a, "Q34", "e", "f", "onbekend") || has(a, "DI01", "gedeeltelijk", "niet", "onbekend") || has(a, "MI01", "niet", "gedeeltelijk") || has(a, "G01", "enkel"), options: [o("nee", "Nee", "E", 0), o("kamers", "Bepaalde ruimtes zijn moeilijk te verwarmen", "E", 3), o("sterk", "Sterke koude of oververhitting", "E", 5), unk("E")] },
   { id: "Q38", step: 3, group: "comfort", optional: true, text: "Waar ervaart u de meeste comfortproblemen?", showIf: (a) => has(a, "Q37", "kamers", "sterk"), options: [o("dak", "Dakverdieping"), o("leef", "Leefruimte"), o("slaap", "Slaapkamers"), o("heel", "Hele woning"), o("wisselend", "Wisselend")] },
   {
-    id: "H01", step: 3, main: true, text: "Hoe wordt de woning momenteel hoofdzakelijk verwarmd?",
-    options: [o("gas", "Aardgas"), o("mazout", "Mazout"), o("warmtepomp", "Warmtepomp"), o("elektrisch", "Rechtstreekse elektrische verwarming"), o("hout", "Hout- of pelletverwarming"), o("collectief", "Collectieve verwarming / warmtenet"), o("andere", "Andere"), o("geen", "Geen vaste verwarmingsinstallatie"), o("onbekend", "Weet ik niet")],
+    // 2.3.4: meerkeuze — woningen hebben vaak een combinatie van systemen. 'geen' en 'onbekend' zijn exclusief.
+    id: "H01", step: 3, main: true, multi: true, text: "Welke verwarmingssystemen zijn aanwezig in uw woning?",
+    help: "Meerdere antwoorden mogelijk. Duid de systemen aan die gebruikt worden om uw woning te verwarmen.",
+    options: [o("gas", "Aardgas"), o("mazout", "Mazout"), o("warmtepomp", "Warmtepomp"), o("elektrisch", "Rechtstreekse elektrische verwarming"), o("hout", "Hout- of pelletverwarming"), o("collectief", "Collectieve verwarming / warmtenet"), o("andere", "Andere"), x("geen", "Geen vaste verwarmingsinstallatie"), x("onbekend", "Weet ik niet")],
   },
-  { id: "H02", step: 3, text: "Hoe oud is de huidige verwarmingsinstallatie ongeveer?", showIf: (a) => has(a, "H01", ...OWN_HEATING), options: [o("0-5", "0–5 jaar", "T", 0), o("6-10", "6–10 jaar", "T", 0), o("11-20", "11–20 jaar", "T", 1), o("gt20", "Meer dan 20 jaar", "T", 3), o("onbekend", "Weet ik niet")] },
+  {
+    // 2.3.4: alleen bij meerdere systemen; toont uitsluitend de effectief gekozen systemen (interface én validatie).
+    id: "H01B", step: 3, text: "Welk systeem verwarmt de woning voornamelijk?",
+    showIf: (a) => heatingSystems(a).length >= 2,
+    options: [],
+    optionsFor: (a) => QUESTION_MAP.H01.options.filter((op) => heatingSystems(a).includes(op.id)),
+  },
+  // 2.3.4: de leeftijd geldt de hoofdverwarming; nevensystemen krijgen geen leeftijd toegeschreven.
+  { id: "H02", step: 3, text: "Hoe oud is de huidige verwarmingsinstallatie ongeveer?", textFor: (a) => (heatingSystems(a).length >= 2 ? "Hoe oud is de hoofdverwarming ongeveer?" : undefined), showIf: (a) => { const m = mainHeating(a); return m !== undefined && OWN_HEATING.includes(m); }, options: [o("0-5", "0–5 jaar", "T", 0), o("6-10", "6–10 jaar", "T", 0), o("11-20", "11–20 jaar", "T", 1), o("gt20", "Meer dan 20 jaar", "T", 3), o("onbekend", "Weet ik niet")] },
   {
     id: "Q42", step: 3, main: true, safety: true, text: "Hoe functioneert de verwarming momenteel?", showIf: (a) => a.H01 !== undefined && !has(a, "H01", "geen"),
     textFor: (a) => (has(a, "H01", "collectief") ? "Hoe functioneert de verwarming in uw woning momenteel?" : undefined),
     options: [o("normaal", "Functioneert normaal", "T", 0), o("ouder", "Functioneert, maar is verouderd", "T", 3), o("storingen", "Regelmatige storingen of onvoldoende werking", "T", 7), o("gas", "Mogelijk onveilige situatie, zoals gaslucht of een CO-alarm", "T", 10), unk("T")],
   },
   { id: "Q43", step: 3, safety: true, text: "Is er momenteel een CO-alarm of vermoeden van een gaslek?", showIf: (a) => has(a, "Q42", "gas"), options: [o("nee", "Nee"), o("ja", "Ja")] },
+  // 2.3.4: onderhoud blijft relevant zodra één van de geselecteerde systemen (ook een nevensysteem) verbranding of een warmtepomp betreft.
   { id: "Q44", step: 3, text: "Wanneer werd de verwarmingsinstallatie voor het laatst onderhouden?", showIf: (a) => has(a, "H01", ...COMBUSTION, "warmtepomp") && !has(a, "Q42", "gas") && !has(a, "H02", "0-5"), options: [o("12m", "In de afgelopen 12 maanden", "T", 0), o("1-3j", "Eén tot drie jaar geleden", "T", 1), o("gt3j", "Meer dan drie jaar geleden", "T", 3), o("onbekend", "Nooit of niet bekend", "T", null), o("nvt", "Niet van toepassing")] },
+  {
+    // 2.3.4: warmteafgiftesysteem (geen warmtebron). Alleen 'onbekend' is exclusief; 'andere' is combineerbaar.
+    id: "H03", step: 3, multi: true, text: "Hoe wordt de warmte in uw woning verspreid?", help: "Meerdere antwoorden mogelijk.",
+    showIf: (a) => heatingSystems(a).length >= 1,
+    options: [o("radiatoren", "Radiatoren"), o("convectoren", "Convectoren"), o("vloerverwarming", "Vloerverwarming"), o("lucht", "Luchtverwarming"), o("andere", "Andere"), x("onbekend", "Weet ik niet")],
+  },
   { id: "Q41", step: 3, main: true, safety: true, text: "Zijn er gekende problemen met de elektriciteit?", options: [o("geen", "Geen gekende problemen", "T", 0), o("gedateerd", "Verouderd, zonder gekende problemen", "T", 3), o("zekeringen", "Regelmatig uitvallende zekeringen", "T", 6), o("beschadigd", "Beschadigde onderdelen", "T", 9), o("rook", "Rook, vonken of brandlucht", "T", 10), unk("T")] },
   { id: "Q40", step: 3, text: "Is er een recent keuringsverslag van de elektrische installatie?", help: "Een ontbrekend verslag betekent niet dat de installatie onveilig is.", showIf: (a) => buyer(a) || has(a, "Q41", "gedateerd", "zekeringen", "beschadigd", "rook", "onbekend"), options: [o("conform", "Ja, gunstig zonder opmerkingen", "T", 0), o("beperkt", "Ja, met beperkte opmerkingen", "T", 4), o("inbreuken", "Ja, met belangrijke inbreuken", "T", 8), o("geen", "Geen recent verslag", "T", null), unk("T")] },
   { id: "V01", step: 3, text: "Hoe wordt de woning geventileerd?", showIf: (a) => moistureReported(a) || hasR(a, "Q04", "isolatie", "ramen") || plansOrFull(a, "isolatie"), options: [o("natuurlijk", "Natuurlijk of via roosters"), o("mechanisch", "Mechanisch systeem"), o("geen", "Geen duidelijk systeem"), o("onbekend", "Weet ik niet")] },
@@ -316,6 +333,12 @@ export const QUESTIONS: Question[] = [
   {
     id: "Q46", step: 4, main: true, multi: true, showIf: house, text: "Welke werken overweegt u?", help: "Meerdere antwoorden mogelijk.",
     options: [x("geen", "Geen concrete werken"), o("dak", "Dak"), o("ramen", "Ramen"), o("gevel", "Gevel"), o("isolatie", "Isolatie"), o("elektriciteit", "Elektriciteit"), o("verwarming", "Verwarming"), o("sanitair", "Sanitair"), o("vloeren", "Vloeren"), o("interieur", "Interieur"), o("volledig", "Volledige renovatie")],
+  },
+  {
+    // 2.3.4: alleen bij geplande vloerwerken en nog geen bekende vloerverwarming (H03).
+    id: "VL03", step: 4, text: "Overweegt u vloerverwarming bij deze vloerwerken?",
+    showIf: (a) => plans(a, "vloeren") && !has(a, "H03", "vloerverwarming"),
+    options: [o("ja", "Ja"), o("nee", "Nee"), o("twijfel", "Ik twijfel"), o("aanwezig", "Er is al vloerverwarming aanwezig")],
   },
   { id: "Q47", step: 4, optional: true, text: "Wilt u de verschillende werken in een logische volgorde plannen?", showIf: (a) => plannedCount(a) >= 2 || hasR(a, "Q46", "volledig"), options: [o("ja", "Ja"), o("nee", "Nee"), o("twijfel", "Ik twijfel")] },
   { id: "AK01", step: 4, optional: true, showIf: (a) => isApartment(a) && (oldRenovation(a) || plansOrFull(a, "interieur")), text: "Wanneer werd de keuken voor het laatst grondig vernieuwd?", help: "Een oudere keuken is op zich geen technisch gebrek.", options: ROOM_AGE },
