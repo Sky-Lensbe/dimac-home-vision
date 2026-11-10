@@ -92,6 +92,8 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
   const x = (r as { v232?: ReportV232 }).v232;
   // 2.3.3: additieve extensie; snapshots zonder v233 volgen exact het bestaande 2.3.2-pad (inhoud én paginering).
   const x3 = (r as { v233?: ReportV233 }).v233;
+  // 2.3.4: additieve premiesectie; snapshots zonder v234 tonen ze niet.
+  const x4 = (r as { v234?: ReportV234 }).v234;
   const actionList = x ? x.actions.technical : v.actions;
   const docList: { label: string; statusLabel: string; contentLabel?: string | null; note: string | null }[] = x3 ? x3.documents : x ? x.documents : v.documents;
   const conclusion = x3?.conclusion ?? v.conclusion;
@@ -194,7 +196,7 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
     font("sans", false, 9.5, INK);
     const s1 = "Vastgoed ontwikkelen.  Expertise delen.  ";
     doc.text(s1, M, bandY + 20, { charSpace: 0.3 });
-    const w1 = doc.getTextWidth(s1) + 0.3 * (s1.length - 1) * 0.18;
+    const w1 = doc.getTextWidth(s1) + 0.3 * 0.3528 * (s1.length - 1);
     font("sans", true, 9.5, ORANGE); doc.text("Waarde creëren.", M + w1 + 1.5, bandY + 20, { charSpace: 0.3 });
   }
   // De inhoud start op pagina 2; de cover blijft een volledige, rustige pagina.
@@ -349,6 +351,15 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
     }
     if (x.legal.length) textBlock("Juridische context", [`Informatieve context, geen individueel juridisch advies. Gecontroleerd op ${new Date(x.legalVerifiedAt).toLocaleDateString("nl-BE")}.`], 8.5);
   }
+  if (x4) {
+    chapter("Premies en financiering", x4.premiums.title, measure(x4.premiums.intro, CW, "sans", false, 9) + 10);
+    textBlock("Wat is mogelijk?", [x4.premiums.intro, ...(x4.premiums.relevant.length ? [`Op basis van uw antwoorden kunnen onder meer deze werken in aanmerking komen: ${x4.premiums.relevant.join(", ")}. De algemene beschikbaarheid van een regeling betekent niet dat u er individueel recht op hebt.`] : []), x4.premiums.note]);
+    for (const source of x4.premiums.sources) {
+      ensure(7); font("sans", false, 8, ORANGE);
+      doc.textWithLink(`Bron: ${source.label}`, M, y + 3, { url: source.url }); y += 7;
+    }
+    textBlock("Voorwaarden", [x4.premiums.closing], 8.5);
+  }
   if (x3?.coverage || v.information?.topics.length || r.unknown.items.length || r.unknown.skipped?.length) textBlock(`Wat weten we nog niet? ${x3?.coverage?.label ?? r.unknown.label}.`, [v.information?.sentence ?? r.unknown.sentence, r.unknown.skipped?.length ? `Overgeslagen: ${r.unknown.skipped.map((s) => s.label).join("; ")}.` : ""].filter(Boolean));
   for (const n of r.notices ?? []) textBlock(n.title, [n.text]);
   if (r.apartment) {
@@ -500,6 +511,14 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
     if (tailH) ensure(linkH(absoluteUrl(rec.infoPath)) + tailH);
     pdfLink(rec.infoLabel, model.infoUrl, false);
     if (tail.length) textBlock(altText ? "Alternatief en afbakening" : "Afbakening", tail, 8);
+    // 2.3.4: de DIMAC-slagzin sluit het rapport af, subtiel en zonder de inhoud te verdringen.
+    ensure(14);
+    font("sans", false, 8.5, INK);
+    const c1 = "Vastgoed ontwikkelen.  Expertise delen.  ";
+    doc.text(c1, M, y + 8, { charSpace: 0.25 });
+    const cw1 = doc.getTextWidth(c1) + 0.25 * 0.3528 * (c1.length - 1);
+    font("sans", true, 8.5, ORANGE); doc.text("Waarde creëren.", M + cw1 + 1.2, y + 8, { charSpace: 0.25 });
+    y += 14;
   }
 
 
