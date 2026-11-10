@@ -1,11 +1,16 @@
+/**
+ * PDF-renderer voor rapportversie 2.3.4: premium cover met de originele DIMAC-architectuurtekeningen,
+ * diagonale underlays, lichte gradientzone met slagzin, en de premiesectie.
+ * Oudere versies renderen via render233.ts (2.3.3) of historical-frozen.ts (2.3–2.3.2); die blijven ongemoeid.
+ */
 import type { jsPDF as PdfConstructor } from "jspdf";
-import type { QuickscanReport23, DomainStatus, IconId, ReportV232, ReportV233 } from "../report.ts";
-import { ICONS, ILLUSTRATIONS, type Shape } from "./art.ts";
+import type { QuickscanReport23, DomainStatus, IconId, ReportV232, ReportV233, ReportV234 } from "../report.ts";
+import { ICONS, type Shape } from "./art.ts";
 export interface ReportMeta { reportNumber: string; name: string; municipality: string; date: string }
 export interface PdfDependencies {
   jsPDF: typeof PdfConstructor;
   categories: readonly { label: string }[];
-  assets: { logo: string[]; fonts: { serif: string[]; sans: string[] } };
+  assets: { logo: string[]; fonts: { serif: string[]; sans: string[] }; art?: { building: string[]; house: string[] } };
   absoluteUrl: (path: string) => string;
   withReportRef: (path: string, number: string) => string;
   formatEuro: (value: number) => string;
@@ -59,21 +64,28 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
     doc.addFileToVFS("Inter-SemiBold.ttf", toBase64(is)); doc.addFont("Inter-SemiBold.ttf", "Inter", "bold");
     SERIF = "Playfair"; SANS = "Inter";
   } catch { if (opts.strictAssets) throw new Error("PDF fonts unavailable"); }
-  let logo: { data: string; fmt: "PNG" | "JPEG"; ratio: number } | null = null;
-  for (const url of PDF_ASSETS.logo) {
-    try {
-      const buf = await load(url);
-      const b = new Uint8Array(buf);
-      if (!isImage(b)) continue;
-      const fmt = b[0] === 0x89 ? "PNG" : "JPEG";
-      const data = `data:image/${fmt.toLowerCase()};base64,${toBase64(buf)}`;
-      const p = doc.getImageProperties(data);
-      logo = { data, fmt, ratio: p.width / p.height };
-      break;
-    } catch { /* volgende bron */ }
-  }
+  type Img = { data: string; fmt: "PNG" | "JPEG"; ratio: number };
+  const loadImage = async (urls: string[]): Promise<Img | null> => {
+    for (const url of urls) {
+      try {
+        const buf = await load(url);
+        const b = new Uint8Array(buf);
+        if (!isImage(b)) continue;
+        const fmt = b[0] === 0x89 ? "PNG" : "JPEG";
+        const data = `data:image/${fmt.toLowerCase()};base64,${toBase64(buf)}`;
+        const p = doc.getImageProperties(data);
+        return { data, fmt, ratio: p.width / p.height };
+      } catch { /* volgende bron */ }
+    }
+    return null;
+  };
+  const logo = await loadImage(PDF_ASSETS.logo);
+  // Originele DIMAC-architectuurtekeningen (transparant, DIMAC-oranje) voor de cover.
+  const artBuilding = PDF_ASSETS.art ? await loadImage(PDF_ASSETS.art.building) : null;
+  const artHouse = PDF_ASSETS.art ? await loadImage(PDF_ASSETS.art.house) : null;
 
   if (opts.strictAssets && !logo) throw new Error("PDF logo unavailable");
+  if (opts.strictAssets && PDF_ASSETS.art && (!artBuilding || !artHouse)) throw new Error("PDF artwork unavailable");
 
   const W = 210, H = 297, M = 18, CW = W - 2 * M, TOP = 36, BOTTOM = 276;
   const v = r.v23;
