@@ -12,6 +12,9 @@ import AdminQuickscan from "./pages/AdminQuickscan.tsx";
 import Over from "./pages/Over.tsx";
 import Contact from "./pages/Contact.tsx";
 import Privacy from "./pages/Privacy.tsx";
+import AlgemeneVoorwaarden from "./pages/AlgemeneVoorwaarden";
+import Cookies from "./pages/Cookies";
+import WettelijkeVermeldingen from "./pages/WettelijkeVermeldingen";
 import NotFound from "./pages/NotFound.tsx";
 
 const App = () => (
@@ -30,6 +33,9 @@ const App = () => (
           <Route path="/over" element={<Over />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/algemene-voorwaarden" element={<AlgemeneVoorwaarden />} />
+          <Route path="/cookies" element={<Cookies />} />
+          <Route path="/wettelijke-vermeldingen" element={<WettelijkeVermeldingen />} />
           <Route path="/diensten/*" element={<Navigate to="/totaalrenovaties" replace />} />
           <Route path="/realisaties/*" element={<Navigate to="/projecten" replace />} />
           <Route path="*" element={<NotFound />} />

@@ -57,14 +57,18 @@ export const Footer = () => (
             </a>
           </p>
           <p className="mt-3 text-sm text-muted-foreground">Regio {COMPANY.region}</p>
+          <p className="mt-3 text-sm"><a href={COMPANY.phoneHref} className={linkClass}>{COMPANY.phone}</a></p>
         </div>
       </div>
 
       <div className="mt-16 pt-8 border-t border-border flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-xs text-muted-foreground">
         <p>© {new Date().getFullYear()} Dimac. Alle rechten voorbehouden.</p>
-        <Link to="/privacy" className={linkClass}>
-          Privacyverklaring
-        </Link>
+        <nav aria-label="Juridische informatie" className="flex flex-wrap gap-x-6 gap-y-3">
+          <Link to="/algemene-voorwaarden" className={linkClass}>Algemene voorwaarden</Link>
+          <Link to="/privacy" className={linkClass}>Privacyverklaring</Link>
+          <Link to="/cookies" className={linkClass}>Cookiebeleid</Link>
+          <Link to="/wettelijke-vermeldingen" className={linkClass}>Wettelijke vermeldingen</Link>
+        </nav>
       </div>
     </div>
   </footer>

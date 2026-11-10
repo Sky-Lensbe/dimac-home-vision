@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Section } from "@/components/site/Section";
 import { FAQ } from "@/components/site/FAQ";
 import { PageHero } from "@/components/site/PageHero";
-import { ConsentField, SelectField, TextAreaField, TextField } from "@/components/site/FormFields";
+import { RequestPrivacyNotice, SelectField, TextAreaField, TextField } from "@/components/site/FormFields";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { AREA_SERVED, breadcrumbSchema, faqSchema, organizationSchema, absoluteUrl } from "@/lib/site";
 import {
@@ -254,7 +254,6 @@ const Woningscan = () => {
   const [drone, setDrone] = useState(false);
   const [sent, setSent] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", phone: "", address: "", timing: "", message: "" });
-  const [consent, setConsent] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
   const started = useRef(false);
 
@@ -654,7 +653,12 @@ const Woningscan = () => {
               onChange={set("message")}
             />
             <div className="sm:col-span-2 space-y-5">
-              <ConsentField checked={consent} onChange={setConsent} />
+              <RequestPrivacyNotice />
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Dit is een vrijblijvende aanvraag, geen definitieve overeenkomst of betalingsverplichting. Lees de{" "}
+                <Link to="/algemene-voorwaarden" className="text-accent underline underline-offset-2 focus-ring">algemene voorwaarden</Link> en de informatie over het{" "}
+                <Link to="/algemene-voorwaarden#herroepingsrecht" className="text-accent underline underline-offset-2 focus-ring">herroepingsrecht</Link>. DIMAC bevestigt de opdracht afzonderlijk.
+              </p>
               <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={!pkg}>
                 {pkg ? `${pkg.name} aanvragen — ${formatEuro(scanTotal(pkg.id, drone))}` : "Kies eerst een Woningscan"}
                 <ArrowRight />

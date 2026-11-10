@@ -98,6 +98,14 @@ export const ConsentField = ({ checked, onChange }: { checked: boolean; onChange
   </label>
 );
 
+/** Necessary request processing is explained, not made dependent on consent. */
+export const RequestPrivacyNotice = () => (
+  <p className="text-sm text-muted-foreground leading-relaxed">
+    Dimac gebruikt uw gegevens om uw vraag te beantwoorden en, waar van toepassing, op uw verzoek een overeenkomst voor te bereiden. Lees de{" "}
+    <Link to="/privacy" className="text-accent underline underline-offset-2 focus-ring">privacyverklaring</Link>.
+  </p>
+);
+
 /** Eerlijke uitleg over de verzending via de eigen e-mailapp. */
 export const MailtoNotice = ({ children }: { children?: ReactNode }) => (
   <p className="text-xs text-muted-foreground leading-relaxed flex gap-2">
