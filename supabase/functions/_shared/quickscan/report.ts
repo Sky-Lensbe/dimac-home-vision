@@ -15,9 +15,10 @@ import {
 import { DRONE_OPTION, getProduct, VAT_RATE, type ProductId } from "./catalog.ts";
 import { ASBESTOS, LEGAL_SOURCES, LEGAL_VERIFIED_AT, LEGAL_VERSION, RENOVATION_OBLIGATION, type LegalSourceId } from "./legal.ts";
 
-export const REPORT_VERSION_23 = "qs-report-2.3.3";
+export const REPORT_VERSION_23 = "qs-report-2.3.4";
 export const REPORT_EXTENSION_232 = "v232";
 export const REPORT_EXTENSION_233 = "v233";
+export const REPORT_EXTENSION_234 = "v234";
 const { has, plans, fullIntent, plannedCount, buyer, label } = answerHelpers;
 
 const scoreOf = (a: Answers, qid: string): number => {
@@ -104,7 +105,7 @@ function domainCards(a: Answers, ds: Record<Domain, number | null>, privateFlags
     }
     let analysis = signals.length ? `U vermeldt ${joinNl(signals.slice(0, 3))}.` : "U meldt hier geen problemen. Dat betekent niet dat dit onderdeel gecontroleerd of in orde is.";
     if (code === "E" && has(a, "Q34", "aplus", "b")) analysis = `${signals.length ? `U vermeldt ${joinNl(signals.slice(0, 3))}. ` : ""}Het EPC-label (${label("Q34", a.Q34)}) wijst op een goede energieprestatie. Een EPC is geen bouwkundige keuring.`;
-    if (code === "S" && has(p, "Q30", "haar")) analysis = "U meldt een kleine, volgens u stabiele haarscheur. Dat is op zich geen ernstig structureel signaal. Volg op of ze groter wordt.";
+    if (code === "S" && has(p, "Q30", "haar")) analysis = "U meldt kleine, volgens u stabiele scheuren. Dat is op zich geen ernstig structureel signaal. Volg op of ze groter worden.";
     if (code === "V" && v === null && has(a, "Q24", "onbekend")) analysis = "U weet niet of er vochtproblemen zijn.";
     const unknown = missingTopics(a, code);
     let scopeNote: string | null = null;
@@ -616,7 +617,7 @@ export function energyContext(a: Answers): EnergyContext {
   if (has(p, "DI01", "niet", "gedeeltelijk", "beperkt")) points.push("Volgens uw antwoorden is de dakisolatie beperkt of onvolledig.");
   if (has(p, "MI01", "niet", "gedeeltelijk")) points.push("De buitenmuren zijn volgens u niet of gedeeltelijk geïsoleerd.");
   if (has(p, "VL02", "nee", "gedeeltelijk")) points.push("De vloer op het gelijkvloers is volgens u niet of gedeeltelijk geïsoleerd.");
-  if (has(p, "G01", "enkel", "dubbel", "gemengd")) points.push(`Beglazing: ${lower(label("G01", p.G01))}.`);
+  if (has(p, "G01", "enkel", "dubbel", "dubbel-recent", "gemengd")) points.push(`Beglazing: ${lower(label("G01", p.G01))}.`);
   if (has(p, "H02", "gt20")) points.push("De verwarmingsinstallatie is volgens u meer dan 20 jaar oud; ouderdom alleen is geen gebrek.");
   const unknownInsul = ["DI01", "MI01", "G01"].filter((q) => has(p, q, "onbekend") || p[q] === SKIP).length;
   if (unknownInsul) points.push("Een deel van de isolatie- of beglazingsgegevens is onbekend; het volledige EPC-verslag kan die aanvullen.");
