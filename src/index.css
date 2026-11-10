@@ -434,6 +434,8 @@ html.reveal-ready [data-reveal].stagger-list.is-visible > * {
 .report234 li { min-width: 0; }
 .report234 li > div { min-width: 0; }
 .report234 .whitespace-nowrap { white-space: normal; }
+.report234 > section > div > .border { border-left: 0; border-right: 0; border-bottom: 0; padding-left: 0; padding-right: 0; background: transparent; }
+.report234 .aspect-\[5\/4\] { aspect-ratio: 2 / 1; max-width: 20rem; }
 @media (max-width: 640px) {
   .report234 h2 { font-size: 2.5rem; line-height: 1.1; }
   .report234 h3 { font-size: 1.75rem; }
