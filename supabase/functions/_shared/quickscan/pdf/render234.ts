@@ -284,7 +284,7 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
   const domainHeight = (d: typeof firstDomain) => 10 + measure(d.title, CW - 70, "sans", true, 9, 1.25) + [d.analysis, d.missing, d.scopeNote].filter(Boolean).reduce((n, t, i) => n + measure(t as string, CW - 28, "sans", false, i ? 8.5 : 9) + 1, 0);
   const firstDomainH = firstDomain ? domainHeight(firstDomain) + 3 : 25;
   const analysisHeight = 25 + v.domains.reduce((n, d) => n + domainHeight(d) + 3, 0);
-  if (analysisHeight <= BOTTOM - TOP && y > 155) ensure(analysisHeight + 9);
+  if (analysisHeight <= BOTTOM - TOP) ensure(analysisHeight + 9);
   startSection(25, firstDomainH);
   eyebrow("Analyse per bouwdeel", M, y + 4);
   font("serif", false, 22, INK); doc.text("De resultaten in detail.", M, y + 15);
@@ -313,7 +313,7 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
 
   if (v.connections.length) {
     const first = v.connections[0];
-    const firstH = 43 + measure(first.title, CW - 16, "sans", true, 10) + Math.max(...first.nodes.map((n) => measure(n.caption, (CW - 24) / first.nodes.length - 8, "sans", false, 8.5))) + measure(first.text, CW - 16, "sans", false, 9);
+    const firstH = 35 + measure(first.title, CW - 16, "sans", true, 10) + Math.max(...first.nodes.map((n) => measure(n.caption, (CW - 24) / first.nodes.length - 8, "sans", false, 8.5))) + measure(first.text, CW - 16, "sans", false, 9);
     y += 5; keepWithNext(21, firstH);
     eyebrow("Wat vertellen uw antwoorden samen?", M, y + 4);
     font("serif", false, 18, INK); doc.text("Verbanden die het verschil maken.", M, y + 14); y += 21;
@@ -321,11 +321,11 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
       const titleH = measure(c.title, CW - 16, "sans", true, 10);
       const captionH = Math.max(...c.nodes.map((n) => measure(n.caption, (CW - 24) / c.nodes.length - 8, "sans", false, 8.5)));
       const textH = measure(c.text, CW - 16, "sans", false, 9);
-      const h = 43 + titleH + captionH + textH;
+      const h = 35 + titleH + captionH + textH;
       ensure(h + 5);
       doc.setFillColor(...SURFACE); doc.setDrawColor(...LINE); doc.rect(M, y, CW, h, "FD");
       font("sans", true, 10, INK); para(c.title, M + 8, y + 8, CW - 16, 10);
-      const ny = y + 12 + titleH;
+      const ny = y + 9 + titleH;
       const nw = (CW - 24) / c.nodes.length;
       doc.setDrawColor(...ORANGE); doc.setLineDashPattern([1, 1], 0);
       doc.line(M + 12 + nw / 2, ny + 5, M + 12 + nw * (c.nodes.length - 0.5), ny + 5); doc.setLineDashPattern([], 0);
@@ -333,10 +333,10 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
         const nx = M + 12 + nw * j;
         doc.setFillColor(255, 255, 255); doc.circle(nx + nw / 2, ny + 5, 7, "F");
         icon(node.icon, nx + nw / 2 - 4.5, ny + 0.5, 9);
-        font("sans", true, 9, INK); doc.text(node.label, nx + nw / 2, ny + 16, { align: "center" });
-        font("sans", false, 8.5, MUTED); para(node.caption, nx + 4, ny + 22, nw - 8, 8.5);
+        font("sans", true, 9, INK); doc.text(node.label, nx + nw / 2, ny + 14, { align: "center" });
+        font("sans", false, 8.5, MUTED); para(node.caption, nx + 4, ny + 19, nw - 8, 8.5);
       });
-      const ty = ny + 26 + captionH;
+      const ty = ny + 21 + captionH;
       font("sans", false, 9, BODY); para(c.text, M + 8, ty, CW - 16, 9);
 
       y += h + 5;
