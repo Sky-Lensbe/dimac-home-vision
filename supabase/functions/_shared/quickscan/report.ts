@@ -284,6 +284,22 @@ export function connections(a: Answers): Connection[] {
 export interface ActionCard { id: string; icon: IconId; title: string; text: string; next: string | null }
 const MOISTURE_POINTS = ["AP-SCHIMMEL", "AP-VOCHTPLEKKEN", "AP-VOCHT-REGEN", "AP-VOCHT-TERUG", "AP-KELDER", "AP-BADKAMER"];
 
+/** 2.3.4: contextgevoelige comforttoelichting; nooit de conclusie dat de verwarming de oorzaak is. */
+function comfortText(a: Answers): string {
+  const p = privateSignals(a);
+  const causes: string[] = [];
+  if (has(p, "Q42", "ouder", "storingen") || has(p, "H02", "gt20")) causes.push("de verwarming");
+  if (has(p, "DI01", "niet", "gedeeltelijk", "beperkt") || has(p, "MI01", "niet", "gedeeltelijk") || has(p, "VL02", "nee", "gedeeltelijk")) causes.push("de isolatie");
+  if (has(p, "G01", "enkel", "dubbel", "gemengd")) causes.push("de beglazing");
+  if (has(p, "Q20", "tocht") || has(p, "Q22", "beperkt", "duidelijk")) causes.push("tocht langs ramen of deuren");
+  if (has(p, "Q39", "beperkt", "defect") || has(p, "V01", "geen")) causes.push("de ventilatie");
+  if (has(p, "Q37", "sterk")) causes.push("zonwering bij oververhitting");
+  return causes.length
+    ? `U ervaart temperatuurproblemen in bepaalde ruimtes. Op basis van uw antwoorden zijn ${joinNl(causes)} mogelijke aandachtspunten.`
+    : "U ervaart temperatuurproblemen in bepaalde ruimtes.";
+}
+const COMFORT_NEXT = "Laat de verwarming, isolatie en beglazing nakijken om de mogelijke oorzaak te achterhalen.";
+
 function actions(a: Answers, fs: Finding[], links: Connection[], syndic: string[], hasPrivateSafety: boolean): ActionCard[] {
   const out: ActionCard[] = [];
   const buy = buyer(a);
@@ -297,6 +313,8 @@ function actions(a: Answers, fs: Finding[], links: Connection[], syndic: string[
       push({ id: "ACT-RAMEN", icon: "window", title: "Controleer het schrijnwerk", text: "Onderzoek de raamafstelling, de dichtingen en de aansluitingen tussen raamkaders en muren.", next: null });
     } else if (f.id === "FND-VENT" || f.id === "AP-VENT") {
       push({ id: "ACT-VENT", icon: "fan", title: "Controleer de ventilatie", text: has(a, "V01", "mechanisch") ? "Verifieer de werking van het mechanische systeem en vraag de onderhoudsinformatie op." : "Ga na hoe de woning geventileerd wordt en of roosters of afvoeren goed werken.", next: null });
+    } else if (f.id === "AP-COMFORT") {
+      push({ id: "ACT-COMFORT", icon: "leaf", title: "Laat temperatuurproblemen onderzoeken", text: comfortText(a), next: COMFORT_NEXT });
     } else {
       push({ id: `ACT-${f.id}`, icon: f.icon, title: `Laat ${lower(f.title)} beoordelen`, text: f.short, next: f.next });
     }
@@ -790,6 +808,7 @@ export function actionGroups(a: Answers, fs: Finding[], syndic: string[], hasPri
     if (MOISTURE_POINTS.includes(f.id)) push(technical, { id: "ACT-VOCHT", icon: "drop", title: "Onderzoek de vochtbron", text: `De gemelde ${f.id === "AP-SCHIMMEL" ? "condens- of schimmelvorming" : lower(f.title)} verdient een gerichte beoordeling. Noteer waar en wanneer het optreedt.`, next: f.next });
     else if (f.id === "FND-RAMEN" || WINDOW_POINTS.includes(f.id)) push(technical, { id: "ACT-RAMEN", icon: "window", title: "Controleer het schrijnwerk", text: "Onderzoek de raamafstelling, de dichtingen en de aansluitingen tussen raamkaders en muren.", next: null });
     else if (f.id === "FND-VENT" || f.id === "AP-VENT") push(technical, { id: "ACT-VENT", icon: "fan", title: "Controleer de ventilatie", text: has(a, "V01", "mechanisch") ? "Verifieer de werking van het mechanische systeem en vraag de onderhoudsinformatie op." : "Ga na hoe de woning geventileerd wordt en of roosters of afvoeren goed werken.", next: null });
+    else if (f.id === "AP-COMFORT") push(technical, { id: "ACT-COMFORT", icon: "leaf", title: "Laat temperatuurproblemen onderzoeken", text: comfortText(a), next: COMFORT_NEXT });
     else push(technical, { id: `ACT-${f.id}`, icon: f.icon, title: `Laat ${lower(f.title)} beoordelen`, text: f.short, next: f.next });
   }
   const documents: ActionCard[] = [];
