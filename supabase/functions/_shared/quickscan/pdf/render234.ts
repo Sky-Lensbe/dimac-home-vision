@@ -158,20 +158,47 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
     sections.push(doc.getNumberOfPages());
   };
 
-  // ---------- Pagina 1: cover ----------
+  // ---------- Pagina 1: premium cover (2.3.4, volgens de goedgekeurde mock-up, vertaald naar A4-portret) ----------
   header(); sections.push(1);
-  eyebrow("Persoonlijk woningrapport", M, 44);
-  font("serif", false, 42, INK); doc.text("Uw woning", M, 62); doc.text("in beeld.", M, 78);
-  font("sans", false, 8.6, INK);
-  let cy = 88;
-  if (v.facts.length) cy += para(v.facts.map((f) => f.value.replace(/ /g, "\u00a0")).join("  ·  "), M, cy, 80, 8.6) + 3;
-  font("sans", false, 8.8, BODY);
-  cy += para(`Een heldere eerste analyse van uw ${r.apartment ? "appartement" : "woning"}, op basis van uw eigen antwoorden in de DIMAC Quickscan.`, M, cy, 84, 8.8) + 2;
-  font("sans", false, 7.2, MUTED); doc.text(new Date(meta.date).toLocaleDateString("nl-BE", { day: "numeric", month: "long", year: "numeric" }) + `  ·  Rapport ${meta.reportNumber}`, M, cy + 3);
-  // Illustratie (illustratief, geen foto)
-  draw(ILLUSTRATIONS[v.illustration], 104, 34, 88, 220, [92, 96, 104], 0.5);
-  font("sans", false, 5.8, MUTED); doc.text("ILLUSTRATIE, GEEN WEERGAVE VAN UW WONING", W - M, 98, { align: "right" });
-  y = Math.max(cy + 10, 106);
+  {
+    // Subtiele diagonale underlays: grote, zeer lichte grijze vlakken achter de tekeningen.
+    const poly = (pts: [number, number][], c: RGB) => {
+      doc.setFillColor(...c);
+      const d = pts.slice(1).map((p, i) => [p[0] - pts[i][0], p[1] - pts[i][1]] as [number, number]);
+      doc.lines(d, pts[0][0], pts[0][1], [1, 1], "F", true);
+    };
+    poly([[96, 30], [W, 30], [W, 148], [132, 196]], [244, 244, 246]);
+    poly([[128, 30], [W, 30], [W, 118], [150, 158]], [238, 238, 241]);
+    poly([[86, 190], [W, 120], [W, 236], [120, 262]], [246, 246, 248]);
+    // Linkerkolom: dynamische rapportgegevens.
+    eyebrow("Persoonlijk woningrapport", M, 52);
+    font("serif", false, 40, INK); doc.text("Uw woning", M, 70); doc.text("in beeld.", M, 85);
+    font("sans", false, 8.6, INK);
+    let cy = 96;
+    if (v.facts.length) cy += para(v.facts.map((f) => f.value.replace(/ /g, "\u00a0")).join("  ·  "), M, cy, 82, 8.6) + 3;
+    font("sans", false, 8.8, BODY);
+    cy += para(`Een heldere eerste analyse van uw ${r.apartment ? "appartement" : "woning"}, op basis van uw eigen antwoorden in de DIMAC Quickscan.`, M, cy, 80, 8.8) + 2;
+    font("sans", false, 7.2, MUTED); doc.text(new Date(meta.date).toLocaleDateString("nl-BE", { day: "numeric", month: "long", year: "numeric" }) + `  ·  Rapport ${meta.reportNumber}`, M, cy + 3);
+    // Rechterzijde: originele DIMAC-tekeningen in oranje, ruimtelijk geplaatst, zonder tekst erover.
+    if (artBuilding) { const bw = 92; doc.addImage(artBuilding.data, artBuilding.fmt, 104, 44, bw, bw / artBuilding.ratio, undefined, "FAST"); }
+    if (artHouse) { const hw = 56; doc.addImage(artHouse.data, artHouse.fmt, 138, 152, hw, hw / artHouse.ratio, undefined, "FAST"); }
+    // Lichte onderzijde: subtiel lineair verloop van gedempt oranje/perzik naar wit, zonder afscheidingslijn.
+    const bandY = 250, bandH = 32, steps = 48;
+    for (let i = 0; i < steps; i++) {
+      const t = i / (steps - 1);
+      const c: RGB = [Math.round(248 + (255 - 248) * t), Math.round(226 + (255 - 226) * t), Math.round(208 + (255 - 208) * t)];
+      doc.setFillColor(...c);
+      doc.rect((W / steps) * i, bandY, W / steps + 0.2, bandH, "F");
+    }
+    // DIMAC-slagzin: antraciet met oranje slotdeel.
+    font("sans", false, 9.5, INK);
+    const s1 = "Vastgoed ontwikkelen.  Expertise delen.  ";
+    doc.text(s1, M, bandY + 20, { charSpace: 0.3 });
+    const w1 = doc.getTextWidth(s1) + 0.3 * (s1.length - 1) * 0.18;
+    font("sans", true, 9.5, ORANGE); doc.text("Waarde creëren.", M + w1 + 1.5, bandY + 20, { charSpace: 0.3 });
+  }
+  // De inhoud start op pagina 2; de cover blijft een volledige, rustige pagina.
+  newPage();
 
   if (r.safety.length) {
     const items = r.safety.map((s) => ({ t: s.title, b: s.text }));
