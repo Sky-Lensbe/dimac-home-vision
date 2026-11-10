@@ -5,6 +5,13 @@ export const REPORT_INFORMATION_TITLE = "Belangrijke informatie over dit rapport
 export const REPORT_INFORMATION = "De DIMAC Quickscan biedt een eerste, richtinggevende analyse van uw woning op basis van de antwoorden die u zelf heeft ingevuld. Er heeft geen inspectie ter plaatse plaatsgevonden. Het rapport vormt geen technische diagnose, officiële keuring, attest of garantie en vervangt geen beoordeling door een bevoegde vakpersoon. Technische vaststellingen en eventuele renovatieverplichtingen moeten waar nodig afzonderlijk worden geverifieerd.";
 export const PREMIUM_INFORMATION = "Premies en voorwaarden kunnen wijzigen. Controleer uw persoonlijke mogelijkheden bij de bevoegde instantie.";
 
+/** Display scope separately from the general report limitation; routing stays untouched. */
+export function recommendationScope234(limitation: string) {
+  return limitation.startsWith("Een Woningscan is een visuele")
+    ? "Een Woningscan omvat een visuele, niet-destructieve beoordeling."
+    : limitation;
+}
+
 /** Only known generic repetitions are removed; contextual uncertainty is retained. */
 export function reportText234(text: string): string {
   return text

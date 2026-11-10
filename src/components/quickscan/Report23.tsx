@@ -9,7 +9,7 @@ import type { SafetyId } from "@/lib/quickscan";
 import { formatEuro, VAT_LABEL } from "@/data/woningscan";
 import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
-import { presentReport234, premiumLink234, REPORT_INFORMATION_TITLE } from "../../../supabase/functions/_shared/quickscan/presentation234";
+import { presentReport234, premiumLink234, recommendationScope234, REPORT_INFORMATION_TITLE } from "../../../supabase/functions/_shared/quickscan/presentation234";
 import buildingAsset from "@/assets/dimac-gebouw.png.asset.json";
 import houseAsset from "@/assets/dimac-woning.png.asset.json";
 import logoAsset from "@/assets/dimac-logo.jpg.asset.json";
@@ -398,7 +398,7 @@ export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; 
                 <Link className="underline underline-offset-4 text-primary" to={withReportRef(rec.secondary.path, reportNumber)} onClick={() => track("quickscan_recommendation_secondary_click", { item_id: rec.secondary?.productId, reason_code: rec.reasonCode })}>{rec.secondary.name} ({formatEuro(rec.secondary.price)})</Link>
               </p>
             )}
-            {rec.limitation && <p className="mt-4 text-xs text-muted-foreground">{rec.limitation}</p>}
+            {rec.limitation && <p className="mt-4 text-xs text-muted-foreground">{modern ? recommendationScope234(rec.limitation) : rec.limitation}</p>}
             {rec.price !== null && <p className="mt-1 text-xs text-muted-foreground">{rec.priceNote}</p>}
           </div>
         </div>

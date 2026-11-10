@@ -5,7 +5,7 @@
  */
 import type { jsPDF as PdfConstructor } from "jspdf";
 import type { QuickscanReport23, DomainStatus, IconId, ReportV232, ReportV233, ReportV234 } from "../report.ts";
-import { presentReport234, premiumLink234, REPORT_INFORMATION_TITLE } from "../presentation234.ts";
+import { presentReport234, premiumLink234, recommendationScope234, REPORT_INFORMATION_TITLE } from "../presentation234.ts";
 import { ICONS, type Shape } from "./art.ts";
 export interface ReportMeta { reportNumber: string; name: string; municipality: string; date: string }
 export interface PdfDependencies {
@@ -484,7 +484,7 @@ export async function renderSnapshotPdf(r: QuickscanReport23, meta: ReportMeta, 
     const th = measure(rec.title, CW, "serif", false, 22);
     const blockHeight = (title: string, body: string[], size = 9) => 6 + measure(title, CW, "sans", true, 8.8) + body.reduce((n, t) => n + measure(t, CW, "sans", false, size) + 1, 0);
     const altText = rec.secondary ? `${rec.secondary.text} ${rec.secondary.name}: ${formatEuro(rec.secondary.price)} ${VAT_LABEL}.` : null;
-    const closing = [rec.limitation, rec.price !== null ? rec.priceNote : null].filter(Boolean).join(" ");
+    const closing = [recommendationScope234(rec.limitation), rec.price !== null ? rec.priceNote : null].filter(Boolean).join(" ");
     const tail = [altText, closing].filter(Boolean) as string[];
     const finalHeight = (rec.price !== null ? 15 : 0) + (rec.availability === "coming_soon" ? 10 : 0) +
       (rec.drone ? blockHeight("Optionele drone-dakscreening", [`+ ${formatEuro(rec.drone.price)} ${VAT_LABEL}. ${rec.drone.text}`, `${rec.drone.condition} De optie staat standaard uit.`]) : 0) +
