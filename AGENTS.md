@@ -23,3 +23,4 @@
 - Version 2.3.4 browser and PDF presentation share `presentation234.ts`, which clones stored prose without recalculation; historical versions bypass it so editorial changes never mutate snapshots or decisions.
 - Legacy delivery preparation uses dependency-injected worker ports and a non-applied SQL proposal under docs; absent provider/database adapters keep it inactive until separately approved configuration and migration. Ambiguous provider outcomes require reconciliation rather than blind retry.
 - Legal pages share LegalPage and frontend-only policy constants; prices are read from the existing catalog, and legal display values must never trigger billing, deletion or alter Quickscan decisions.
+- Original media copies sit beside their `.asset.json` pointers in `src/assets` for GitHub export; keep pointers and runtime imports unchanged to protect existing pages and historical PDFs.
