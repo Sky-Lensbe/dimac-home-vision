@@ -8,14 +8,16 @@
  * in code te wijzigen na uitdrukkelijke toestemming; nooit automatisch.
  */
 
+import { INTERNAL_NOTIFICATION_RECIPIENTS, OPERATIONAL_COPY_EMAIL } from "../mail.ts";
+
 export const MAIL_MODE: "test" | "production" = "production";
 
 export const TEST_ALLOWLIST = ["info@sky-lens.be"] as const;
 
-/** Productie-ontvangers voor later. Worden genegeerd in testmodus. */
+/** Productie-ontvangers. Worden genegeerd in testmodus. */
 export const PRODUCTION_CONFIG = {
   sendReportToCustomer: true,
-  internalNotify: ["info@dimac.be"],
+  internalNotify: INTERNAL_NOTIFICATION_RECIPIENTS,
 };
 
 export type MailKind = "report" | "lead_notification";
@@ -23,8 +25,15 @@ export type MailKind = "report" | "lead_notification";
 /** Bepaalt de ontvangers. In testmodus altijd en alleen de allowlist. */
 export function resolveRecipients(kind: MailKind, customerEmail: string | null, mode: "test" | "production" = MAIL_MODE): string[] {
   if (mode !== "production") return [...TEST_ALLOWLIST];
-  if (kind === "report") return PRODUCTION_CONFIG.sendReportToCustomer && customerEmail ? [customerEmail] : [];
+  if (kind === "report") return PRODUCTION_CONFIG.sendReportToCustomer && customerEmail ? [...new Set([customerEmail.trim().toLowerCase(), OPERATIONAL_COPY_EMAIL])] : [];
   return [...PRODUCTION_CONFIG.internalNotify];
+}
+
+/** Operational PDF copy is hidden from the customer and shares the original attachment. */
+export function reportMailEnvelope(customerEmail: string, mode: "test" | "production" = MAIL_MODE): { to: string[]; bcc?: string[] } {
+  const [recipient, ...copies] = resolveRecipients("report", customerEmail, mode);
+  if (!recipient) return { to: [] };
+  return copies.length ? { to: [recipient], bcc: copies } : { to: [recipient] };
 }
 
 /** Harde controle vlak voor verzending: weigert elk adres buiten de allowlist in testmodus. */

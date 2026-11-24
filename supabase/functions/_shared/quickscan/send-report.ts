@@ -2,7 +2,7 @@
 import { jsPDF } from "npm:jspdf@4.2.1";
 import { renderSnapshotPdf as render233 } from "./pdf/render233.ts";
 import { renderSnapshotPdf as render234 } from "./pdf/render234.ts";
-import { mayReceiveReportMail } from "./mail-policy.ts";
+import { mayReceiveReportMail, reportMailEnvelope } from "./mail-policy.ts";
 import { sendMail } from "../mail.ts";
 import { renderSnapshotPdf as historical } from "./pdf/historical-frozen.ts";
 import { reportEmail } from "./delivery.ts";
@@ -46,5 +46,5 @@ export async function sendReportMail(snapshot: any, meta: { reportNumber: string
   let bin = "";
   for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
   const mail = reportEmail(firstName, meta.reportNumber, "https://dimac-home-vision.lovable.app/logo-dimac.png");
-  return await sendMail({ ...mail, to: [email.trim().toLowerCase()], attachments: [{ filename: `DIMAC-Quickscan-${meta.reportNumber}.pdf`, content: btoa(bin) }] }, `quickscan-report-${meta.reportNumber}`);
+  return await sendMail({ ...mail, ...reportMailEnvelope(email), attachments: [{ filename: `DIMAC-Quickscan-${meta.reportNumber}.pdf`, content: btoa(bin) }] }, `quickscan-report-${meta.reportNumber}`);
 }

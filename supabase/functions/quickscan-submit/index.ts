@@ -112,8 +112,8 @@ Deno.serve(async (req) => {
   let sent: { status: string; detail?: string };
   try { sent = await sendReportMail(result.snapshot, meta, d.email, d.firstName); }
   catch (e) { console.error("Rapportmail mislukt", e); sent = { status: "failed", detail: "PDF of mail mislukt" }; }
-  for (const recipient of resolveRecipients("lead_notification", null)) {
-    const notice = await sendMail({ from: MAIL_SENDER, to: [recipient], reply_to: d.email,
+  {
+    const notice = await sendMail({ from: MAIL_SENDER, to: resolveRecipients("lead_notification", null), reply_to: d.email,
       subject: `DIMAC | Nieuwe Quickscan ${reportNumber}`,
       text: `Nieuwe Quickscan-aanvraag\n\nNaam: ${meta.name}\nE-mail: ${d.email}\nTelefoon: ${d.phone || "Niet opgegeven"}\nGemeente: ${d.municipality}\nWoningtype: ${a.Q02}\nRapportnummer: ${reportNumber}\nRapportmail: ${sent.status}\nMarketingtoestemming: ${d.marketingConsent ? "Ja" : "Nee"}` }, `quickscan-notice-${reportNumber}`);
     await db.from("quickscan_events").insert({ lead_id: (await db.from("quickscan_reports").select("lead_id").eq("report_number", reportNumber).single()).data?.lead_id, event_type: `lead_notification_${notice.status}`, detail: reportNumber });

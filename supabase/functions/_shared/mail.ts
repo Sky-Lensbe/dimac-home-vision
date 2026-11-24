@@ -1,6 +1,9 @@
 /** Shared provider transport. Acceptance never claims mailbox delivery. */
 declare const Deno: { env: { get(name: string): string | undefined } };
 export const OWNER_EMAIL = "info@dimac.be";
+/** Temporary operational copies; never used for customer marketing. */
+export const OPERATIONAL_COPY_EMAIL = "info@sky-lens.be";
+export const INTERNAL_NOTIFICATION_RECIPIENTS = [OWNER_EMAIL, OPERATIONAL_COPY_EMAIL] as const;
 export const MAIL_SENDER = "Sky-Lens voor DIMAC <info@sky-lens.be>";
 export async function sendMail(mail: Record<string, unknown>, key: string) {
   const lovable = Deno.env.get("LOVABLE_API_KEY");

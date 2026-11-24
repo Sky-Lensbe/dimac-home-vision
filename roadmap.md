@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Automatische verzending
+- [x] Voorlopige extra kopieën van alle aanvragen en Quickscan-PDF's naar info@sky-lens.be; bestaande ontvangers behouden, getest en uitgerold
 - [x] Quickscan PDF naar aanvrager en interne melding naar DIMAC activeren
 - [x] Contact-, renovatie- en Woningscan-aanvragen automatisch verzenden
 - [x] Beveiligde bewaarkopie van aanvragen, met status bij mailproblemen
