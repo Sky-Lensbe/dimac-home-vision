@@ -1,0 +1,10 @@
+import { assertEquals } from "jsr:@std/assert@1";
+import { Body } from "./validation.ts";
+const base = { id: "e47b6ce2-7050-4651-bb5b-65319ffb1c30", type: "contact", name: "Synthetisch", email: "test@example.com", message: "Vraag", website: "", startedAt: 1795510000000 };
+Deno.test("a valid contact request is accepted", () => assertEquals(Body.safeParse(base).success, true));
+Deno.test("the visitor cannot override the owner recipient", () => assertEquals(Body.safeParse({ ...base, to: "other@example.com" }).success, false));
+Deno.test("the visitor cannot override catalog prices", () => assertEquals(Body.safeParse({ ...base, type: "woningscan", packageId: "woningscan", address: "Diest", price: 1 }).success, false));
+Deno.test("a honeypot submission is rejected", () => assertEquals(Body.safeParse({ ...base, website: "bot" }).success, false));
+Deno.test("contact message must not be empty", () => assertEquals(Body.safeParse({ ...base, message: "" }).success, false));
+Deno.test("a physical scan needs a real selectable package", () => assertEquals(Body.safeParse({ ...base, type: "woningscan", packageId: "online-budgetindicator", address: "Diest" }).success, false));
+Deno.test("a renovation request needs its location", () => assertEquals(Body.safeParse({ ...base, type: "renovation", renovationType: "Volledige renovatie" }).success, false));

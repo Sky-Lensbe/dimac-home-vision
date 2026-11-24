@@ -48,14 +48,3 @@ export function parseScanParams(params: URLSearchParams): { pakket: PackageId | 
   const r = params.get("rapport");
   return { pakket, situatie: s === "kopen" || s === "renoveren" ? s : null, rapport: r && /^QS-\d{8}-[A-Z0-9]{8}$/.test(r) ? r : null };
 }
-
-/**
- * Ontvanger voor de Woningscan-mailto. Testmodus is een codeconstante (niet afhankelijk van
- * import.meta.env.PROD): zolang die op "test" staat gaat een handoff uitsluitend naar info@sky-lens.be.
- * Omschakelen naar productie vereist expliciete toestemming en een codewijziging.
- */
-export const WONINGSCAN_MAIL_MODE: "test" | "production" = "test";
-export const WONINGSCAN_TEST_RECIPIENT = "info@sky-lens.be";
-export function woningscanRecipient(mode: "test" | "production" = WONINGSCAN_MAIL_MODE): string {
-  return mode === "production" ? "info@dimac.be" : WONINGSCAN_TEST_RECIPIENT;
-}

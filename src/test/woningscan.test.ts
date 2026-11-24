@@ -11,8 +11,6 @@ import {
   formatEuro,
   formatPrice,
   parseScanParams,
-  woningscanRecipient,
-  WONINGSCAN_MAIL_MODE,
 } from "@/data/woningscan";
 import { buildMailto } from "@/lib/mailto";
 
@@ -77,14 +75,7 @@ describe("queryparameters", () => {
   });
 });
 
-describe("mailto testmodus", () => {
-  it("Woningscan-aanvragen gaan in testmodus uitsluitend naar info@sky-lens.be", () => {
-    expect(WONINGSCAN_MAIL_MODE).toBe("test");
-    expect(woningscanRecipient()).toBe("info@sky-lens.be");
-    const url = buildMailto("Aanvraag", [["Pakket", "Woningscan"]], undefined, woningscanRecipient());
-    expect(url.startsWith("mailto:info@sky-lens.be?")).toBe(true);
-    expect(url).not.toContain("dimac.be");
-  });
+describe("rechtstreeks contactalternatief", () => {
   it("algemene mailto blijft standaard naar info@dimac.be", () => {
     expect(buildMailto("X", []).startsWith("mailto:info@dimac.be?")).toBe(true);
   });

@@ -1,10 +1,10 @@
 # Roadmap
 
 ## Automatische verzending
-- [ ] Quickscan PDF naar aanvrager en interne melding naar DIMAC activeren
-- [ ] Contact-, renovatie- en Woningscan-aanvragen automatisch verzenden
-- [ ] Beveiligde bewaarkopie van aanvragen, met status bij mailproblemen
-- [ ] Tests en echte formulierinzendingen controleren; niets publiceren
+- [x] Quickscan PDF naar aanvrager en interne melding naar DIMAC activeren
+- [x] Contact-, renovatie- en Woningscan-aanvragen automatisch verzenden
+- [x] Beveiligde bewaarkopie van aanvragen, met status bij mailproblemen
+- [x] Tests en echte formulierinzendingen controleren; niets publiceren
 
 ## Juridische frontend en launchaudit
 - [x] Audit bedrijfsgegevens, mailmodus, opslag, tracking en retentie
@@ -19,7 +19,7 @@
 - [x] Eén afsluitend voorbehoud, contextuele waarschuwingen behouden, duidelijke premielinks
 - [x] Vijf rapportlengtes lokaal genereren en elke pagina inspecteren; desktop/mobiel en download controleren
 - [x] Voorbeeld-PDF, screenshots en vergelijking opleveren
-- [ ] Serveruitrol van deze presentatiecorrecties — wacht op afzonderlijke toestemming
+- [x] Serveruitrol van deze presentatiecorrecties — meegenomen bij goedgekeurde activering van rapportmail
 
 ## Quickscan 2.3.4 (lokale implementatie — afgerond)
 - [x] Engine: G01 "Recent dubbel glas" (E2), H01 meerkeuze + H01B hoofdverwarming (dynamische opties), H03 warmteverdeling, VL03 vloerverwarming, Q30/Q37-teksten, legacy H01-normalisatie vóór resolver

@@ -634,7 +634,7 @@ const Woningscan = () => {
                 <Link to="/algemene-voorwaarden" className="text-accent underline underline-offset-2 focus-ring">algemene voorwaarden</Link> en de informatie over het{" "}
                 <Link to="/algemene-voorwaarden#herroepingsrecht" className="text-accent underline underline-offset-2 focus-ring">herroepingsrecht</Link>. DIMAC bevestigt de opdracht afzonderlijk.
               </p>
-              <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={!pkg || delivery.pending}>
+              <Button type="submit" size="lg" className="w-full sm:w-auto whitespace-normal h-auto min-h-12" disabled={!pkg || delivery.pending}>
                 {delivery.pending ? "Bezig met verzenden…" : pkg ? `${pkg.name} aanvragen — ${formatEuro(scanTotal(pkg.id, drone))}` : "Kies eerst een Woningscan"}
                 <ArrowRight />
               </Button>
