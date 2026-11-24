@@ -40,7 +40,10 @@ jobs:
           node-version: 24
           cache: 'npm'
       - run: npm ci
-      - run: npm run build
+      - name: Build
+        run: npm run build
+        env:
+          VITE_ALLOW_INDEXING: "true"
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
