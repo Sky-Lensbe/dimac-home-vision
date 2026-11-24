@@ -10,9 +10,9 @@ import { formatEuro, VAT_LABEL } from "@/data/woningscan";
 import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 import { presentReport234, premiumLink234, recommendationScope234, REPORT_INFORMATION_TITLE } from "../../../supabase/functions/_shared/quickscan/presentation234";
-import buildingAsset from "@/assets/dimac-gebouw.png.asset.json";
-import houseAsset from "@/assets/dimac-woning.png.asset.json";
-import logoAsset from "@/assets/dimac-logo.jpg.asset.json";
+import buildingAsset from "@/assets/dimac-gebouw.png?url";
+import houseAsset from "@/assets/dimac-woning.png?url";
+import logoAsset from "@/assets/dimac-logo.jpg?url";
 
 const Art = ({ shapes, viewBox, className, strokeScale = 1 }: { shapes: Shape[]; viewBox: string; className?: string; strokeScale?: number }) => (
   <svg viewBox={viewBox} className={className} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -50,7 +50,7 @@ const Page = ({ n, total, reportNumber, children }: { n: number; total: number; 
   <section className="border border-border bg-background shadow-[0_20px_60px_-40px_hsl(var(--primary)/0.35)] mb-10 break-inside-avoid">
     <header className="flex items-center justify-between gap-4 px-6 md:px-10 pt-6 pb-4 border-b border-border">
       <div className="flex items-center gap-3">
-        <img src={logoAsset.url} onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/logo-dimac.png"; }} alt="DIMAC" className="h-10 w-10 object-contain" />
+        <img src={logoAsset} onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/logo-dimac.png"; }} alt="DIMAC" className="h-10 w-10 object-contain" />
         <span className="hidden sm:block h-px w-8 bg-accent" aria-hidden="true" />
       </div>
       <div className="flex items-center gap-6 text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
@@ -118,7 +118,7 @@ export const Report23 = ({ report, reportNumber }: { report: QuickscanReport23; 
             <p className="mt-5 text-primary/85 leading-relaxed max-w-md">Een heldere eerste analyse van uw {report.apartment ? "appartement" : "woning"}, op basis van uw eigen antwoorden in de DIMAC Quickscan.</p>
           </div>
           <figure className="text-primary/70">
-            {modern ? <div className="report234-art"><img src={buildingAsset.url} alt="DIMAC architectuurtekening van een gebouw" /><img src={houseAsset.url} alt="DIMAC architectuurtekening van een woning" /></div> : <>
+            {modern ? <div className="report234-art"><img src={buildingAsset} alt="DIMAC architectuurtekening van een gebouw" /><img src={houseAsset} alt="DIMAC architectuurtekening van een woning" /></div> : <>
             <Art shapes={ILLUSTRATIONS[v.illustration]} viewBox="0 0 220 150" className="w-full h-auto" strokeScale={1} />
             <figcaption className="mt-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Illustratie, geen weergave van uw woning</figcaption></>}
           </figure>

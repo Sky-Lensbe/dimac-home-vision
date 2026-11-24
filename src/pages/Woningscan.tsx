@@ -26,7 +26,7 @@ import {
 import { RequestDelivery, useRequestDelivery } from "@/components/site/RequestDelivery";
 import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
-import inspectie from "@/assets/inspecteur-inkomhal.png.asset.json";
+import inspectie from "@/assets/inspecteur-inkomhal.png?url";
 
 const ws = getProduct("woningscan")!;
 const plus = getProduct("woningscan-plus")!;
@@ -586,7 +586,7 @@ const Woningscan = () => {
             <div className="mt-8 hidden lg:block">
               <div className="relative overflow-hidden">
                 <img
-                  src={inspectie.url}
+                  src={inspectie}
                   alt="Inspecteur met tablet tijdens een Woningscan in een moderne inkomhal"
                   loading="lazy"
                   className="w-full aspect-[4/5] object-cover"

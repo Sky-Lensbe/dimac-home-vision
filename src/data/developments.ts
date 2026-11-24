@@ -26,94 +26,94 @@ export interface Development {
   result?: string;
 }
 
-import diestLiving from "@/assets/diest-woonruimte.jpg.asset.json";
-import diestLivingTwo from "@/assets/diest-woonruimte-2.jpg.asset.json";
-import diestKitchen from "@/assets/diest-keuken.jpg.asset.json";
-import herkGevel from "@/assets/herk-de-stad-gevel.jpg.asset.json";
-import herkBadkamer from "@/assets/herk-de-stad-badkamer.jpg.asset.json";
-import paalGevel from "@/assets/paal-gevel.jpg.asset.json";
-import paalBadkamer from "@/assets/paal-badkamer.jpg.asset.json";
-import paalBadkamerTwee from "@/assets/paal-badkamer-2.jpg.asset.json";
-import paalKeuken from "@/assets/paal-keuken.jpg.asset.json";
-import paalTerras from "@/assets/paal-terras.jpg.asset.json";
-import paalTerrasTwee from "@/assets/paal-terras-2.jpg.asset.json";
-import schaffenGevel from "@/assets/schaffen-gevel.jpg.asset.json";
-import schaffenBadkamer from "@/assets/schaffen-badkamer.jpg.asset.json";
-import schaffenWoonruimte from "@/assets/schaffen-woonruimte.jpg.asset.json";
-import schaffenTrap from "@/assets/schaffen-trap.jpg.asset.json";
-import schulenGevel from "@/assets/schulen-gevel.jpg.asset.json";
-import schulenWoonruimte from "@/assets/schulen-woonruimte.jpg.asset.json";
-import schulenBadkamer from "@/assets/schulen-badkamer.jpg.asset.json";
-import schulenBadkamerTwee from "@/assets/schulen-badkamer-2.jpg.asset.json";
-import schulenKeuken from "@/assets/schulen-keuken.jpg.asset.json";
-import schulenKeukenTwee from "@/assets/schulen-keuken-2.jpg.asset.json";
-import schulenTrap from "@/assets/schulen-trap.jpg.asset.json";
-import schulenGevelTwee from "@/assets/schulen-gevel-2.jpg.asset.json";
-import schulenGevelDrie from "@/assets/schulen-gevel-3.jpg.asset.json";
+import diestLiving from "@/assets/diest-woonruimte.jpg?url";
+import diestLivingTwo from "@/assets/diest-woonruimte-2.jpg?url";
+import diestKitchen from "@/assets/diest-keuken.jpg?url";
+import herkGevel from "@/assets/herk-de-stad-gevel.jpg?url";
+import herkBadkamer from "@/assets/herk-de-stad-badkamer.jpg?url";
+import paalGevel from "@/assets/paal-gevel.jpg?url";
+import paalBadkamer from "@/assets/paal-badkamer.jpg?url";
+import paalBadkamerTwee from "@/assets/paal-badkamer-2.jpg?url";
+import paalKeuken from "@/assets/paal-keuken.jpg?url";
+import paalTerras from "@/assets/paal-terras.jpg?url";
+import paalTerrasTwee from "@/assets/paal-terras-2.jpg?url";
+import schaffenGevel from "@/assets/schaffen-gevel.jpg?url";
+import schaffenBadkamer from "@/assets/schaffen-badkamer.jpg?url";
+import schaffenWoonruimte from "@/assets/schaffen-woonruimte.jpg?url";
+import schaffenTrap from "@/assets/schaffen-trap.jpg?url";
+import schulenGevel from "@/assets/schulen-gevel.jpg?url";
+import schulenWoonruimte from "@/assets/schulen-woonruimte.jpg?url";
+import schulenBadkamer from "@/assets/schulen-badkamer.jpg?url";
+import schulenBadkamerTwee from "@/assets/schulen-badkamer-2.jpg?url";
+import schulenKeuken from "@/assets/schulen-keuken.jpg?url";
+import schulenKeukenTwee from "@/assets/schulen-keuken-2.jpg?url";
+import schulenTrap from "@/assets/schulen-trap.jpg?url";
+import schulenGevelTwee from "@/assets/schulen-gevel-2.jpg?url";
+import schulenGevelDrie from "@/assets/schulen-gevel-3.jpg?url";
 
 export const developments: Development[] = [
   {
     slug: "diest",
     name: "Project Diest",
     location: "Diest",
-    cover: diestLiving.url,
+    cover: diestLiving,
     coverAlt: "Woonruimte van de vrijstaande woning in Diest",
     gallery: [
-      { src: diestLivingTwo.url, alt: "Tweede zicht op de woonruimte in Diest" },
-      { src: diestKitchen.url, alt: "Keuken van de vrijstaande woning in Diest" },
+      { src: diestLivingTwo, alt: "Tweede zicht op de woonruimte in Diest" },
+      { src: diestKitchen, alt: "Keuken van de vrijstaande woning in Diest" },
     ],
   },
   {
     slug: "herk-de-stad",
     name: "Project Herk-de-Stad",
     location: "Herk-de-Stad",
-    cover: herkGevel.url,
+    cover: herkGevel,
     coverAlt: "Gevel van het project in Herk-de-Stad",
     gallery: [
-      { src: herkBadkamer.url, alt: "Badkamer van het project in Herk-de-Stad" },
+      { src: herkBadkamer, alt: "Badkamer van het project in Herk-de-Stad" },
     ],
   },
   {
     slug: "paal",
     name: "Project Paal",
     location: "Paal",
-    cover: paalGevel.url,
+    cover: paalGevel,
     coverAlt: "Gevel van het project in Paal",
     gallery: [
-      { src: paalBadkamer.url, alt: "Badkamer van het project in Paal" },
-      { src: paalBadkamerTwee.url, alt: "Tweede zicht op de badkamer in Paal" },
-      { src: paalKeuken.url, alt: "Keuken van het project in Paal" },
-      { src: paalTerras.url, alt: "Overdekt terras van het project in Paal" },
-      { src: paalTerrasTwee.url, alt: "Tweede zicht op het overdekte terras in Paal" },
+      { src: paalBadkamer, alt: "Badkamer van het project in Paal" },
+      { src: paalBadkamerTwee, alt: "Tweede zicht op de badkamer in Paal" },
+      { src: paalKeuken, alt: "Keuken van het project in Paal" },
+      { src: paalTerras, alt: "Overdekt terras van het project in Paal" },
+      { src: paalTerrasTwee, alt: "Tweede zicht op het overdekte terras in Paal" },
     ],
   },
   {
     slug: "schaffen",
     name: "Project Schaffen",
     location: "Schaffen",
-    cover: schaffenGevel.url,
+    cover: schaffenGevel,
     coverAlt: "Gevel van het project in Schaffen",
     gallery: [
-      { src: schaffenBadkamer.url, alt: "Badkamer van het project in Schaffen" },
-      { src: schaffenWoonruimte.url, alt: "Woonruimte van het project in Schaffen" },
-      { src: schaffenTrap.url, alt: "Traphal van het project in Schaffen" },
+      { src: schaffenBadkamer, alt: "Badkamer van het project in Schaffen" },
+      { src: schaffenWoonruimte, alt: "Woonruimte van het project in Schaffen" },
+      { src: schaffenTrap, alt: "Traphal van het project in Schaffen" },
     ],
   },
   {
     slug: "schulen",
     name: "Project Schulen",
     location: "Schulen",
-    cover: schulenGevel.url,
+    cover: schulenGevel,
     coverAlt: "Vooraanzicht van het project in Schulen",
     gallery: [
-      { src: schulenWoonruimte.url, alt: "Woonruimte van het project in Schulen" },
-      { src: schulenBadkamer.url, alt: "Badkamer van het project in Schulen" },
-      { src: schulenBadkamerTwee.url, alt: "Tweede zicht op de badkamer in Schulen" },
-      { src: schulenKeuken.url, alt: "Keuken van het project in Schulen" },
-      { src: schulenKeukenTwee.url, alt: "Tweede zicht op de keuken in Schulen" },
-      { src: schulenTrap.url, alt: "Traphal van het project in Schulen" },
-      { src: schulenGevelTwee.url, alt: "Tweede zicht op de gevel in Schulen" },
-      { src: schulenGevelDrie.url, alt: "Derde zicht op de gevel in Schulen" },
+      { src: schulenWoonruimte, alt: "Woonruimte van het project in Schulen" },
+      { src: schulenBadkamer, alt: "Badkamer van het project in Schulen" },
+      { src: schulenBadkamerTwee, alt: "Tweede zicht op de badkamer in Schulen" },
+      { src: schulenKeuken, alt: "Keuken van het project in Schulen" },
+      { src: schulenKeukenTwee, alt: "Tweede zicht op de keuken in Schulen" },
+      { src: schulenTrap, alt: "Traphal van het project in Schulen" },
+      { src: schulenGevelTwee, alt: "Tweede zicht op de gevel in Schulen" },
+      { src: schulenGevelDrie, alt: "Derde zicht op de gevel in Schulen" },
     ],
   },
 ];

@@ -8,8 +8,8 @@ import { organizationSchema, websiteSchema } from "@/lib/site";
 import { developments } from "@/data/developments";
 import { DRONE_PRICE, PRODUCTS, VAT_LABEL, formatEuro, formatPrice, getProduct } from "@/data/woningscan";
 import { track } from "@/lib/analytics";
-import heroAsset from "@/assets/hero-living.jpg.asset.json";
-import renoAsset from "@/assets/total-realisation.jpg.asset.json";
+import heroAsset from "@/assets/hero-living.jpg?url";
+import renoAsset from "@/assets/total-realisation.jpg?url";
 
 const cta = (label: string) => () => track("cta_click", { page_type: "home", cta_label: label });
 const scanClick = (label: string) => () => track("woningscan_click", { page_type: "home", cta_label: label });
@@ -72,7 +72,7 @@ const Index = () => (
     {/* 1 — HERO */}
     <section className="relative overflow-hidden bg-background" aria-labelledby="hero-title">
       <img
-        src={heroAsset.url}
+        src={heroAsset}
         alt=""
         width={1920}
         height={1280}
@@ -324,7 +324,7 @@ const Index = () => (
     <section className="py-20 md:py-32 bg-surface border-t border-border" aria-labelledby="renovatie-title">
       <div className="container-tight grid gap-12 lg:grid-cols-2 lg:items-center">
         <div data-reveal>
-          <ImagePlaceholder src={renoAsset.url} label="Lichte, gerenoveerde woonruimte" aspect="portrait" showLabelOverlay={false} />
+          <ImagePlaceholder src={renoAsset} label="Lichte, gerenoveerde woonruimte" aspect="portrait" showLabelOverlay={false} />
         </div>
         <div>
           <span className="eyebrow mb-5" data-reveal>Totaalrenovaties</span>

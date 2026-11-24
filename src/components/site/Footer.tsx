@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { COMPANY } from "@/lib/site";
-import logoAsset from "@/assets/dimac-logo.jpg.asset.json";
+import logoAsset from "@/assets/dimac-logo.jpg?url";
 
 const linkClass =
   "link-underline text-primary/80 fine:hover:text-accent transition-colors duration-300 focus-ring";
@@ -25,7 +25,7 @@ export const Footer = () => (
       <div className="grid gap-14 md:grid-cols-[1.6fr_1fr_1fr]">
         <div>
           <div className="flex items-center gap-4 mb-6">
-            <img src={logoAsset.url} alt="Logo van Dimac" className="h-14 w-14 rounded-md object-cover" width={56} height={56} loading="lazy" />
+            <img src={logoAsset} alt="Logo van Dimac" className="h-14 w-14 rounded-md object-cover" width={56} height={56} loading="lazy" />
             <span className="font-display text-xl text-primary">Dimac</span>
           </div>
           <p className="max-w-sm text-muted-foreground leading-relaxed">

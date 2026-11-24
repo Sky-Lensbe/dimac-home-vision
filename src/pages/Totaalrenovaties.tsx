@@ -16,7 +16,7 @@ import { PageSEO } from "@/components/seo/PageSEO";
 import { breadcrumbSchema, faqSchema, organizationSchema } from "@/lib/site";
 import { RequestDelivery, useRequestDelivery } from "@/components/site/RequestDelivery";
 import { track } from "@/lib/analytics";
-import renoAsset from "@/assets/total-realisation.jpg.asset.json";
+import renoAsset from "@/assets/total-realisation.jpg?url";
 
 const content = [
   {
@@ -140,7 +140,7 @@ const Totaalrenovaties = () => {
       <Section>
         <div className="grid gap-14 lg:grid-cols-[1fr_1.2fr]">
           <div className="lg:sticky lg:top-28 self-start" data-reveal>
-            <ImagePlaceholder src={renoAsset.url} label="Totaalrenovatie van een bestaande woning" aspect="portrait" showLabelOverlay={false} />
+            <ImagePlaceholder src={renoAsset} label="Totaalrenovatie van een bestaande woning" aspect="portrait" showLabelOverlay={false} />
           </div>
           <div className="divide-y divide-border border-y border-border">
             {content.map((c) => (

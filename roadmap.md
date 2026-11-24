@@ -1,5 +1,10 @@
 # Roadmap
 
+## GitHub-afbeeldingen en lettertypen
+- [x] Originele bestanden toevoegen en website/PDF-imports omzetten
+- [x] Foto’s op vijf pagina’s en vijf PDF-versies lokaal gecontroleerd; 41 bestaande tests geslaagd
+- [ ] CDN-pointerbestanden verwijderen — geblokkeerd: verwijderen wist ook bestanden voor eerdere previews en server-PDF’s
+
 ## Automatische verzending
 - [x] Voorlopige extra kopieën van alle aanvragen en Quickscan-PDF's naar info@sky-lens.be; bestaande ontvangers behouden, getest en uitgerold
 - [x] Quickscan PDF naar aanvrager en interne melding naar DIMAC activeren

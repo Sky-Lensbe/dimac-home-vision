@@ -4,7 +4,7 @@ import { ChevronDown, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { track } from "@/lib/analytics";
-import logoAsset from "@/assets/dimac-logo.jpg.asset.json";
+import logoAsset from "@/assets/dimac-logo.jpg?url";
 
 const NAV: { to: string; label: string; children?: { to: string; label: string }[] }[] = [
   { to: "/", label: "Home" },
@@ -64,7 +64,7 @@ export const Navbar = () => {
           aria-label="Dimac — home"
         >
           <img
-            src={logoAsset.url}
+            src={logoAsset}
             alt="Dimac"
             className="h-11 w-11 rounded-md object-cover transition-opacity duration-300 fine:group-hover/logo:opacity-85"
             width={44}

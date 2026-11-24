@@ -4,13 +4,13 @@ import { withReportRef, type QuickscanReport23, type DomainStatus, type IconId, 
 import { ICONS, ILLUSTRATIONS, type Shape } from "@/lib/reportArt";
 import { formatEuro, VAT_LABEL } from "@/data/woningscan";
 import { absoluteUrl } from "@/lib/site";
-import logoAsset from "@/assets/dimac-logo.jpg.asset.json";
-import playfairRegular from "@/assets/fonts/PlayfairDisplay-Regular.ttf.asset.json";
-import playfairSemi from "@/assets/fonts/PlayfairDisplay-SemiBold.ttf.asset.json";
-import interRegular from "@/assets/fonts/Inter-Regular.ttf.asset.json";
-import interSemi from "@/assets/fonts/Inter-SemiBold.ttf.asset.json";
-import artBuilding from "@/assets/dimac-gebouw.png.asset.json";
-import artHouse from "@/assets/dimac-woning.png.asset.json";
+import logoAsset from "@/assets/dimac-logo.jpg?url";
+import playfairRegular from "@/assets/fonts/PlayfairDisplay-Regular.ttf?url";
+import playfairSemi from "@/assets/fonts/PlayfairDisplay-SemiBold.ttf?url";
+import interRegular from "@/assets/fonts/Inter-Regular.ttf?url";
+import interSemi from "@/assets/fonts/Inter-SemiBold.ttf?url";
+import artBuilding from "@/assets/dimac-gebouw.png?url";
+import artHouse from "@/assets/dimac-woning.png?url";
 import type { ReportMeta } from "@/lib/quickscanPdf";
 
 import { renderSnapshotPdf, reportPdfModel as snapshotModel, type PdfDependencies } from "../../supabase/functions/_shared/quickscan/pdf/render233";
@@ -19,9 +19,9 @@ import { renderSnapshotPdf as historicalPdf } from "../../supabase/functions/_sh
 export type { PdfLoadOptions } from "../../supabase/functions/_shared/quickscan/pdf/render233";
 import type { PdfLoadOptions } from "../../supabase/functions/_shared/quickscan/pdf/render233";
 export const PDF_ASSETS = {
-  logo: [logoAsset.url, "/logo-dimac.png"],
-  fonts: { serif: [playfairRegular.url, playfairSemi.url], sans: [interRegular.url, interSemi.url] },
-  art: { building: [artBuilding.url], house: [artHouse.url] },
+  logo: [logoAsset, "/logo-dimac.png"],
+  fonts: { serif: [playfairRegular, playfairSemi], sans: [interRegular, interSemi] },
+  art: { building: [artBuilding], house: [artHouse] },
 };
 
 export const pdfDependencies: PdfDependencies = {
@@ -31,12 +31,9 @@ export const pdfDependencies: PdfDependencies = {
 export function reportPdfModel(r: QuickscanReport23, meta: ReportMeta) {
   return snapshotModel(r, meta, pdfDependencies);
 }
-/** Local Vite does not serve the managed asset route; use the same public project assets there. */
+/** Load bundled original assets on the current host, independent of Lovable asset routes. */
 async function loadPdfAsset(url: string): Promise<ArrayBuffer> {
-  const local = ["localhost", "127.0.0.1"].includes(window.location.hostname);
-  const resolved = local && url.startsWith("/__l5e/assets-v1/")
-    ? `https://id-preview--9898680e-4724-4e20-8227-2a5082382f19.lovable.app${url}` : url;
-  const response = await fetch(resolved);
+  const response = await fetch(url);
   if (!response.ok || response.headers.get("content-type")?.includes("text/html")) throw new Error("PDF asset unavailable");
   return response.arrayBuffer();
 }
