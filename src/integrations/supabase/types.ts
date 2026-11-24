@@ -1,3 +1,6 @@
+// Application schema contract matching drizzle/migrations.
+// Restored after reconnecting Supabase; these types do not create tables.
+// The connected database must have the existing migrations applied separately.
 export type Json =
   | string
   | number
@@ -14,16 +17,296 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      contact_submissions: {
+        Row: {
+          confirmation_status: string
+          created_at: string
+          email: string
+          form_type: string
+          id: string
+          name: string
+          owner_status: string
+          payload: Json
+        }
+        Insert: {
+          confirmation_status?: string
+          created_at?: string
+          email: string
+          form_type: string
+          id: string
+          name: string
+          owner_status?: string
+          payload: Json
+        }
+        Update: {
+          confirmation_status?: string
+          created_at?: string
+          email?: string
+          form_type?: string
+          id?: string
+          name?: string
+          owner_status?: string
+          payload?: Json
+        }
+        Relationships: []
+      }
+      quickscan_events: {
+        Row: {
+          created_at: string
+          detail: string | null
+          event_type: string
+          id: string
+          lead_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          event_type: string
+          id?: string
+          lead_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          event_type?: string
+          id?: string
+          lead_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quickscan_events_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "quickscan_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quickscan_leads: {
+        Row: {
+          consent_timestamp: string | null
+          consent_version: string | null
+          construction_period: string | null
+          created_at: string
+          decision_timing: string | null
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          marketing_consent: boolean
+          municipality: string
+          notes: string | null
+          phone: string | null
+          postal_code: string | null
+          property_type: string | null
+          situation: string | null
+          status: string
+        }
+        Insert: {
+          consent_timestamp?: string | null
+          consent_version?: string | null
+          construction_period?: string | null
+          created_at?: string
+          decision_timing?: string | null
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          marketing_consent?: boolean
+          municipality: string
+          notes?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          property_type?: string | null
+          situation?: string | null
+          status?: string
+        }
+        Update: {
+          consent_timestamp?: string | null
+          consent_version?: string | null
+          construction_period?: string | null
+          created_at?: string
+          decision_timing?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          marketing_consent?: boolean
+          municipality?: string
+          notes?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          property_type?: string | null
+          situation?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      quickscan_rate_limits: {
+        Row: {
+          count: number
+          ip_hash: string
+          window_start: string
+        }
+        Insert: {
+          count?: number
+          ip_hash: string
+          window_start: string
+        }
+        Update: {
+          count?: number
+          ip_hash?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
+      quickscan_reports: {
+        Row: {
+          attention_points: Json
+          barometer_category: string
+          barometer_score_internal: number | null
+          combination_advice: Json
+          created_at: string
+          delivery_status: string
+          domain_scores: Json
+          drone_recommendation: boolean
+          id: string
+          information_coverage: string
+          lead_id: string
+          recommended_package: string | null
+          report_number: string
+          report_snapshot: Json
+          report_version: string
+          rule_version: string
+          safety_flags: Json
+          unknown_information: Json
+        }
+        Insert: {
+          attention_points: Json
+          barometer_category: string
+          barometer_score_internal?: number | null
+          combination_advice: Json
+          created_at?: string
+          delivery_status?: string
+          domain_scores: Json
+          drone_recommendation?: boolean
+          id?: string
+          information_coverage: string
+          lead_id: string
+          recommended_package?: string | null
+          report_number: string
+          report_snapshot: Json
+          report_version: string
+          rule_version: string
+          safety_flags: Json
+          unknown_information: Json
+        }
+        Update: {
+          attention_points?: Json
+          barometer_category?: string
+          barometer_score_internal?: number | null
+          combination_advice?: Json
+          created_at?: string
+          delivery_status?: string
+          domain_scores?: Json
+          drone_recommendation?: boolean
+          id?: string
+          information_coverage?: string
+          lead_id?: string
+          recommended_package?: string | null
+          report_number?: string
+          report_snapshot?: Json
+          report_version?: string
+          rule_version?: string
+          safety_flags?: Json
+          unknown_information?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quickscan_reports_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "quickscan_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quickscan_responses: {
+        Row: {
+          answer_value: Json
+          id: string
+          lead_id: string
+          question_id: string
+          question_version: string
+        }
+        Insert: {
+          answer_value: Json
+          id?: string
+          lead_id: string
+          question_id: string
+          question_version: string
+        }
+        Update: {
+          answer_value?: Json
+          id?: string
+          lead_id?: string
+          question_id?: string
+          question_version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quickscan_responses_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "quickscan_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      quickscan_admin_allowed: { Args: { _email: string }; Returns: boolean }
+      quickscan_register: {
+        Args: {
+          p_events: Json
+          p_lead: Json
+          p_report: Json
+          p_report_number: string
+          p_responses: Json
+        }
+        Returns: Json
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +433,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin"],
+    },
   },
 } as const

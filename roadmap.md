@@ -1,5 +1,9 @@
 # Roadmap
 
+## Supabase-typen na verbindingswijziging
+- [x] Bestaand applicatieschema herstellen voor getypeerde dashboardqueries, zonder verbindings- of databasewijzigingen
+- [ ] Tabellen in de nieuw gekoppelde database beschikbaar maken — geblokkeerd: database is leeg; bestaande migraties vereisen afzonderlijk akkoord
+
 ## GitHub-afbeeldingen en lettertypen
 - [x] Originele bestanden toevoegen en website/PDF-imports omzetten
 - [x] Foto’s op vijf pagina’s en vijf PDF-versies lokaal gecontroleerd; 41 bestaande tests geslaagd
