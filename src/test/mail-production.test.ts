@@ -1,9 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MAIL_MODE, mayReceiveReportMail, resolveRecipients, reportMailEnvelope } from "../../supabase/functions/_shared/quickscan/mail-policy";
-import { sendMail, OWNER_EMAIL, INTERNAL_NOTIFICATION_RECIPIENTS } from "../../supabase/functions/_shared/mail";
+import { sendMail, OWNER_EMAIL, INTERNAL_NOTIFICATION_RECIPIENTS, MAIL_SENDER } from "../../supabase/functions/_shared/mail";
+import { reportEmail } from "../../supabase/functions/_shared/quickscan/delivery";
 afterEach(() => vi.unstubAllGlobals());
 beforeEach(() => vi.stubGlobal("AbortSignal", { timeout: () => undefined }));
 describe("Explicitly approved automatic delivery", () => {
+  it("sends all request notifications and confirmations from info@dimac.be", () => expect(MAIL_SENDER).toBe("Dimac <info@dimac.be>"));
+  it("sends Quickscan PDFs from info@dimac.be", () => expect(reportEmail("Test", "QS-20261124-ABC12345", "https://www.dimac.be/logo-dimac.png").from).toBe("Dimac <info@dimac.be>"));
+  it("routes Quickscan replies to info@dimac.be", () => expect(reportEmail("Test", "QS-20261124-ABC12345", "https://www.dimac.be/logo-dimac.png").reply_to).toBe("info@dimac.be"));
   it("activates production for new report submissions", () => expect(MAIL_MODE).toBe("production"));
   it("copies every new PDF to Sky-Lens without replacing the customer", () => expect(reportMailEnvelope("visitor@example.com")).toEqual({ to: ["visitor@example.com"], bcc: ["info@sky-lens.be"] }));
   it("copies all Quickscan notifications to Sky-Lens alongside DIMAC", () => expect(resolveRecipients("lead_notification", null)).toEqual(["info@dimac.be", "info@sky-lens.be"]));

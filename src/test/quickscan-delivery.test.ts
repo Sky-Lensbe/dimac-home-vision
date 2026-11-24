@@ -19,5 +19,5 @@ describe("Prepared PDF delivery safety", () => {
   it("delivered cannot be resent by status transition", () => { expect(mayTransition("delivered", "sending")).toBe(false); });
   it("pending cannot claim delivery", () => { expect(mayTransition("pending", "delivered")).toBe(false); });
   it("confirmed provider event advances accepted", () => { expect(mayTransition("accepted", "delivered")).toBe(true); });
-  it("escapes recipient name and uses requested identity", () => { const e = reportEmail("<script>", identity.reportNumber, "https://www.dimac.be/logo-dimac.png"); expect(e.html).not.toContain("<script>"); expect(e.from).toBe("Sky-Lens voor DIMAC <info@sky-lens.be>"); expect(e.reply_to).toBe("info@sky-lens.be"); });
+  it("escapes recipient name and uses requested identity", () => { const e = reportEmail("<script>", identity.reportNumber, "https://www.dimac.be/logo-dimac.png"); expect(e.html).not.toContain("<script>"); expect(e.from).toBe("Dimac <info@dimac.be>"); expect(e.reply_to).toBe("info@dimac.be"); });
 });

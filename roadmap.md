@@ -6,6 +6,8 @@
 - [ ] CDN-pointerbestanden verwijderen — geblokkeerd: verwijderen wist ook bestanden voor eerdere previews en server-PDF’s
 
 ## Automatische verzending
+- [x] Alle afzenders lokaal omzetten naar info@dimac.be; Sky-Lens-kopieën behouden
+- [ ] DIMAC-afzender activeren — verificatie van dimac.be bij bestaande maildienst vereist
 - [x] Voorlopige extra kopieën van alle aanvragen en Quickscan-PDF's naar info@sky-lens.be; bestaande ontvangers behouden, getest en uitgerold
 - [x] Quickscan PDF naar aanvrager en interne melding naar DIMAC activeren
 - [x] Contact-, renovatie- en Woningscan-aanvragen automatisch verzenden

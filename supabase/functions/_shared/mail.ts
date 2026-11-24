@@ -4,7 +4,8 @@ export const OWNER_EMAIL = "info@dimac.be";
 /** Temporary operational copies; never used for customer marketing. */
 export const OPERATIONAL_COPY_EMAIL = "info@sky-lens.be";
 export const INTERNAL_NOTIFICATION_RECIPIENTS = [OWNER_EMAIL, OPERATIONAL_COPY_EMAIL] as const;
-export const MAIL_SENDER = "Sky-Lens voor DIMAC <info@sky-lens.be>";
+export const MAIL_IDENTITY = { address: OWNER_EMAIL, name: "Dimac", replyTo: OWNER_EMAIL } as const;
+export const MAIL_SENDER = `${MAIL_IDENTITY.name} <${MAIL_IDENTITY.address}>`;
 export async function sendMail(mail: Record<string, unknown>, key: string) {
   const lovable = Deno.env.get("LOVABLE_API_KEY");
   const resend = Deno.env.get("RESEND_API_KEY");

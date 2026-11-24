@@ -1,8 +1,9 @@
 /** Local delivery preparation only: no provider call, scheduling or live activation. */
+import { MAIL_IDENTITY } from "../mail.ts";
 export const DELIVERY_MODE: "test" | "live" = "test";
 export const DELIVERY_ENABLED = false;
 export const MAX_DELIVERY_ATTEMPTS = 5;
-export const SENDER = { address: "info@sky-lens.be", name: "Sky-Lens voor DIMAC", replyTo: "info@sky-lens.be" } as const;
+export const SENDER = MAIL_IDENTITY;
 export type DeliveryStatus = "pending" | "sending" | "accepted" | "delivered" | "failed" | "retry_scheduled";
 export interface DeliveryIdentity { reportId: string; reportNumber: string; recipient: string; synthetic: boolean; generation: number }
 
@@ -57,7 +58,7 @@ export function reportEmail(firstName: string, reportNumber: string, logoUrl: st
     "De DIMAC Quickscan is een eerste indicatie en vervangt geen technische inspectie ter plaatse.",
     "Heeft u vragen over het rapport? U kunt op deze e-mail antwoorden.",
     "Met vriendelijke groeten, Team DIMAC",
-    "Verzonden voor DIMAC via Sky-Lens — info@sky-lens.be",
+    "Dimac — info@dimac.be",
   ];
   return {
     from: `${SENDER.name} <${SENDER.address}>`, reply_to: SENDER.replyTo,
