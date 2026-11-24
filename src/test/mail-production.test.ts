@@ -19,14 +19,32 @@ describe("Explicitly approved automatic delivery", () => {
   it("keeps explicit test mode confined to Sky-Lens", () => expect(mayReceiveReportMail("visitor@example.com", "test")).toBe(false));
   it("sends contact notifications to the confirmed owner", () => expect(OWNER_EMAIL).toBe("info@dimac.be"));
   it("provider acceptance remains accepted, not delivered", async () => {
-    vi.stubGlobal("Deno", { env: { get: () => "test-only" } });
+    const getEnv = vi.fn((name: string) => name === "RESEND_API_KEY" ? "test-resend-key" : undefined);
+    vi.stubGlobal("Deno", { env: { get: getEnv } });
+    const mail = { to: [OWNER_EMAIL], subject: "Synthetic test", text: "No mail is sent in this test." };
     const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({ id: "synthetic-provider-id" }), { status: 200 }));
     vi.stubGlobal("fetch", fetch);
-    expect((await sendMail({ to: [OWNER_EMAIL] }, "request-owner-123")).status).toBe("accepted");
-    expect(fetch.mock.calls[0][1].headers["Idempotency-Key"]).toBe("request-owner-123");
+    expect(await sendMail(mail, "request-owner-123")).toEqual({ status: "accepted", providerId: "synthetic-provider-id" });
+    expect(getEnv).toHaveBeenCalledExactlyOnceWith("RESEND_API_KEY");
+    expect(fetch).toHaveBeenCalledExactlyOnceWith("https://api.resend.com/emails", expect.objectContaining({
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer test-resend-key",
+        "Idempotency-Key": "request-owner-123",
+      },
+      body: JSON.stringify(mail),
+    }));
+  });
+  it("fails explicitly when the Resend API key is missing", async () => {
+    vi.stubGlobal("Deno", { env: { get: () => undefined } });
+    const fetch = vi.fn();
+    vi.stubGlobal("fetch", fetch);
+    expect(await sendMail({}, "request-owner-123")).toEqual({ status: "failed", detail: "Resend-configuratie ontbreekt" });
+    expect(fetch).not.toHaveBeenCalled();
   });
   it("an ambiguous network failure is never retried blindly", async () => {
-    vi.stubGlobal("Deno", { env: { get: () => "test-only" } });
+    vi.stubGlobal("Deno", { env: { get: (name: string) => name === "RESEND_API_KEY" ? "test-resend-key" : undefined } });
     const fetch = vi.fn().mockRejectedValue(new Error("timeout")); vi.stubGlobal("fetch", fetch);
     expect((await sendMail({}, "request-owner-123")).status).toBe("failed");
     expect(fetch).toHaveBeenCalledTimes(1);
