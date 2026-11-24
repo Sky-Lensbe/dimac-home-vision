@@ -7,6 +7,7 @@ import { PageSEO } from "@/components/seo/PageSEO";
 import { QUESTION_MAP, DOMAINS, type QuickscanReport } from "@/lib/quickscan";
 import { buildReportPdf, downloadBlob, type ReportMeta } from "@/lib/quickscanPdf";
 import { storedReport, reportVersionLabel } from "@/lib/quickscanSnapshot";
+import { StoredRequests } from "@/components/site/StoredRequests";
 
 const STATUSES = [
   ["nieuw", "Nieuw"], ["te_beoordelen", "Te beoordelen"], ["contact_toegelaten", "Contact toegelaten"],
@@ -99,7 +100,7 @@ const Dashboard = () => {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl md:text-4xl text-primary">Quickscan-leads</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Testmodus. Gegevens zijn Quickscan-antwoorden van bezoekers, geen geverifieerde technische inspecties.</p>
+          <p className="mt-2 text-sm text-muted-foreground">Gegevens zijn Quickscan-antwoorden van bezoekers, geen geverifieerde technische inspecties.</p>
         </div>
         <Button variant="outline" onClick={() => supabase.auth.signOut()}>Afmelden</Button>
       </div>
@@ -139,6 +140,7 @@ const Dashboard = () => {
         </table>
       </div>
       {lead && <LeadDetail lead={lead} onClose={() => setOpen(null)} onChange={load} />}
+      <StoredRequests />
     </div>
   );
 };

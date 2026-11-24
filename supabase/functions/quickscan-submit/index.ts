@@ -3,8 +3,9 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { z } from "npm:zod@3";
 import { isComplete, QUESTION_VERSION, type Answers } from "../_shared/quickscan/engine.ts";
 import { composeReport } from "../_shared/quickscan/report.ts";
-import { MAIL_MODE } from "../_shared/quickscan/mail-policy.ts";
-import { mayReceiveTestMail, sendReportMail } from "../_shared/quickscan/send-report.ts";
+import { MAIL_MODE, mayReceiveReportMail, resolveRecipients } from "../_shared/quickscan/mail-policy.ts";
+import { sendReportMail } from "../_shared/quickscan/send-report.ts";
+import { sendMail, MAIL_SENDER } from "../_shared/mail.ts";
 import { findExisting, persistQuickscan, reportNumberFor, type QuickscanStore } from "../_shared/quickscan/persist.ts";
 
 const CONSENT_VERSION = "qs-consent-2026.10-1";
@@ -58,12 +59,14 @@ Deno.serve(async (req) => {
   const report = composeReport(answers);
   const a = report.answers;
   const reportNumber = await reportNumberFor(d.email, d.startedAt, a);
-  // In testmodus en zonder geverifieerd verzenddomein wordt niets verzonden.
-  const deliveryStatus = "niet_geconfigureerd";
+  const deliveryStatus = mayReceiveReportMail(d.email) ? "pending" : "niet_geconfigureerd";
 
   // Herhaalde indiening: geef het reeds opgeslagen rapport terug, zonder nieuwe records of rate-limitverbruik.
   const existing = await findExisting(store, reportNumber);
-  if (existing) return json({ ok: true, report: existing, deliveryStatus, duplicate: true });
+  if (existing) {
+    const { data: stored } = await db.from("quickscan_reports").select("delivery_status").eq("report_number", reportNumber).maybeSingle();
+    return json({ ok: true, report: existing, deliveryStatus: stored?.delivery_status ?? "failed", duplicate: true });
+  }
 
   // Rate limiting per IP (gehasht), per uur.
   const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || "onbekend";
@@ -99,16 +102,22 @@ Deno.serve(async (req) => {
     },
     events: [
       { event_type: "rapport_aangemaakt", detail: reportNumber },
-      { event_type: "email_niet_verzonden", detail: `Modus ${MAIL_MODE}: verzenddomein nog niet geverifieerd` },
+      { event_type: "email_voorbereid", detail: `Modus ${MAIL_MODE}` },
     ],
   });
   if (!result.ok) return json({ error: result.error }, result.status);
-  if (result.duplicate || !mayReceiveTestMail(d.email)) return json({ ok: true, report: result.snapshot, deliveryStatus, duplicate: result.duplicate });
+  if (result.duplicate || !mayReceiveReportMail(d.email)) return json({ ok: true, report: result.snapshot, deliveryStatus, duplicate: result.duplicate });
 
-  // Testmodus: enkel het testadres ontvangt het rapport met PDF-bijlage.
+  // Het opgeslagen snapshot wordt bezorgd; mailfouten wijzigen de registratie niet.
   let sent: { status: string; detail?: string };
   try { sent = await sendReportMail(result.snapshot, meta, d.email, d.firstName); }
   catch (e) { console.error("Rapportmail mislukt", e); sent = { status: "failed", detail: "PDF of mail mislukt" }; }
+  for (const recipient of resolveRecipients("lead_notification", null)) {
+    const notice = await sendMail({ from: MAIL_SENDER, to: [recipient], reply_to: d.email,
+      subject: `DIMAC | Nieuwe Quickscan ${reportNumber}`,
+      text: `Nieuwe Quickscan-aanvraag\n\nNaam: ${meta.name}\nE-mail: ${d.email}\nTelefoon: ${d.phone || "Niet opgegeven"}\nGemeente: ${d.municipality}\nWoningtype: ${a.Q02}\nRapportnummer: ${reportNumber}\nRapportmail: ${sent.status}\nMarketingtoestemming: ${d.marketingConsent ? "Ja" : "Nee"}` }, `quickscan-notice-${reportNumber}`);
+    await db.from("quickscan_events").insert({ lead_id: (await db.from("quickscan_reports").select("lead_id").eq("report_number", reportNumber).single()).data?.lead_id, event_type: `lead_notification_${notice.status}`, detail: reportNumber });
+  }
   await db.from("quickscan_reports").update({ delivery_status: sent.status }).eq("report_number", reportNumber);
   return json({ ok: true, report: result.snapshot, deliveryStatus: sent.status, duplicate: false });
 });

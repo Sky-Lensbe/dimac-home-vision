@@ -243,8 +243,8 @@ describe("2.2.1 rapport, PDF en testmodus", () => {
     expect(pdf).not.toMatch(/from "@\/lib\/quickscan"[^;]*buildReport/);
   });
   it("22. testmodus en mailbeleid blijven ongewijzigd", () => {
-    expect(MAIL_MODE).toBe("test");
-    expect(resolveRecipients("report", "klant@example.com")).toEqual(["info@sky-lens.be"]);
-    expect(resolveRecipients("lead_notification", null)).toEqual(["info@sky-lens.be"]);
+    expect(MAIL_MODE).toBe("production");
+    expect(resolveRecipients("report", "klant@example.com", "test")).toEqual(["info@sky-lens.be"]);
+    expect(resolveRecipients("lead_notification", null, "test")).toEqual(["info@sky-lens.be"]);
   });
 });

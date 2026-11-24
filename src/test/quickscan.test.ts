@@ -223,13 +223,13 @@ describe("algemene logica (25–36)", () => {
     for (const k of ["profile", "points", "energy", "notices", "unknown", "combinations", "summary", "nextStep", "apartment", "context", "limits"]) expect(r).toHaveProperty(k);
   });
   it("35. testmailbeleid is ongewijzigd", () => {
-    expect(MAIL_MODE).toBe("test");
-    expect(resolveRecipients("report", "klant@example.com")).toEqual(["info@sky-lens.be"]);
+    expect(MAIL_MODE).toBe("production");
+    expect(resolveRecipients("report", "klant@example.com", "test")).toEqual(["info@sky-lens.be"]);
   });
   it("36. geen mails naar klanten of DIMAC", () => {
-    expect(() => assertAllowedRecipient("info@dimac.be")).toThrow();
-    expect(() => assertAllowedRecipient("klant@example.com")).toThrow();
-    expect(resolveRecipients("lead_notification", null)).toEqual(["info@sky-lens.be"]);
+    expect(() => assertAllowedRecipient("info@dimac.be", "test")).toThrow();
+    expect(() => assertAllowedRecipient("klant@example.com", "test")).toThrow();
+    expect(resolveRecipients("lead_notification", null, "test")).toEqual(["info@sky-lens.be"]);
   });
 });
 

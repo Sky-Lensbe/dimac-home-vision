@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      contact_submissions: {
+        Row: {
+          confirmation_status: string
+          created_at: string
+          email: string
+          form_type: string
+          id: string
+          name: string
+          owner_status: string
+          payload: Json
+        }
+        Insert: {
+          confirmation_status?: string
+          created_at?: string
+          email: string
+          form_type: string
+          id: string
+          name: string
+          owner_status?: string
+          payload: Json
+        }
+        Update: {
+          confirmation_status?: string
+          created_at?: string
+          email?: string
+          form_type?: string
+          id?: string
+          name?: string
+          owner_status?: string
+          payload?: Json
+        }
+        Relationships: []
+      }
       quickscan_events: {
         Row: {
           created_at: string

@@ -1,9 +1,10 @@
-/** Test-mode report mail: server PDF (strict assets) + Resend via the connector gateway.
- * Only the test allowlist (mail-policy) can receive; any other visitor gets no mail. */
+/** Snapshot PDF delivery; recipients are guarded by the central mail policy. */
 import { jsPDF } from "npm:jspdf@4.2.1";
 import { renderSnapshotPdf as render233 } from "./pdf/render233.ts";
 import { renderSnapshotPdf as render234 } from "./pdf/render234.ts";
-import { MAIL_MODE, TEST_ALLOWLIST } from "./mail-policy.ts";
+import { mayReceiveReportMail } from "./mail-policy.ts";
+import { sendMail } from "../mail.ts";
+import { renderSnapshotPdf as historical } from "./pdf/historical-frozen.ts";
 import { reportEmail } from "./delivery.ts";
 
 const ASSET_BASE = "https://id-preview--9898680e-4724-4e20-8227-2a5082382f19.lovable.app/__l5e/assets-v1";
@@ -16,17 +17,8 @@ const ASSETS: Record<string, string> = {
   "dimac-gebouw.png": "5d196c5f-fe0f-4c92-991d-cee2ea4d2f2d",
   "dimac-woning.png": "6ce414ea-2c41-46da-8f2a-417ba6b568c7",
 };
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/resend";
-
-export function mayReceiveTestMail(email: string): boolean {
-  return MAIL_MODE === "test" && (TEST_ALLOWLIST as readonly string[]).includes(email.trim().toLowerCase());
-}
-
 export async function sendReportMail(snapshot: any, meta: { reportNumber: string; name: string; municipality: string; date: string }, email: string, firstName: string) {
-  if (!mayReceiveTestMail(email)) return { status: "niet_geconfigureerd" as const };
-  const lovableKey = Deno.env.get("LOVABLE_API_KEY");
-  const resendKey = Deno.env.get("RESEND_API_KEY");
-  if (!lovableKey || !resendKey) return { status: "failed" as const, detail: "Mailsleutels ontbreken" };
+  if (!mayReceiveReportMail(email)) return { status: "niet_geconfigureerd" as const };
   const ids = ASSETS;
   const deps = {
     jsPDF,
@@ -41,7 +33,7 @@ export async function sendReportMail(snapshot: any, meta: { reportNumber: string
     vatLabel: "incl. 21% btw",
   };
   // 2.3.4-rapporten krijgen de nieuwe premium renderer; 2.3.3 behoudt haar eigen renderpad.
-  const render = snapshot?.reportVersion === "qs-report-2.3.4" ? render234 : render233;
+  const render = snapshot?.reportVersion === "qs-report-2.3.4" ? render234 : snapshot?.reportVersion === "qs-report-2.3.3" ? render233 : historical;
   const pdf = await render(snapshot, meta, deps as never, { strictAssets: true, load: async (name: string) => {
     const id = ids[name];
     if (!id) throw new Error(`ASSET_UNKNOWN ${name}`);
@@ -54,21 +46,5 @@ export async function sendReportMail(snapshot: any, meta: { reportNumber: string
   let bin = "";
   for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
   const mail = reportEmail(firstName, meta.reportNumber, "https://dimac-home-vision.lovable.app/logo-dimac.png");
-  let res: Response;
-  try {
-    res = await fetch(`${GATEWAY_URL}/emails`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${lovableKey}`, "X-Connection-Api-Key": resendKey, "Idempotency-Key": `quickscan-report-${meta.reportNumber}` },
-      body: JSON.stringify({ ...mail, to: [email.trim().toLowerCase()], attachments: [{ filename: `DIMAC-Quickscan-${meta.reportNumber}.pdf`, content: btoa(bin) }] }),
-    });
-  } catch (e) {
-    console.error("Resend onbereikbaar", e);
-    return { status: "failed" as const, detail: "Afleverdienst onbereikbaar (uitkomst onzeker)" };
-  }
-  if (!res.ok) {
-    const body = await res.text();
-    console.error(`Resend [${res.status}]: ${body}`);
-    return { status: "failed" as const, detail: `Resend ${res.status}` };
-  }
-  return { status: "accepted" as const };
+  return await sendMail({ ...mail, to: [email.trim().toLowerCase()], attachments: [{ filename: `DIMAC-Quickscan-${meta.reportNumber}.pdf`, content: btoa(bin) }] }, `quickscan-report-${meta.reportNumber}`);
 }

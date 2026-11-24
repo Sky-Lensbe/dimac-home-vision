@@ -304,8 +304,8 @@ const LeadForm = ({ answers, startedAt, onBack, onDone }: { answers: Answers; st
             <input id="website" tabIndex={-1} autoComplete="off" value={f.website} onChange={(e) => set("website")(e.target.value)} />
           </div>
           <p className="sm:col-span-2 text-sm text-muted-foreground leading-relaxed">
-            Wij gebruiken uw gegevens om uw persoonlijke woningrapport op te maken, te bewaren en beschikbaar te stellen. Wanneer de e-maillevering actief is, ontvangt u het rapport ook per e-mail. Lees onze{" "}
-            <Link to="/privacy" className="text-accent underline underline-offset-2">privacyverklaring</Link>. Momenteel blijft de e-maillevering beperkt tot toegestane tests. Voor deze gratis dienst gelden de{" "}
+            Wij gebruiken uw gegevens om uw persoonlijke woningrapport op te maken, te bewaren en beschikbaar te stellen. Uw rapport wordt ook als PDF per e-mail aangevraagd. Lees onze{" "}
+            <Link to="/privacy" className="text-accent underline underline-offset-2">privacyverklaring</Link>. Voor deze gratis dienst gelden de{" "}
             <Link to="/algemene-voorwaarden#quickscan" className="text-accent underline underline-offset-2">Quickscan-voorwaarden</Link>.
           </p>
           <label className="sm:col-span-2 flex items-start gap-3 text-sm text-muted-foreground leading-relaxed cursor-pointer">

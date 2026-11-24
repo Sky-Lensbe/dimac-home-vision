@@ -7,16 +7,14 @@ import { PageHero } from "@/components/site/PageHero";
 import { FAQ } from "@/components/site/FAQ";
 import { ImagePlaceholder } from "@/components/site/ImagePlaceholder";
 import {
-  ConsentField,
-  HandoffMessage,
-  MailtoNotice,
+  RequestPrivacyNotice,
   SelectField,
   TextAreaField,
   TextField,
 } from "@/components/site/FormFields";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { breadcrumbSchema, faqSchema, organizationSchema } from "@/lib/site";
-import { buildMailto, openMailto } from "@/lib/mailto";
+import { RequestDelivery, useRequestDelivery } from "@/components/site/RequestDelivery";
 import { track } from "@/lib/analytics";
 import renoAsset from "@/assets/total-realisation.jpg.asset.json";
 
@@ -80,8 +78,7 @@ const Totaalrenovaties = () => {
     phone: "",
     message: "",
   });
-  const [consent, setConsent] = useState(false);
-  const [sent, setSent] = useState(false);
+  const delivery = useRequestDelivery("renovation");
   const started = useRef(false);
 
   useEffect(() => {
@@ -96,27 +93,10 @@ const Totaalrenovaties = () => {
     setF((x) => ({ ...x, [k]: v }));
   };
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
-    const url = buildMailto(
-      "Renovatieplannen bespreken",
-      [
-        ["Type renovatie", f.type],
-        ["Locatie", f.location],
-        ["Indicatief budget", f.budget],
-        ["Gewenste start", f.start],
-        ["Omvang", f.scope],
-        ["Gewenste aanpak", f.approach],
-        ["Naam", f.name],
-        ["E-mail", f.email],
-        ["Telefoon", f.phone],
-        ["Toelichting", f.message],
-      ],
-      "Beste Dimac, graag bespreek ik mijn renovatieplannen."
-    );
-    track("renovation_mailto_handoff", { page_type: "totaalrenovaties" });
-    openMailto(url);
-    setSent(true);
+    const { type, ...fields } = f;
+    if (await delivery.send({ ...fields, renovationType: type })) track("renovation_request_saved", { page_type: "totaalrenovaties" });
   };
 
   return (
@@ -245,12 +225,11 @@ const Totaalrenovaties = () => {
             <TextField id="phone" type="tel" label="Telefoon" autoComplete="tel" className="sm:col-span-2" value={f.phone} onChange={set("phone")} />
             <TextAreaField id="message" label="Toelichting" className="sm:col-span-2" rows={4} value={f.message} onChange={set("message")} />
             <div className="sm:col-span-2 space-y-5">
-              <ConsentField checked={consent} onChange={setConsent} />
-              <Button type="submit" size="lg" className="w-full sm:w-auto">
-                Aanvraag voorbereiden <ArrowRight />
+              <RequestPrivacyNotice />
+              <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={delivery.pending}>
+                {delivery.pending ? "Bezig met verzenden…" : "Aanvraag verzenden"} <ArrowRight />
               </Button>
-              <MailtoNotice />
-              {sent && <HandoffMessage />}
+              <RequestDelivery delivery={delivery} />
             </div>
           </form>
         </div>

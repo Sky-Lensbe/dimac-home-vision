@@ -13,19 +13,17 @@ import {
   ONLINE_PRODUCTS,
   PHYSICAL_PRODUCTS,
   VAT_LABEL,
-  WONINGSCAN_MAIL_MODE,
   formatEuro,
   formatPrice,
   getPackage,
   getProduct,
   scanTotal,
   parseScanParams,
-  woningscanRecipient,
   type PackageId,
   type ScanProduct,
   type Situation,
 } from "@/data/woningscan";
-import { buildMailto, openMailto } from "@/lib/mailto";
+import { RequestDelivery, useRequestDelivery } from "@/components/site/RequestDelivery";
 import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 import inspectie from "@/assets/inspecteur-inkomhal.png.asset.json";
@@ -252,7 +250,7 @@ const Woningscan = () => {
   const [situation, setSituation] = useState<Situation | null>(initialSituation);
   const [selected, setSelected] = useState<PackageId | null>(initial);
   const [drone, setDrone] = useState(false);
-  const [sent, setSent] = useState(false);
+  const delivery = useRequestDelivery("woningscan");
   const [form, setForm] = useState({ name: "", email: "", phone: "", address: "", timing: "", message: "" });
   const formRef = useRef<HTMLDivElement>(null);
   const started = useRef(false);
@@ -293,7 +291,6 @@ const Woningscan = () => {
 
   const choose = (id: PackageId) => {
     setSelected(id);
-    setSent(false);
     track("woningscan_package_select", { page_type: "woningscan", item_id: id });
     requestAnimationFrame(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
   };
@@ -304,34 +301,12 @@ const Woningscan = () => {
   };
 
   const pkg = selected ? getPackage(selected) : undefined;
-  const recipient = woningscanRecipient();
-  const testMode = WONINGSCAN_MAIL_MODE === "test";
-
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!pkg) return;
-    const total = scanTotal(pkg.id, drone);
-    const url = buildMailto(
-      `${testMode ? "[TEST] " : ""}Aanvraag ${pkg.name}${drone ? " + drone" : ""}`,
-      [
-        ["Pakket", `${pkg.name} (${formatEuro(pkg.price)} ${VAT_LABEL})`],
-        ["Drone-dakscreening", drone ? `Ja (+${formatEuro(DRONE_OPTION.price)} ${VAT_LABEL})` : "Nee"],
-        [`Totaal ${VAT_LABEL}`, formatEuro(total)],
-        ["Situatie", situation ? SITUATIONS[situation].label : ""],
-        ["Naam", form.name],
-        ["E-mail", form.email],
-        ["Telefoon", form.phone],
-        ["Adres van de woning", form.address],
-        ["Gewenste periode", form.timing],
-        ["Toelichting", form.message],
-        ...(quickscanRef ? ([["Quickscan-rapport", quickscanRef]] as [string, string][]) : []),
-      ],
-      `Beste Dimac, graag vraag ik een ${pkg.name} aan.`,
-      recipient
-    );
-    track("woningscan_mailto_handoff", { page_type: "woningscan", item_id: pkg.id, value: total });
-    openMailto(url);
-    setSent(true);
+    if (await delivery.send({ ...form, packageId: pkg.id, drone, situation, reportRef: quickscanRef })) {
+      track("woningscan_request_saved", { page_type: "woningscan", item_id: pkg.id, value: scanTotal(pkg.id, drone) });
+    }
   };
 
   return (
@@ -569,7 +544,7 @@ const Woningscan = () => {
                     type="button"
                     role="radio"
                     aria-checked={selected === p.id}
-                    onClick={() => { setSelected(p.id as PackageId); setSent(false); track("woningscan_package_select", { page_type: "woningscan", item_id: p.id }); }}
+                    onClick={() => { setSelected(p.id as PackageId); track("woningscan_package_select", { page_type: "woningscan", item_id: p.id }); }}
                     className={cn(
                       "focus-ring min-h-[44px] px-3 py-2 border text-sm text-left transition-colors",
                       selected === p.id ? "border-accent text-primary bg-background" : "border-border text-primary fine:hover:border-primary/40"
@@ -659,25 +634,11 @@ const Woningscan = () => {
                 <Link to="/algemene-voorwaarden" className="text-accent underline underline-offset-2 focus-ring">algemene voorwaarden</Link> en de informatie over het{" "}
                 <Link to="/algemene-voorwaarden#herroepingsrecht" className="text-accent underline underline-offset-2 focus-ring">herroepingsrecht</Link>. DIMAC bevestigt de opdracht afzonderlijk.
               </p>
-              <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={!pkg}>
-                {pkg ? `${pkg.name} aanvragen — ${formatEuro(scanTotal(pkg.id, drone))}` : "Kies eerst een Woningscan"}
+              <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={!pkg || delivery.pending}>
+                {delivery.pending ? "Bezig met verzenden…" : pkg ? `${pkg.name} aanvragen — ${formatEuro(scanTotal(pkg.id, drone))}` : "Kies eerst een Woningscan"}
                 <ArrowRight />
               </Button>
-              <p className="text-xs text-muted-foreground leading-relaxed flex gap-2">
-                <Mail className="w-4 h-4 text-accent shrink-0 mt-0.5" aria-hidden="true" />
-                <span>
-                  Na het klikken opent uw e-mailprogramma met een ingevuld bericht. Uw aanvraag is pas verstuurd wanneer u
-                  dat bericht zelf verzendt.
-                  {testMode && ` Testmodus: het bericht is uitsluitend gericht aan ${recipient}.`}
-                </span>
-              </p>
-              {sent && pkg && (
-                <div role="status" className="border-l-2 border-accent bg-accent-soft/50 p-5 text-sm text-primary leading-relaxed">
-                  <strong className="block mb-1">Uw bericht voor {pkg.name} is voorbereid.</strong>
-                  Controleer en verzend het bericht in uw e-mailprogramma om de aanvraag af te ronden. Zonder verzending
-                  ontvangen wij niets.
-                </div>
-              )}
+              <RequestDelivery delivery={delivery} />
             </div>
           </form>
         </div>

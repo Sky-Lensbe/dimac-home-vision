@@ -1,5 +1,11 @@
 # Roadmap
 
+## Automatische verzending
+- [ ] Quickscan PDF naar aanvrager en interne melding naar DIMAC activeren
+- [ ] Contact-, renovatie- en Woningscan-aanvragen automatisch verzenden
+- [ ] Beveiligde bewaarkopie van aanvragen, met status bij mailproblemen
+- [ ] Tests en echte formulierinzendingen controleren; niets publiceren
+
 ## Juridische frontend en launchaudit
 - [x] Audit bedrijfsgegevens, mailmodus, opslag, tracking en retentie
 - [x] Vier juridische pagina’s, herroepingsmodel en footerlinks

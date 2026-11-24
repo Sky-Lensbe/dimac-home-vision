@@ -1,7 +1,7 @@
 # AGENTS.md
 
 - Woningscan prices, product texts and the drone option live only in `supabase/functions/_shared/quickscan/catalog.ts` (no imports), re-exported by `src/data/woningscan.ts`; site, Quickscan recommendation and tests read from there so prices never drift.
-- Contact and Woningscan forms have no backend: they build a `mailto:` via `src/lib/mailto.ts` and must never show a "received" confirmation; the Woningscan form recipient comes from `woningscanRecipient()` (code-constant test mode, never env-based). The Quickscan is the exception and stores leads through the `quickscan-submit` function.
+- Contact, renovation and Woningscan forms use contact-submit: validate and persist to admin-only contact_submissions before provider sends; server derives package prices from catalog, idempotency keys prevent duplicate emails, and UI distinguishes saved requests from mailbox delivery.
 - Confirmed projects live in `src/data/developments.ts`; missing images and descriptive fields remain optional so incomplete records never require invented content. When empty, pages show the development approach instead of cards.
 - Indexing is off unless `VITE_ALLOW_INDEXING=true` (PageSEO forces noindex; robots.txt disallows) because the site is not live yet.
 - Analytics events go to `window.dataLayer` via `track()`; never include personal data, and a mailto handoff is not a sent message.
@@ -19,5 +19,5 @@
 - PDF snapshot layout lives in runtime-neutral `_shared/quickscan/pdf` with injected assets and formatting; browser adapters dispatch by stored report version, keeping historical rendering frozen and strict server asset validation so mail never silently substitutes fonts or omits the logo. Frozen local history is not proof of original release provenance.
 - User-facing information coverage is a report-only additive extension; never use it as a scoring or product-routing input, so more truthful display levels cannot change recommendations.
 - Version 2.3.4 browser and PDF presentation share `presentation234.ts`, which clones stored prose without recalculation; historical versions bypass it so editorial changes never mutate snapshots or decisions.
-- Delivery preparation uses dependency-injected worker ports and a non-applied SQL proposal under docs; absent provider/database adapters keep it inactive until separately approved configuration and migration. Ambiguous provider outcomes require reconciliation rather than blind retry.
+- Legacy delivery preparation uses dependency-injected worker ports and a non-applied SQL proposal under docs; absent provider/database adapters keep it inactive until separately approved configuration and migration. Ambiguous provider outcomes require reconciliation rather than blind retry.
 - Legal pages share LegalPage and frontend-only policy constants; prices are read from the existing catalog, and legal display values must never trigger billing, deletion or alter Quickscan decisions.

@@ -5,35 +5,23 @@ import { Button } from "@/components/ui/button";
 import { PageHero } from "@/components/site/PageHero";
 import {
   RequestPrivacyNotice,
-  HandoffMessage,
-  MailtoNotice,
   SelectField,
   TextAreaField,
   TextField,
 } from "@/components/site/FormFields";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { COMPANY, breadcrumbSchema, organizationSchema } from "@/lib/site";
-import { buildMailto, openMailto } from "@/lib/mailto";
+import { RequestDelivery, useRequestDelivery } from "@/components/site/RequestDelivery";
 import { track } from "@/lib/analytics";
 
 const Contact = () => {
   const [f, setF] = useState({ subject: "", name: "", email: "", phone: "", message: "" });
-  const [sent, setSent] = useState(false);
+  const delivery = useRequestDelivery("contact");
   const set = (k: keyof typeof f) => (v: string) => setF((x) => ({ ...x, [k]: v }));
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
-    openMailto(
-      buildMailto(`Contact via website${f.subject ? ` — ${f.subject}` : ""}`, [
-        ["Onderwerp", f.subject],
-        ["Naam", f.name],
-        ["E-mail", f.email],
-        ["Telefoon", f.phone],
-        ["Bericht", f.message],
-      ])
-    );
-    track("contact_mailto_handoff", { page_type: "contact" });
-    setSent(true);
+    if (await delivery.send(f)) track("contact_request_saved", { page_type: "contact" });
   };
 
   return (
@@ -94,11 +82,10 @@ const Contact = () => {
             <TextAreaField id="message" label="Bericht" required className="sm:col-span-2" value={f.message} onChange={set("message")} />
             <div className="sm:col-span-2 space-y-5">
               <RequestPrivacyNotice />
-              <Button type="submit" size="lg" className="w-full sm:w-auto">
-                Bericht voorbereiden <ArrowRight />
+              <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={delivery.pending}>
+                {delivery.pending ? "Bezig met verzenden…" : "Bericht verzenden"} <ArrowRight />
               </Button>
-              <MailtoNotice />
-              {sent && <HandoffMessage />}
+              <RequestDelivery delivery={delivery} />
             </div>
           </form>
         </div>

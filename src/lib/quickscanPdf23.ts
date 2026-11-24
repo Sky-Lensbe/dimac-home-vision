@@ -31,8 +31,18 @@ export const pdfDependencies: PdfDependencies = {
 export function reportPdfModel(r: QuickscanReport23, meta: ReportMeta) {
   return snapshotModel(r, meta, pdfDependencies);
 }
+/** Local Vite does not serve the managed asset route; use the same public project assets there. */
+async function loadPdfAsset(url: string): Promise<ArrayBuffer> {
+  const local = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+  const resolved = local && url.startsWith("/__l5e/assets-v1/")
+    ? `https://id-preview--9898680e-4724-4e20-8227-2a5082382f19.lovable.app${url}` : url;
+  const response = await fetch(resolved);
+  if (!response.ok || response.headers.get("content-type")?.includes("text/html")) throw new Error("PDF asset unavailable");
+  return response.arrayBuffer();
+}
 /** Dispatch solely by stored version. No engine call, no new report composition. */
 export function buildReportPdf23(r: QuickscanReport23, meta: ReportMeta, opts: PdfLoadOptions = {}): Promise<Blob> {
+  opts = { ...opts, load: opts.load ?? loadPdfAsset };
   if (r.reportVersion === "qs-report-2.3.4") return render234(r, meta, pdfDependencies as PdfDependencies234, opts);
   if (r.reportVersion === "qs-report-2.3.3") return renderSnapshotPdf(r, meta, pdfDependencies, opts);
   if (["qs-report-2.3", "qs-report-2.3.1", "qs-report-2.3.2"].includes(r.reportVersion)) return historicalPdf(r, meta, pdfDependencies, opts);

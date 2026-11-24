@@ -1,13 +1,14 @@
 /**
  * Centrale e-mailconfiguratie voor de Quickscan.
  *
- * TESTMODUS: alle mails gaan uitsluitend naar het toegestane testadres.
+ * Productie expliciet geactiveerd op verzoek: rapport naar aanvrager, melding naar DIMAC.
+ * In testmodus gaan mails uitsluitend naar het toegestane testadres.
  * Er gaat nooit iets naar klanten of naar DIMAC zolang MAIL_MODE "test" is.
  * Omschakelen naar productie gebeurt alleen door deze constante bewust
  * in code te wijzigen na uitdrukkelijke toestemming; nooit automatisch.
  */
 
-export const MAIL_MODE: "test" | "production" = "test";
+export const MAIL_MODE: "test" | "production" = "production";
 
 export const TEST_ALLOWLIST = ["info@sky-lens.be"] as const;
 
@@ -31,4 +32,9 @@ export function assertAllowedRecipient(address: string, mode: "test" | "producti
   if (mode !== "production" && !TEST_ALLOWLIST.includes(address.trim().toLowerCase() as (typeof TEST_ALLOWLIST)[number])) {
     throw new Error("Ontvanger niet toegestaan in testmodus");
   }
+}
+
+export function mayReceiveReportMail(email: string, mode: "test" | "production" = MAIL_MODE): boolean {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return false;
+  return mode === "production" || (TEST_ALLOWLIST as readonly string[]).includes(email.trim().toLowerCase());
 }
