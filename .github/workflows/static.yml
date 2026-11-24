@@ -39,15 +39,14 @@ jobs:
         with:
           node-version: 24
           cache: 'npm'
-      - run: npm i
+      - run: npm ci
       - run: npm run build
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload entire repository
-          path: 'src/'
+          path: 'dist/'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
